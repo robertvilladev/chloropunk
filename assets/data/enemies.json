@@ -1,0 +1,29 @@
+{
+  "slime": {
+    "type": "slime",
+    "health": 30,
+    "damage": 5,
+    "speed": 60,
+    "coinValue": 5,
+    "experienceValue": 10,
+    "spriteKey": "enemy_slime"
+  },
+  "goblin": {
+    "type": "goblin",
+    "health": 50,
+    "damage": 10,
+    "speed": 80,
+    "coinValue": 10,
+    "experienceValue": 20,
+    "spriteKey": "enemy_goblin"
+  },
+  "orc": {
+    "type": "orc",
+    "health": 100,
+    "damage": 15,
+    "speed": 50,
+    "coinValue": 20,
+    "experienceValue": 40,
+    "spriteKey": "enemy_orc"
+  }
+}

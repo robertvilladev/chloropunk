@@ -1,0 +1,52 @@
+{
+  "waves": [
+    {
+      "waveNumber": 1,
+      "duration": 30,
+      "enemyTypes": [
+        {
+          "type": "slime",
+          "weight": 1.0,
+          "count": 15
+        }
+      ]
+    },
+    {
+      "waveNumber": 2,
+      "duration": 40,
+      "enemyTypes": [
+        {
+          "type": "slime",
+          "weight": 0.7,
+          "count": 20
+        },
+        {
+          "type": "goblin",
+          "weight": 0.3,
+          "count": 8
+        }
+      ]
+    },
+    {
+      "waveNumber": 3,
+      "duration": 50,
+      "enemyTypes": [
+        {
+          "type": "slime",
+          "weight": 0.5,
+          "count": 25
+        },
+        {
+          "type": "goblin",
+          "weight": 0.4,
+          "count": 12
+        },
+        {
+          "type": "orc",
+          "weight": 0.1,
+          "count": 3
+        }
+      ]
+    }
+  ]
+}

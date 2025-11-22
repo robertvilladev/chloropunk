@@ -1,0 +1,27 @@
+{
+  "basicGun": {
+    "type": "basicGun",
+    "damage": 10,
+    "fireRate": 1,
+    "range": 300,
+    "projectileSpeed": 400,
+    "spriteKey": "projectile_basic"
+  },
+  "shotgun": {
+    "type": "shotgun",
+    "damage": 8,
+    "fireRate": 0.5,
+    "range": 200,
+    "projectileSpeed": 450,
+    "projectileCount": 3,
+    "spriteKey": "projectile_shotgun"
+  },
+  "rifle": {
+    "type": "rifle",
+    "damage": 25,
+    "fireRate": 0.3,
+    "range": 400,
+    "projectileSpeed": 600,
+    "spriteKey": "projectile_rifle"
+  }
+}
