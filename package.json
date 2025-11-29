@@ -8,11 +8,17 @@
     "dev": "vite --host",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage",
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.14",
+    "jsdom": "^27.2.0",
+    "terser": "^5.44.1",
     "typescript": "~5.9.3",
-    "vite": "^5.4.11"
+    "vite": "^5.4.11",
+    "vitest": "^4.0.14"
   },
   "main": "index.js",
   "dependencies": {
