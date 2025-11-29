@@ -8,7 +8,7 @@ import Phaser from "phaser";
 export class UIScene extends Phaser.Scene {
   private healthText!: Phaser.GameObjects.Text;
   private coinsText!: Phaser.GameObjects.Text;
-  private waveText!: Phaser.GameObjects.Text;
+  private timerText!: Phaser.GameObjects.Text;
 
   constructor() {
     super({ key: SCENE_KEYS.UI });
@@ -39,20 +39,27 @@ export class UIScene extends Phaser.Scene {
     this.coinsText.setOrigin(1, 0);
     this.coinsText.setDepth(DEPTH.UI);
 
-    // Bottom-center: Wave info
-    this.waveText = this.add.text(
+    // Top-center: Timer
+    this.timerText = this.add.text(
       this.cameras.main.width / 2,
-      this.cameras.main.height - 30,
-      "Wave 1 - 0:30",
+      20,
+      "Time: 0:20",
       {
-        fontSize: "20px",
+        fontSize: "24px",
         color: "#00ff00",
         backgroundColor: "#000000",
         padding: { x: 12, y: 6 },
       }
     );
-    this.waveText.setOrigin(0.5);
-    this.waveText.setDepth(DEPTH.UI);
+    this.timerText.setOrigin(0.5, 0);
+    this.timerText.setDepth(DEPTH.UI);
+
+    // Listen for game events
+    const gameScene = this.scene.get(SCENE_KEYS.GAME);
+    if (gameScene) {
+      gameScene.events.on('playerHealthChanged', this.updateHealth, this);
+      gameScene.events.on('timerUpdate', this.updateTimer, this);
+    }
 
     console.log("✓ UIScene: HUD initialized");
   }
@@ -72,12 +79,20 @@ export class UIScene extends Phaser.Scene {
   }
 
   /**
-   * Update wave display
+   * Update timer display
    */
-  updateWave(waveNumber: number, timeRemaining: number) {
+  updateTimer(timeRemaining: number) {
     const minutes = Math.floor(timeRemaining / 60);
     const seconds = Math.floor(timeRemaining % 60);
     const timeStr = `${minutes}:${seconds.toString().padStart(2, "0")}`;
-    this.waveText.setText(`Wave ${waveNumber} - ${timeStr}`);
+    
+    // Change color to red when less than 5 seconds
+    if (timeRemaining <= 5) {
+      this.timerText.setColor("#ff0000");
+    } else {
+      this.timerText.setColor("#00ff00");
+    }
+    
+    this.timerText.setText(`Time: ${timeStr}`);
   }
 }

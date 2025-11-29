@@ -1,8 +1,10 @@
 import { BootScene } from "@/scenes/BootScene";
 import { GameScene } from "@/scenes/GameScene";
+import { GameOverScene } from "@/scenes/GameOverScene";
 import { MenuScene } from "@/scenes/MenuScene";
 import { ShopScene } from "@/scenes/ShopScene";
 import { UIScene } from "@/scenes/UIScene";
+import { VictoryScene } from "@/scenes/VictoryScene";
 import Phaser from "phaser";
 import { GAME_CONFIG } from "./constants";
 
@@ -29,7 +31,15 @@ export const phaserConfig: Phaser.Types.Core.GameConfig = {
     },
   },
 
-  scene: [BootScene, MenuScene, GameScene, ShopScene, UIScene],
+  scene: [
+    BootScene,
+    MenuScene,
+    GameScene,
+    ShopScene,
+    UIScene,
+    GameOverScene,
+    VictoryScene,
+  ],
 
   scale: {
     mode: Phaser.Scale.FIT,
