@@ -1,6 +1,6 @@
-import Phaser from "phaser";
 import { EnemyFactory } from "@/entities/EnemyFactory";
 import { MathUtils } from "@/utils/MathUtils";
+import Phaser from "phaser";
 
 /**
  * EnemyManager - Handles all enemy-related logic
@@ -45,7 +45,7 @@ export class EnemyManager {
     this.spawnTimer += delta / 1000;
 
     if (this.spawnTimer >= this.spawnInterval) {
-      this.spawnEnemy("slime"); // Spawn a cigarette enemy
+      this.spawnEnemy("slime");
       this.spawnTimer = 0;
     }
   }
@@ -86,8 +86,9 @@ export class EnemyManager {
 
     enemy.setVelocity(velocity.x, velocity.y);
 
-    // Rotate sprite to face movement direction (for cigarette visual)
-    enemy.setRotation(angle);
+    // Rotate sprite to face movement direction
+    // Add Math.PI to point the burn tip (front) toward player
+    enemy.setRotation(angle + Math.PI);
   }
 
   /**
@@ -119,6 +120,9 @@ export class EnemyManager {
     const expValue = enemy.getData("experienceValue") || 0;
 
     console.log(`Enemy killed! +${coinValue} coins, +${expValue} XP`);
+
+    // Emit event for stat tracking
+    this.scene.events.emit('enemyKilled', coinValue, expValue);
 
     // TODO: Spawn coin at enemy position
     // TODO: Add death animation/particles

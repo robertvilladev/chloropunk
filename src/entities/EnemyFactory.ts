@@ -1,8 +1,8 @@
-import Phaser from "phaser";
-import { MathUtils } from "@/utils/MathUtils";
-import { GAME_CONFIG, DEPTH } from "@/config/constants";
+import { DEPTH, GAME_CONFIG } from "@/config/constants";
 import type { EnemyData } from "@/types";
+import { MathUtils } from "@/utils/MathUtils";
 import enemyDataJson from "@assets/data/enemies.json";
+import Phaser from "phaser";
 
 /**
  * EnemyFactory - Creates and configures enemy sprites
