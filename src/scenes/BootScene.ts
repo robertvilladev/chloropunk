@@ -81,9 +81,25 @@ export class BootScene extends Phaser.Scene {
     graphics.fillRect(0, 0, 32, 32);
     graphics.generateTexture("player", 32, 32);
 
-    // Enemy Slime (green blob)
+    // Enemy Cigarette (white with orange filter and burn tip)
     graphics.clear();
-    graphics.fillStyle(0x44ff44);
+    // Cigarette body (white)
+    graphics.fillStyle(0xffffff);
+    graphics.fillRoundedRect(2, 6, 28, 12, 2);
+    // Orange filter section
+    graphics.fillStyle(0xff8833);
+    graphics.fillRoundedRect(18, 6, 12, 12, 2);
+    // Black tip line
+    graphics.lineStyle(1, 0x000000);
+    graphics.lineBetween(18, 6, 18, 18);
+    // Burn mark at tip (this is the front)
+    graphics.fillStyle(0x8b4513);
+    graphics.fillCircle(3, 12, 2);
+    graphics.generateTexture("enemy_cigarette", 32, 24);
+
+    // Enemy Slime (green circle)
+    graphics.clear();
+    graphics.fillStyle(0x00ff00);
     graphics.fillCircle(16, 16, 16);
     graphics.generateTexture("enemy_slime", 32, 32);
 

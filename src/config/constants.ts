@@ -9,7 +9,7 @@ export const GAME_CONFIG = {
 
   // Gameplay
   SPAWN_DISTANCE: 650, // Distance from center to spawn enemies
-  WAVE_INTERVAL: 45, // Seconds between waves
+  WAVE_INTERVAL: 20, // Seconds per wave (20 for testing)
   PLAYER_START_X: 400,
   PLAYER_START_Y: 300,
 
@@ -35,6 +35,8 @@ export const SCENE_KEYS = {
   GAME: "GameScene",
   SHOP: "ShopScene",
   UI: "UIScene",
+  GAME_OVER: "GameOverScene",
+  VICTORY: "VictoryScene",
 } as const;
 
 export const ASSET_KEYS = {
