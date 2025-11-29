@@ -15,6 +15,7 @@ interface ShopUpgrade {
  */
 export class ShopManager {
   private scene: Phaser.Scene;
+  private purchasedUpgradeIds: Set<string> = new Set();
   private upgrades: ShopUpgrade[] = [
     {
       id: "health",
@@ -61,6 +62,8 @@ export class ShopManager {
     if (!upgrade) return false;
 
     if (coinManager.spendCoins(upgrade.cost)) {
+      // Track purchased upgrade
+      this.purchasedUpgradeIds.add(upgradeId);
       // Apply the upgrade
       this.applyUpgrade(upgrade);
       console.log(`Purchased ${upgrade.name}`);
@@ -68,6 +71,13 @@ export class ShopManager {
     }
 
     return false;
+  }
+
+  /**
+   * Get list of purchased upgrades
+   */
+  getPurchasedUpgrades(): ShopUpgrade[] {
+    return this.upgrades.filter((u) => this.purchasedUpgradeIds.has(u.id));
   }
 
   /**

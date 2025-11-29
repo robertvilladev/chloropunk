@@ -15,7 +15,7 @@ export class ShopScene extends Phaser.Scene {
     super({ key: SCENE_KEYS.SHOP });
   }
 
-  create() {
+  create(data: { coins?: number }) {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
 
@@ -24,6 +24,7 @@ export class ShopScene extends Phaser.Scene {
 
     // Initialize managers
     this.coinManager = new CoinManager(this);
+    this.coinManager.setCoinCount(data.coins || 0);
     this.shopManager = new ShopManager(this);
 
     // Title
