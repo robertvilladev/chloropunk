@@ -122,7 +122,13 @@ export class EnemyManager {
     console.log(`Enemy killed! +${coinValue} coins, +${expValue} XP`);
 
     // Emit event for stat tracking
-    this.scene.events.emit('enemyKilled', coinValue, expValue);
+    this.scene.events.emit(
+      "enemyKilled",
+      coinValue,
+      expValue,
+      enemy.x,
+      enemy.y
+    );
 
     // TODO: Spawn coin at enemy position
     // TODO: Add death animation/particles

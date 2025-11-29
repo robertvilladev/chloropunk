@@ -55,9 +55,9 @@ export class VictoryScene extends Phaser.Scene {
       height / 2 + 80,
       "CONTINUE",
       () => {
-        // TODO: Go to shop scene
+        // Go to shop scene
         this.scene.stop(SCENE_KEYS.UI);
-        this.scene.start(SCENE_KEYS.MENU);
+        this.scene.start(SCENE_KEYS.SHOP);
       }
     );
 

@@ -1,7 +1,9 @@
 import { SCENE_KEYS } from "@/config/constants";
+import { CoinManager } from "@/managers/CoinManager";
 import { EnemyManager } from "@/managers/EnemyManager";
 import { InputManager } from "@/managers/InputManager";
 import { PlayerManager } from "@/managers/PlayerManager";
+import { ShopManager } from "@/managers/ShopManager";
 import { WaveManager } from "@/managers/WaveManager";
 import { WeaponManager } from "@/managers/WeaponManager";
 import { WorldManager } from "@/managers/WorldManager";
@@ -24,11 +26,16 @@ export class GameScene extends Phaser.Scene {
   private worldManager!: WorldManager;
   private enemyManager!: EnemyManager;
   private weaponManager!: WeaponManager;
+  private coinManager!: CoinManager;
+  private shopManager!: ShopManager;
 
   // Round timer
   private roundTimeRemaining: number = 20; // 20 seconds for testing
   private roundDuration: number = 20;
-  
+
+  // Game speed control
+  private gameSpeed: number = 1;
+
   // Stats tracking
   private enemiesKilled: number = 0;
   private coinsEarned: number = 0;
@@ -57,7 +64,7 @@ export class GameScene extends Phaser.Scene {
     // 4. Initialize wave system
     this.waveManager = new WaveManager(this);
     this.waveManager.create();
-    this.waveManager.startWave(1); // Start first wave
+    this.waveManager.startWave(5); // Start first wave
 
     // 5. Initialize enemy system
     this.enemyManager = new EnemyManager(this);
@@ -67,7 +74,14 @@ export class GameScene extends Phaser.Scene {
     this.weaponManager = new WeaponManager(this);
     this.weaponManager.create();
 
-    // 7. Set up collision detection
+    // 7. Initialize coin system
+    this.coinManager = new CoinManager(this);
+    this.coinManager.create();
+
+    // 8. Initialize shop system
+    this.shopManager = new ShopManager(this);
+
+    // 9. Set up collision detection
     this.setupCollisions();
 
     // 8. Set up scene controls
@@ -83,10 +97,16 @@ export class GameScene extends Phaser.Scene {
     this.isGameOver = false;
 
     // Listen for player death
-    this.events.on('playerDied', this.onPlayerDeath, this);
-    
+    this.events.on("playerDied", this.onPlayerDeath, this);
+
     // Listen for enemy kills
-    this.events.on('enemyKilled', this.onEnemyKilled, this);
+    this.events.on("enemyKilled", this.onEnemyKilled, this);
+
+    // Listen for coin collection
+    this.events.on("coinCollected", this.onCoinCollected, this);
+
+    // Listen for speed changes
+    this.events.on("speedChanged", this.onSpeedChanged, this);
 
     console.log("✓ GameScene: Initialized with modular architecture");
   }
@@ -99,7 +119,7 @@ export class GameScene extends Phaser.Scene {
     if (this.isGameOver) return;
 
     // Update round timer
-    this.roundTimeRemaining -= delta / 1000;
+    this.roundTimeRemaining -= (delta / 1000) * this.gameSpeed;
     if (this.roundTimeRemaining <= 0) {
       this.roundTimeRemaining = 0;
       this.onRoundComplete();
@@ -113,17 +133,20 @@ export class GameScene extends Phaser.Scene {
     this.playerManager.update(movement.x, movement.y, delta);
 
     // 3. Update enemy system
-    this.enemyManager.update(delta, this.playerManager.getPosition());
+    this.enemyManager.update(
+      delta * this.gameSpeed,
+      this.playerManager.getPosition()
+    );
 
     // 4. Update weapon system
     this.weaponManager.update(
-      delta,
+      delta * this.gameSpeed,
       this.playerManager.getPosition(),
       this.enemyManager.getEnemies()
     );
 
     // 5. Update wave system
-    this.waveManager.update(delta);
+    this.waveManager.update(delta * this.gameSpeed);
 
     // 6. Update UI (via events)
     this.updateUI();
@@ -178,6 +201,18 @@ export class GameScene extends Phaser.Scene {
       undefined,
       this
     );
+
+    // Player <-> Coin collisions (collect coins)
+    this.physics.add.overlap(
+      this.playerManager.getSprite(),
+      this.coinManager.getCoinGroup(),
+      (_playerObj, coinObj) => {
+        const coin = coinObj as Phaser.Physics.Arcade.Sprite;
+        this.coinManager.collectCoin(coin);
+      },
+      undefined,
+      this
+    );
   }
 
   /**
@@ -197,7 +232,7 @@ export class GameScene extends Phaser.Scene {
     const uiScene = this.scene.get(SCENE_KEYS.UI);
     if (uiScene && uiScene.scene.isActive()) {
       // Send timer update
-      this.events.emit('timerUpdate', this.roundTimeRemaining);
+      this.events.emit("timerUpdate", this.roundTimeRemaining);
       // Other UI updates happen via events from managers
     }
   }
@@ -208,8 +243,8 @@ export class GameScene extends Phaser.Scene {
   private onPlayerDeath(): void {
     if (this.isGameOver) return;
     this.isGameOver = true;
-    
-    console.log('Game Over!');
+
+    console.log("Game Over!");
     this.scene.pause();
     this.scene.launch(SCENE_KEYS.GAME_OVER);
   }
@@ -221,7 +256,7 @@ export class GameScene extends Phaser.Scene {
     if (this.isGameOver) return;
     this.isGameOver = true;
 
-    console.log('Round Complete!');
+    console.log("Round Complete!");
     this.scene.pause();
     this.scene.launch(SCENE_KEYS.VICTORY, {
       enemiesKilled: this.enemiesKilled,
@@ -232,9 +267,33 @@ export class GameScene extends Phaser.Scene {
   /**
    * Handle enemy killed
    */
-  private onEnemyKilled(coinValue: number, _expValue: number): void {
+  private onEnemyKilled(
+    coinValue: number,
+    _expValue: number,
+    enemyX: number,
+    enemyY: number
+  ): void {
     this.enemiesKilled++;
     this.coinsEarned += coinValue;
+
+    // Spawn coin at enemy position
+    this.coinManager.spawnCoin(enemyX, enemyY, coinValue);
+  }
+
+  /**
+   * Handle coin collected
+   */
+  private onCoinCollected(_coinCount: number): void {
+    // Coin count is updated automatically by CoinManager
+    // UI will be updated via events
+  }
+
+  /**
+   * Handle speed change
+   */
+  private onSpeedChanged(speed: number): void {
+    this.gameSpeed = speed;
+    console.log(`Game speed changed to ${speed}x`);
   }
 
   /**
