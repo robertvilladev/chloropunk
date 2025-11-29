@@ -113,8 +113,8 @@ export class PlayerManager {
    * Handle player death
    */
   private onPlayerDeath(): void {
-    console.log('Player died!');
-    this.scene.events.emit('playerDied');
+    console.log("Player died!");
+    this.scene.events.emit("playerDied");
   }
 
   /**

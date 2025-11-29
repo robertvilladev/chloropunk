@@ -38,30 +38,63 @@ export class GameOverScene extends Phaser.Scene {
     subtitleText.setOrigin(0.5);
 
     // Retry button
-    const retryButton = this.createButton(
+    const retryButton = this.add.text(
       width / 2,
       height / 2 + 20,
       "TRY AGAIN",
-      () => {
-        this.scene.stop(SCENE_KEYS.UI);
-        this.scene.start(SCENE_KEYS.GAME);
+      {
+        fontSize: "24px",
+        color: "#ffffff",
+        backgroundColor: "#444444",
+        padding: { x: 20, y: 10 },
+        fontStyle: "bold",
       }
     );
+    retryButton.setOrigin(0.5);
+    retryButton.setInteractive({ useHandCursor: true });
+
+    // Retry button hover effects
+    retryButton.on("pointerover", () => {
+      retryButton.setStyle({ backgroundColor: "#666666" });
+    });
+    retryButton.on("pointerout", () => {
+      retryButton.setStyle({ backgroundColor: "#444444" });
+    });
+
+    // Retry button click
+    retryButton.on("pointerdown", () => {
+      this.scene.stop(SCENE_KEYS.UI);
+      this.scene.start(SCENE_KEYS.GAME);
+    });
 
     // Main menu button
-    const menuButton = this.createButton(
+    const menuButton = this.add.text(
       width / 2,
       height / 2 + 90,
       "MAIN MENU",
-      () => {
-        this.scene.stop(SCENE_KEYS.UI);
-        this.scene.start(SCENE_KEYS.MENU);
+      {
+        fontSize: "20px",
+        color: "#ffffff",
+        backgroundColor: "#444444",
+        padding: { x: 15, y: 8 },
       }
     );
+    menuButton.setOrigin(0.5);
+    menuButton.setInteractive({ useHandCursor: true });
 
-    // Add hover effects
-    this.addButtonEffects(retryButton);
-    this.addButtonEffects(menuButton);
+    // Menu button hover effects
+    menuButton.on("pointerover", () => {
+      menuButton.setStyle({ backgroundColor: "#666666" });
+    });
+    menuButton.on("pointerout", () => {
+      menuButton.setStyle({ backgroundColor: "#444444" });
+    });
+
+    // Menu button click
+    menuButton.on("pointerdown", () => {
+      this.scene.stop(SCENE_KEYS.UI);
+      this.scene.start(SCENE_KEYS.MENU);
+    });
 
     // ESC to menu
     this.input.keyboard?.once("keydown-ESC", () => {
@@ -70,51 +103,5 @@ export class GameOverScene extends Phaser.Scene {
     });
 
     console.log("✓ GameOverScene: Initialized");
-  }
-
-  private createButton(
-    x: number,
-    y: number,
-    text: string,
-    callback: () => void
-  ): Phaser.GameObjects.Container {
-    const button = this.add.container(x, y);
-
-    // Button background
-    const bg = this.add.rectangle(0, 0, 200, 50, 0x444444);
-    bg.setStrokeStyle(2, 0xffffff);
-
-    // Button text
-    const buttonText = this.add.text(0, 0, text, {
-      fontSize: "20px",
-      color: "#ffffff",
-      fontStyle: "bold",
-    });
-    buttonText.setOrigin(0.5);
-
-    button.add([bg, buttonText]);
-    button.setSize(200, 50);
-    button.setInteractive(
-      new Phaser.Geom.Rectangle(-100, -25, 200, 50),
-      Phaser.Geom.Rectangle.Contains
-    );
-
-    button.on("pointerdown", callback);
-
-    return button;
-  }
-
-  private addButtonEffects(button: Phaser.GameObjects.Container): void {
-    button.on("pointerover", () => {
-      button.setScale(1.1);
-      const bg = button.list[0] as Phaser.GameObjects.Rectangle;
-      bg.setFillStyle(0x666666);
-    });
-
-    button.on("pointerout", () => {
-      button.setScale(1.0);
-      const bg = button.list[0] as Phaser.GameObjects.Rectangle;
-      bg.setFillStyle(0x444444);
-    });
   }
 }
