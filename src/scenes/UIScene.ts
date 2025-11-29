@@ -209,8 +209,17 @@ export class UIScene extends Phaser.Scene {
    * Update stats display
    */
   updateStats(upgrade: { stat: string; value: number }): void {
-    // This would need to be connected to actual player stats
-    // For now, just log the upgrade
-    console.log(`Stat upgraded: ${upgrade.stat} +${upgrade.value}`);
+    // Fetch current player stats and update the display
+    const gameScene = this.scene.get(SCENE_KEYS.GAME) as any; // Use 'any' if GameScene type is not imported
+    if (gameScene && typeof gameScene.getPlayerStats === "function") {
+      const stats = gameScene.getPlayerStats();
+      this.statsText.setText(
+        `Health: ${stats.health}/${stats.maxHealth}\nSpeed: ${stats.speed}\nDamage: ${stats.damage}\nCoins: ${stats.coins}`
+      );
+    } else {
+      // Fallback: log the upgrade and warn about missing getPlayerStats
+      console.log(`Stat upgraded: ${upgrade.stat} +${upgrade.value}`);
+      console.warn("GameScene.getPlayerStats() not implemented.");
+    }
   }
 }
