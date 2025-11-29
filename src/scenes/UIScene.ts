@@ -97,6 +97,13 @@ export class UIScene extends Phaser.Scene {
       this.speedButtons.push(button);
     });
 
+    // Set up keyboard shortcuts once (outside button creation to avoid duplicates)
+    speeds.forEach((speed) => {
+      this.input.keyboard?.on(`keydown-${speed}`, () => {
+        this.setGameSpeed(speed);
+      });
+    });
+
     // Set initial active button
     this.updateSpeedButtons();
   }
@@ -132,11 +139,6 @@ export class UIScene extends Phaser.Scene {
 
     // Click handler
     button.on("pointerdown", () => {
-      this.setGameSpeed(speed);
-    });
-
-    // Keyboard shortcuts
-    this.input.keyboard?.on(`keydown-${speed}`, () => {
       this.setGameSpeed(speed);
     });
 
