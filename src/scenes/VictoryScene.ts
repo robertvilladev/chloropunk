@@ -55,9 +55,9 @@ export class VictoryScene extends Phaser.Scene {
       height / 2 + 80,
       "CONTINUE",
       () => {
-        // Go to shop scene
+        // Go to shop scene, passing coin count
         this.scene.stop(SCENE_KEYS.UI);
-        this.scene.start(SCENE_KEYS.SHOP);
+        this.scene.start(SCENE_KEYS.SHOP, { coins: this.coinsEarned });
       }
     );
 
