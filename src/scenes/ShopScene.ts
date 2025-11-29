@@ -15,7 +15,7 @@ export class ShopScene extends Phaser.Scene {
     super({ key: SCENE_KEYS.SHOP });
   }
 
-  create() {
+  create(data: { coins?: number }) {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
 
@@ -24,6 +24,7 @@ export class ShopScene extends Phaser.Scene {
 
     // Initialize managers
     this.coinManager = new CoinManager(this);
+    this.coinManager.setCoinCount(data.coins || 0);
     this.shopManager = new ShopManager(this);
 
     // Title
@@ -83,7 +84,10 @@ export class ShopScene extends Phaser.Scene {
     // Start button click
     startButton.on("pointerdown", () => {
       this.scene.stop(SCENE_KEYS.UI);
-      this.scene.start(SCENE_KEYS.GAME);
+      this.scene.start(SCENE_KEYS.GAME, {
+        upgrades: this.shopManager.getPurchasedUpgrades(),
+        coins: this.coinManager.getCoinCount(),
+      });
     });
 
     console.log("✓ ShopScene: Initialized");

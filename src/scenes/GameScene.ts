@@ -62,7 +62,7 @@ export class GameScene extends Phaser.Scene {
     // 4. Initialize wave system
     this.waveManager = new WaveManager(this);
     this.waveManager.create();
-    this.waveManager.startWave(5); // Start first wave
+    this.waveManager.startWave(1); // Start first wave
 
     // 5. Initialize enemy system
     this.enemyManager = new EnemyManager(this);
@@ -279,8 +279,9 @@ export class GameScene extends Phaser.Scene {
    * Handle coin collected
    */
   private onCoinCollected(_coinCount: number): void {
-    // Coin count is updated automatically by CoinManager
-    // UI will be updated via events
+    // This handler is intentionally left empty.
+    // Coin count is updated automatically by CoinManager and UI is updated via events.
+    // This method exists for future extensibility (e.g., analytics tracking, custom effects).
   }
 
   /**

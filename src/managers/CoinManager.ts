@@ -98,6 +98,14 @@ export class CoinManager {
   }
 
   /**
+   * Set coin count (used when transferring state between scenes)
+   */
+  setCoinCount(count: number): void {
+    this.coinCount = count;
+    this.scene.events.emit("coinCollected", this.coinCount);
+  }
+
+  /**
    * Reset coin count
    */
   resetCoins(): void {
