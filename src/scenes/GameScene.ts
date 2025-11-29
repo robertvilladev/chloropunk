@@ -3,7 +3,6 @@ import { CoinManager } from "@/managers/CoinManager";
 import { EnemyManager } from "@/managers/EnemyManager";
 import { InputManager } from "@/managers/InputManager";
 import { PlayerManager } from "@/managers/PlayerManager";
-import { ShopManager } from "@/managers/ShopManager";
 import { WaveManager } from "@/managers/WaveManager";
 import { WeaponManager } from "@/managers/WeaponManager";
 import { WorldManager } from "@/managers/WorldManager";
@@ -27,7 +26,6 @@ export class GameScene extends Phaser.Scene {
   private enemyManager!: EnemyManager;
   private weaponManager!: WeaponManager;
   private coinManager!: CoinManager;
-  private shopManager!: ShopManager;
 
   // Round timer
   private roundTimeRemaining: number = 20; // 20 seconds for testing
@@ -78,16 +76,13 @@ export class GameScene extends Phaser.Scene {
     this.coinManager = new CoinManager(this);
     this.coinManager.create();
 
-    // 8. Initialize shop system
-    this.shopManager = new ShopManager(this);
-
-    // 9. Set up collision detection
+    // 8. Set up collision detection
     this.setupCollisions();
 
-    // 8. Set up scene controls
+    // 9. Set up scene controls
     this.setupSceneControls();
 
-    // 9. Launch UI overlay
+    // 10. Launch UI overlay
     this.scene.launch(SCENE_KEYS.UI);
 
     // 10. Initialize round timer

@@ -57,15 +57,34 @@ export class ShopScene extends Phaser.Scene {
     this.createUpgradeButtons();
 
     // Start game button
-    const startButton = this.createButton(
+    const startButton = this.add.text(
       width / 2,
       height - 60,
       "START NEXT ROUND",
-      () => {
-        this.scene.stop(SCENE_KEYS.UI);
-        this.scene.start(SCENE_KEYS.GAME);
+      {
+        fontSize: "24px",
+        color: "#ffffff",
+        backgroundColor: "#228b22",
+        padding: { x: 20, y: 10 },
+        fontStyle: "bold",
       }
     );
+    startButton.setOrigin(0.5);
+    startButton.setInteractive({ useHandCursor: true });
+
+    // Start button hover effects
+    startButton.on("pointerover", () => {
+      startButton.setStyle({ backgroundColor: "#32cd32" });
+    });
+    startButton.on("pointerout", () => {
+      startButton.setStyle({ backgroundColor: "#228b22" });
+    });
+
+    // Start button click
+    startButton.on("pointerdown", () => {
+      this.scene.stop(SCENE_KEYS.UI);
+      this.scene.start(SCENE_KEYS.GAME);
+    });
 
     console.log("✓ ShopScene: Initialized");
   }
@@ -114,10 +133,7 @@ export class ShopScene extends Phaser.Scene {
 
     button.add([bg, nameText, costText, descText]);
     button.setSize(300, 60);
-    button.setInteractive(
-      new Phaser.Geom.Rectangle(-150, -30, 300, 60),
-      Phaser.Geom.Rectangle.Contains
-    );
+    button.setInteractive({ useHandCursor: true });
 
     // Click handler
     button.on("pointerdown", () => {
@@ -141,48 +157,5 @@ export class ShopScene extends Phaser.Scene {
       button.setScale(1.0);
       bg.setFillStyle(0x444444);
     });
-  }
-
-  private createButton(
-    x: number,
-    y: number,
-    text: string,
-    callback: () => void
-  ): Phaser.GameObjects.Container {
-    const button = this.add.container(x, y);
-
-    // Button background
-    const bg = this.add.rectangle(0, 0, 200, 50, 0x228b22);
-    bg.setStrokeStyle(2, 0xffffff);
-
-    // Button text
-    const buttonText = this.add.text(0, 0, text, {
-      fontSize: "18px",
-      color: "#ffffff",
-      fontStyle: "bold",
-    });
-    buttonText.setOrigin(0.5);
-
-    button.add([bg, buttonText]);
-    button.setSize(200, 50);
-    button.setInteractive(
-      new Phaser.Geom.Rectangle(-100, -25, 200, 50),
-      Phaser.Geom.Rectangle.Contains
-    );
-
-    button.on("pointerdown", callback);
-
-    // Hover effects
-    button.on("pointerover", () => {
-      button.setScale(1.05);
-      bg.setFillStyle(0x32cd32);
-    });
-
-    button.on("pointerout", () => {
-      button.setScale(1.0);
-      bg.setFillStyle(0x228b22);
-    });
-
-    return button;
   }
 }

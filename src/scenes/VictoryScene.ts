@@ -50,31 +50,58 @@ export class VictoryScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     // Continue button
-    const continueButton = this.createButton(
+    const continueButton = this.add.text(
       width / 2,
       height / 2 + 80,
       "CONTINUE",
-      () => {
-        // Go to shop scene
-        this.scene.stop(SCENE_KEYS.UI);
-        this.scene.start(SCENE_KEYS.SHOP);
+      {
+        fontSize: "24px",
+        color: "#00ff00",
+        backgroundColor: "#004400",
+        padding: { x: 20, y: 10 },
+        fontStyle: "bold",
       }
     );
+    continueButton.setOrigin(0.5);
+    continueButton.setInteractive({ useHandCursor: true });
+
+    // Continue button hover effects
+    continueButton.on("pointerover", () => {
+      continueButton.setStyle({ color: "#ffffff", backgroundColor: "#00aa00" });
+    });
+    continueButton.on("pointerout", () => {
+      continueButton.setStyle({ color: "#00ff00", backgroundColor: "#004400" });
+    });
+
+    // Continue button click
+    continueButton.on("pointerdown", () => {
+      this.scene.stop(SCENE_KEYS.UI);
+      this.scene.start(SCENE_KEYS.SHOP);
+    });
 
     // Main menu button
-    const menuButton = this.createButton(
-      width / 2,
-      height / 2 + 150,
-      "MAIN MENU",
-      () => {
-        this.scene.stop(SCENE_KEYS.UI);
-        this.scene.start(SCENE_KEYS.MENU);
-      }
-    );
+    const menuButton = this.add.text(width / 2, height / 2 + 150, "MAIN MENU", {
+      fontSize: "20px",
+      color: "#ffffff",
+      backgroundColor: "#444444",
+      padding: { x: 15, y: 8 },
+    });
+    menuButton.setOrigin(0.5);
+    menuButton.setInteractive({ useHandCursor: true });
 
-    // Add hover effects
-    this.addButtonEffects(continueButton);
-    this.addButtonEffects(menuButton);
+    // Menu button hover effects
+    menuButton.on("pointerover", () => {
+      menuButton.setStyle({ color: "#ffffff", backgroundColor: "#666666" });
+    });
+    menuButton.on("pointerout", () => {
+      menuButton.setStyle({ color: "#ffffff", backgroundColor: "#444444" });
+    });
+
+    // Menu button click
+    menuButton.on("pointerdown", () => {
+      this.scene.stop(SCENE_KEYS.UI);
+      this.scene.start(SCENE_KEYS.MENU);
+    });
 
     console.log("✓ VictoryScene: Initialized");
   }
@@ -116,12 +143,6 @@ export class VictoryScene extends Phaser.Scene {
       button.setScale(1.1);
       const bg = button.list[0] as Phaser.GameObjects.Rectangle;
       bg.setFillStyle(0x666666);
-    });
-
-    button.on("pointerout", () => {
-      button.setScale(1.0);
-      const bg = button.list[0] as Phaser.GameObjects.Rectangle;
-      bg.setFillStyle(0x444444);
     });
   }
 }
