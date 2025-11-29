@@ -63,7 +63,10 @@ export class ShopScene extends Phaser.Scene {
       "START NEXT ROUND",
       () => {
         this.scene.stop(SCENE_KEYS.UI);
-        this.scene.start(SCENE_KEYS.GAME);
+        this.scene.start(SCENE_KEYS.GAME, {
+          upgrades: this.shopManager.getPurchasedUpgrades(),
+          coins: this.coinManager.getCoinCount()
+        });
       }
     );
 
