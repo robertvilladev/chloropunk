@@ -7,15 +7,13 @@ import Phaser from "phaser";
  * Manages wave timing, enemy spawning, and difficulty scaling
  */
 export class WaveManager {
-  private scene: Phaser.Scene;
   private currentWave: number = 0;
   private waveTimer: number = 0;
   private waveDuration: number = 30;
   private isWaveActive: boolean = false;
   private waveData: { waves: WaveData[] };
 
-  constructor(scene: Phaser.Scene) {
-    this.scene = scene;
+  constructor(_scene: Phaser.Scene) {
     this.waveData = waveDataJson as { waves: WaveData[] };
   }
 
