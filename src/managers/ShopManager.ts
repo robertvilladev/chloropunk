@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { CoinManager } from "./CoinManager";
 
 interface ShopUpgrade {
   id: string;
@@ -55,7 +56,7 @@ export class ShopManager {
   /**
    * Purchase an upgrade
    */
-  purchaseUpgrade(upgradeId: string, coinManager: any): boolean {
+  purchaseUpgrade(upgradeId: string, coinManager: CoinManager): boolean {
     const upgrade = this.upgrades.find((u) => u.id === upgradeId);
     if (!upgrade) return false;
 
