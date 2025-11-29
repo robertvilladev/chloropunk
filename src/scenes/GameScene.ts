@@ -284,8 +284,9 @@ export class GameScene extends Phaser.Scene {
    * Handle coin collected
    */
   private onCoinCollected(_coinCount: number): void {
-    // Coin count is updated automatically by CoinManager
-    // UI will be updated via events
+    // This handler is intentionally left empty.
+    // Coin count is updated automatically by CoinManager and UI is updated via events.
+    // This method exists for future extensibility (e.g., analytics tracking, custom effects).
   }
 
   /**
