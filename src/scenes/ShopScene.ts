@@ -57,7 +57,7 @@ export class ShopScene extends Phaser.Scene {
     this.createUpgradeButtons();
 
     // Start game button
-    const startButton = this.createButton(
+    this.createButton(
       width / 2,
       height - 60,
       "START NEXT ROUND",
