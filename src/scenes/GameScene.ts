@@ -64,7 +64,7 @@ export class GameScene extends Phaser.Scene {
     // 4. Initialize wave system
     this.waveManager = new WaveManager(this);
     this.waveManager.create();
-    this.waveManager.startWave(5); // Start first wave
+    this.waveManager.startWave(1); // Start first wave
 
     // 5. Initialize enemy system
     this.enemyManager = new EnemyManager(this);
