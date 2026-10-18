@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 // Files still holding raw colour literals; each themed task removes its files (Task 11 asserts empty).
 const PENDING = [
-  "GameOverScene.ts", "VictoryScene.ts", "MenuScene.ts",
+  "GameOverScene.ts", "VictoryScene.ts",
 ];
 const sources = import.meta.glob<string>(["/src/**/*.ts", "!/src/**/*.test.ts", "!/src/art/**", "!/src/config/theme.ts"], {
   query: "?raw",
@@ -14,11 +14,11 @@ const dirty = (p: string) => /#[0-9a-fA-F]{6}\b|\b0x[0-9a-fA-F]{6}\b/.test(sourc
 
 describe("no hardcoded colours", () => {
   it("only PENDING files contain hex literals", () => {
-    const bad = all.filter(dirty).filter((p) => !PENDING.some((n) => p.endsWith(n)));
+    const bad = all.filter(dirty).filter((p) => !PENDING.some((n) => p.endsWith("/" + n)));
     expect(bad).toEqual([]);
   });
   it("PENDING lists only dirty files", () => {
-    const clean = PENDING.filter((n) => !all.some((p) => p.endsWith(n) && dirty(p)));
+    const clean = PENDING.filter((n) => !all.some((p) => p.endsWith("/" + n) && dirty(p)));
     expect(clean).toEqual([]);
   });
 });

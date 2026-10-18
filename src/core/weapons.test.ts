@@ -51,3 +51,9 @@ describe("weapons.json", () => {
     }
   });
 });
+
+describe("blurbs", () => {
+  it("every weapon has a non-empty blurb", () => {
+    for (const w of Object.values(weapons)) expect((w as { blurb?: string }).blurb?.trim()).toBeTruthy();
+  });
+});

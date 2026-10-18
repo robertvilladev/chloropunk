@@ -20,6 +20,12 @@ declare module "@assets/data/weapons.json" {
   export default weapons;
 }
 
+declare module "@assets/data/character.json" {
+  import type { CharacterDef } from "@/types";
+  const character: CharacterDef;
+  export default character;
+}
+
 declare module "@assets/data/waves.json" {
   import type { WaveDef } from "@/types";
   const data: { waves: WaveDef[] };

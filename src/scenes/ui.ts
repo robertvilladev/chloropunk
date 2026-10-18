@@ -24,11 +24,12 @@ export function button(
   label: string,
   onClick: () => void,
   primary = false,
-  enabled = true
+  enabled = true,
+  look: { size?: number; font?: keyof typeof FONTS; w?: number; h?: number } = {}
 ): Phaser.GameObjects.Container {
-  const t = text(scene, 0, 0, label, 14, enabled ? (primary ? THEME_CSS.limeInk : THEME_CSS.text) : THEME_CSS.textMuted).setOrigin(0.5);
-  const w = t.width + 24;
-  const h = t.height + 12;
+  const t = text(scene, 0, 0, label, look.size ?? 14, enabled ? (primary ? THEME_CSS.limeInk : THEME_CSS.text) : THEME_CSS.textMuted, look.font).setOrigin(0.5);
+  const w = look.w ?? t.width + 24;
+  const h = look.h ?? t.height + 12;
   const face = scene.add.rectangle(0, 0, w, h, enabled ? (primary ? THEME.lime : THEME.surface) : THEME.surface2);
   if (!primary || !enabled) face.setStrokeStyle(1, THEME.line);
   const parts: Phaser.GameObjects.GameObject[] = [];
@@ -92,12 +93,12 @@ export function scanlines(scene: Phaser.Scene): Phaser.GameObjects.Image {
   const key = "scanlines";
   if (!scene.textures.exists(key)) {
     const tex = scene.textures.createCanvas(key, 4, 4)!;
-    tex.context.fillStyle = THEME_CSS.bg;
+    tex.context.fillStyle = THEME_CSS.scanline;
     tex.context.fillRect(0, 0, 4, 2);
     tex.refresh();
   }
   const { width, height } = scene.scale;
-  return scene.add.tileSprite(0, 0, width, height, key).setOrigin(0).setAlpha(0.05).setDepth(DEPTH.UI - 5) as unknown as Phaser.GameObjects.Image;
+  return scene.add.tileSprite(0, 0, width, height, key).setOrigin(0).setAlpha(0.06).setDepth(DEPTH.UI - 5) as unknown as Phaser.GameObjects.Image;
 }
 
 /**
