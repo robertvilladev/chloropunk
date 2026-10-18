@@ -8,7 +8,8 @@
     "scrap": 1,
     "behavior": "chaser",
     "sprite": "enemy_pea",
-    "radius": 14
+    "radius": 14,
+    "color": "#4caf50"
   },
   "pepper": {
     "id": "pepper",
@@ -20,6 +21,7 @@
     "behavior": "dasher",
     "sprite": "enemy_pepper",
     "radius": 14,
+    "color": "#e53935",
     "params": {
       "dashSpeed": 320,
       "dashEvery": 2.5,
@@ -35,7 +37,8 @@
     "scrap": 3,
     "behavior": "tank",
     "sprite": "enemy_potato",
-    "radius": 20
+    "radius": 20,
+    "color": "#b07a43"
   },
   "carrot": {
     "id": "carrot",
@@ -47,6 +50,7 @@
     "behavior": "shooter",
     "sprite": "enemy_carrot",
     "radius": 14,
+    "color": "#ff7a1a",
     "params": {
       "range": 260,
       "fireEvery": 2,
@@ -64,6 +68,7 @@
     "behavior": "exploder",
     "sprite": "enemy_tomato",
     "radius": 14,
+    "color": "#e53935",
     "params": {
       "blastRadius": 70,
       "blastDamage": 12

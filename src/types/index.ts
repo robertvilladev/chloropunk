@@ -46,6 +46,7 @@ export interface EnemyDef {
   behavior: EnemyBehavior;
   sprite: string;
   radius: number;
+  color?: string; // death-burst colour, "#rrggbb"
   params?: Record<string, number>;
 }
 

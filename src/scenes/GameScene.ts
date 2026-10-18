@@ -3,6 +3,7 @@ import { createRng, type Rng } from "@/core/rng";
 import { addXp, xpToNext } from "@/core/progression";
 import { clampDelta } from "@/core/time";
 import { waveDuration } from "@/core/waves";
+import { Juice } from "@/fx/Juice";
 import { EnemyManager } from "@/managers/EnemyManager";
 import { InputManager } from "@/managers/InputManager";
 import { PickupManager } from "@/managers/PickupManager";
@@ -22,6 +23,7 @@ const GAME_EVENTS = [
   "scrapCollected",
   "speedChanged",
   "playerHealthChanged",
+  "playerHit",
   "timerUpdate",
 ];
 
@@ -42,6 +44,7 @@ export class GameScene extends Phaser.Scene {
   private enemyManager!: EnemyManager;
   private weaponManager!: WeaponManager;
   private pickupManager!: PickupManager;
+  private juice!: Juice;
 
   // Round timer
   private roundTimeRemaining: number = 20;
@@ -107,12 +110,19 @@ export class GameScene extends Phaser.Scene {
 
     // 6. Initialize weapon system
     this.weaponManager = new WeaponManager(this);
-    this.weaponManager.create(this.run.bonus.damage);
+    this.weaponManager.create(this.rng, this.run.bonus.damage);
 
     // 7. Initialize pickups
     this.pickupManager = new PickupManager(this);
     this.waveEarned = 0;
     this.events.on("scrapCollected", this.onScrapCollected, this);
+
+    // 7b. Feedback effects
+    this.juice = new Juice(this);
+    this.juice.banner(`WAVE ${String(this.run.wave).padStart(2, "0")}`);
+    this.events.on("enemyHit", this.onEnemyHit, this);
+    this.events.on("playerHit", this.onPlayerHit, this);
+    this.events.on("playerHealthChanged", this.onHealthChanged, this);
 
     // 8. Set up collision detection
     this.setupCollisions();
@@ -233,7 +243,11 @@ export class GameScene extends Phaser.Scene {
         }
 
         // Damage enemy
-        this.enemyManager.damageEnemy(enemy, damage, false);
+        this.enemyManager.damageEnemy(
+          enemy,
+          damage,
+          projectile.getData("crit") === true
+        );
 
         // Remove projectile
         this.weaponManager.removeProjectile(projectile);
@@ -313,6 +327,7 @@ export class GameScene extends Phaser.Scene {
     // Clear enemies and bolts first so nothing can hurt the player after the
     // wave is over (no drops, no blasts)
     this.enemyManager.clearAll();
+    this.juice.banner("WAVE CLEARED");
 
     // Leftover scrap is auto-collected
     const leftover = this.pickupManager.collectAll();
@@ -340,7 +355,27 @@ export class GameScene extends Phaser.Scene {
   private onEnemyKilled(x: number, y: number, def: EnemyDef): void {
     this.enemiesKilled++;
 
+    this.juice.deathBurst(x, y, Phaser.Display.Color.HexStringToColor(def.color ?? "#ffffff").color);
+    if (def.id === "potato") this.juice.shake("kill");
+
     this.pickupManager.spawnScrap(x, y, def.scrap);
+  }
+
+  private onEnemyHit(
+    enemy: Phaser.Physics.Arcade.Sprite,
+    amount: number,
+    crit: boolean
+  ): void {
+    this.juice.damageNumber(enemy.x, enemy.y - 16, amount, crit);
+    this.juice.hitFlash(enemy);
+  }
+
+  private onPlayerHit(): void {
+    this.juice.shake("hit");
+  }
+
+  private onHealthChanged(health: number, maxHealth: number): void {
+    this.juice.lowHp(health / maxHealth);
   }
 
   private onScrapCollected(value: number): void {
