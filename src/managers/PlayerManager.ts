@@ -2,6 +2,8 @@ import { GAME_CONFIG } from "@/config/constants";
 import type { Rng } from "@/core/rng";
 import { damageTaken } from "@/core/stats";
 import type { Stats } from "@/types";
+
+const DODGE_IFRAMES_MS = 500;
 import Phaser from "phaser";
 
 /**
@@ -111,7 +113,10 @@ export class PlayerManager {
   takeDamage(raw: number): void {
     // Don't take damage if invulnerable
     if (this.invulnerableTimer > 0) return;
-    if (this.rng.next() < this.stats.dodge / 100) {
+    // A dodge also grants short i-frames: contact overlaps fire every physics
+    // step, so without them the next frame would simply re-roll
+    if (this.stats.dodge > 0 && this.rng.next() < this.stats.dodge / 100) {
+      this.invulnerableTimer = DODGE_IFRAMES_MS;
       this.scene.events.emit("playerDodged");
       return;
     }

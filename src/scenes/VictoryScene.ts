@@ -69,6 +69,7 @@ export class VictoryScene extends Phaser.Scene {
     // Continue button click
     continueButton.on("pointerdown", () => {
       this.scene.stop(SCENE_KEYS.UI);
+      this.scene.stop(SCENE_KEYS.GAME); // it sits paused (and still renders) under this overlay
       // Past the last defined wave the run is over (real end flow lands in M4)
       if (this.run && this.run.wave > wavesData.waves.length) {
         this.scene.start(SCENE_KEYS.GAME_OVER, { complete: true });
@@ -97,6 +98,7 @@ export class VictoryScene extends Phaser.Scene {
     // Menu button click
     menuButton.on("pointerdown", () => {
       this.scene.stop(SCENE_KEYS.UI);
+      this.scene.stop(SCENE_KEYS.GAME); // it sits paused (and still renders) under this overlay
       this.scene.start(SCENE_KEYS.MENU);
     });
     console.log("✓ VictoryScene: Initialized");
