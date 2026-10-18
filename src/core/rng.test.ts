@@ -33,4 +33,8 @@ describe("createRng", () => {
   it("pick returns an element", () => {
     expect(["a", "b"]).toContain(createRng(9).pick(["a", "b"]));
   });
+
+  it("pick throws on an empty list", () => {
+    expect(() => createRng(1).pick([])).toThrow("pick from empty list");
+  });
 });

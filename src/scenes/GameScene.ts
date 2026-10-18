@@ -1,7 +1,8 @@
-import { GAME_CONFIG, SCENE_KEYS } from "@/config/constants";
+import { SCENE_KEYS } from "@/config/constants";
 import { THEME_CSS } from "@/config/theme";
 import { createRng, type Rng } from "@/core/rng";
 import { addXp, xpToNext } from "@/core/progression";
+import { computeStats } from "@/core/stats";
 import { clampDelta } from "@/core/time";
 import { waveDuration } from "@/core/waves";
 import { Juice } from "@/fx/Juice";
@@ -11,7 +12,8 @@ import { PickupManager } from "@/managers/PickupManager";
 import { PlayerManager } from "@/managers/PlayerManager";
 import { WeaponManager } from "@/managers/WeaponManager";
 import { WorldManager } from "@/managers/WorldManager";
-import type { EnemyDef, RunState } from "@/types";
+import type { EnemyDef, RunState, Stats } from "@/types";
+import enemyDefs from "@assets/data/enemies.json";
 import Phaser from "phaser";
 
 const BANNER_MS = 900; // matches Juice.banner total duration
@@ -27,6 +29,7 @@ const GAME_EVENTS = [
   "speedChanged",
   "playerHealthChanged",
   "playerHit",
+  "playerDodged",
   "timerUpdate",
 ];
 
@@ -48,6 +51,8 @@ export class GameScene extends Phaser.Scene {
   private weaponManager!: WeaponManager;
   private pickupManager!: PickupManager;
   private juice!: Juice;
+  // Death-burst colour per enemy id, parsed once
+  private burstColors = new Map<string, number>();
 
   // Round timer
   private roundTimeRemaining: number = 20;
@@ -65,29 +70,19 @@ export class GameScene extends Phaser.Scene {
   private waveEarned: number = 0;
   private isGameOver: boolean = false;
 
-  // Persistent run state (wave, scrap, xp, upgrades)
+  // Persistent run state (wave, scrap, xp, build)
   private run!: RunState;
+  private stats!: Stats;
 
   constructor() {
     super({ key: SCENE_KEYS.GAME });
   }
 
   /**
-   * Receive run state from the shop; no data means a fresh run
+   * Receive run state (new from LoadoutScene, or carried from the shop)
    */
-  init(data: { run?: RunState }) {
-    const fresh = !data.run;
-    const urlSeed = Number(new URLSearchParams(window.location.search).get("seed"));
-    this.run = data.run ?? {
-      wave: 1,
-      scrap: 0,
-      xp: 0,
-      level: 1,
-      pendingLevelUps: 0,
-      bonus: { maxHealth: 0, speed: 0, damage: 0 },
-      seed: Number.isInteger(urlSeed) && urlSeed !== 0 ? urlSeed : Date.now(),
-    };
-    if (fresh) console.info(`Run seed: ${this.run.seed}`);
+  init(data: { run: RunState }) {
+    this.run = data.run;
   }
 
   /**
@@ -103,23 +98,18 @@ export class GameScene extends Phaser.Scene {
     this.inputManager.create();
 
     // 3. Create player
-    this.playerManager = new PlayerManager(this);
-    this.playerManager.create(
-      100 + this.run.bonus.maxHealth,
-      GAME_CONFIG.INITIAL_PLAYER_SPEED + this.run.bonus.speed
-    );
-
-    // 4. Initialize enemy system and start this wave's spawn schedule
+    this.stats = computeStats(this.run);
     this.rng = createRng(this.run.seed + this.run.wave);
     this.combatRng = createRng(this.run.seed + this.run.wave + 7919);
+    this.playerManager = new PlayerManager(this);
+    this.playerManager.create(this.stats, this.combatRng);
+
+    // 4. Initialize enemy system and start this wave's spawn schedule
     this.roundDuration = waveDuration(this.run.wave);
     this.enemyManager = new EnemyManager(this);
     this.enemyManager.create();
     this.enemyManager.startWave(this.run.wave, this.rng);
 
-    // 6. Initialize weapon system
-    this.weaponManager = new WeaponManager(this);
-    this.weaponManager.create(this.combatRng, this.run.bonus.damage);
 
     // 7. Initialize pickups
     this.pickupManager = new PickupManager(this);
@@ -127,7 +117,24 @@ export class GameScene extends Phaser.Scene {
     this.events.on("scrapCollected", this.onScrapCollected, this);
 
     // 7b. Feedback effects
+    for (const def of Object.values(enemyDefs)) {
+      this.burstColors.set(def.id, Phaser.Display.Color.HexStringToColor(def.color ?? "#ffffff").color);
+    }
     this.juice = new Juice(this);
+
+    // 6. Weapons (after Juice: rockets use its blast)
+    this.weaponManager = new WeaponManager(this);
+    this.weaponManager.create({
+      weapons: this.run.weapons,
+      stats: this.stats,
+      rng: this.combatRng,
+      enemyGroup: this.enemyManager.getEnemyGroup(),
+      juice: this.juice,
+      hit: (enemy, damage, crit, angle, knockback) => {
+        if (knockback > 0) this.enemyManager.knockback(enemy, angle, knockback);
+        this.enemyManager.damageEnemy(enemy, damage, crit);
+      },
+    });
     this.juice.banner(`WAVE ${String(this.run.wave).padStart(2, "0")}`);
     this.events.on("enemyHit", this.onEnemyHit, this);
     this.events.on("playerHit", this.onPlayerHit, this);
@@ -184,6 +191,9 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    // Player sprite doubles as its position (read once per frame)
+    const player = this.playerManager.getSprite();
+
     // 1. Get input
     const movement = this.inputManager.getMovementInput();
 
@@ -194,16 +204,16 @@ export class GameScene extends Phaser.Scene {
     this.enemyManager.update(
       dt,
       this.roundDuration - this.roundTimeRemaining,
-      this.playerManager.getPosition()
+      player
     );
 
     // 3b. Pull nearby scrap toward the player
-    this.pickupManager.update(this.playerManager.getPosition());
+    this.pickupManager.update(player, this.stats.pickupRadius);
 
     // 4. Update weapon system
     this.weaponManager.update(
       dt,
-      this.playerManager.getPosition(),
+      player,
       this.enemyManager.getEnemies()
     );
 
@@ -224,45 +234,12 @@ export class GameScene extends Phaser.Scene {
         if (!enemy.active) return;
         const def = enemy.getData("def") as EnemyDef;
         if (def.behavior === "exploder") {
-          // Touching the player detonates it
-          this.enemyManager.killEnemy(enemy);
+          // Touching the player detonates it; no drops, so walking into
+          // tomatoes during i-frames isn't free scrap
+          this.enemyManager.killEnemy(enemy, false);
           return;
         }
         this.playerManager.takeDamage(enemy.getData("state").damage);
-      },
-      undefined,
-      this
-    );
-
-    // Projectile <-> Enemy collisions (enemy takes damage)
-    this.physics.add.overlap(
-      this.weaponManager.getProjectileGroup(),
-      this.enemyManager.getEnemyGroup(),
-      (projectileObj, enemyObj) => {
-        const projectile = projectileObj as Phaser.Physics.Arcade.Sprite;
-        const enemy = enemyObj as Phaser.Physics.Arcade.Sprite;
-
-        const damage = projectile.getData("damage") || 10;
-        const knockback = projectile.getData("knockback") || 0;
-
-        // Apply knockback (tanks ignore it)
-        if (knockback > 0) {
-          const angle = Math.atan2(
-            enemy.y - projectile.y,
-            enemy.x - projectile.x
-          );
-          this.enemyManager.knockback(enemy, angle, knockback);
-        }
-
-        // Damage enemy
-        this.enemyManager.damageEnemy(
-          enemy,
-          damage,
-          projectile.getData("crit") === true
-        );
-
-        // Remove projectile
-        this.weaponManager.removeProjectile(projectile);
       },
       undefined,
       this
@@ -363,6 +340,7 @@ export class GameScene extends Phaser.Scene {
     // Clear enemies and bolts first so nothing can hurt the player after the
     // wave is over (no drops, no blasts)
     this.enemyManager.clearAll();
+    this.weaponManager.clear();
     this.juice.banner("WAVE CLEARED");
 
     // Leftover scrap is auto-collected
@@ -371,6 +349,9 @@ export class GameScene extends Phaser.Scene {
     this.waveEarned += leftover;
 
     const xp = addXp(this.run, this.waveEarned);
+    // Harvesting: bonus scrap at wave end (scrap only, never XP)
+    this.run.scrap += this.stats.harvesting;
+    this.waveEarned += this.stats.harvesting;
     this.playerManager.getSprite().setVelocity(0, 0);
     // Let the banner play before handing off; the timer dies with the scene
     // on shutdown, and isGameOver (set above) prevents a second call
@@ -393,13 +374,13 @@ export class GameScene extends Phaser.Scene {
   /**
    * Handle enemy killed
    */
-  private onEnemyKilled(x: number, y: number, def: EnemyDef): void {
+  private onEnemyKilled(x: number, y: number, def: EnemyDef, drops: boolean): void {
     this.enemiesKilled++;
 
-    this.juice.deathBurst(x, y, Phaser.Display.Color.HexStringToColor(def.color ?? "#ffffff").color);
+    this.juice.deathBurst(x, y, this.burstColors.get(def.id)!);
     if (def.shakeOnKill) this.juice.shake("kill");
 
-    this.pickupManager.spawnScrap(x, y, def.scrap);
+    if (drops) this.pickupManager.spawnScrap(x, y, def.scrap);
   }
 
   private onEnemyHit(
@@ -457,6 +438,7 @@ export class GameScene extends Phaser.Scene {
   private cleanup(): void {
     this.playerManager?.destroy();
     this.enemyManager?.destroy();
+    this.weaponManager?.destroy();
     this.worldManager?.destroy();
     this.inputManager?.destroy();
     GAME_EVENTS.forEach((event) => this.events.removeAllListeners(event));
@@ -472,8 +454,7 @@ export class GameScene extends Phaser.Scene {
       wave: this.run.wave,
       health: this.playerManager.getHealth(),
       maxHealth: this.playerManager.getMaxHealth(),
-      speed: this.playerManager.getSpeed(),
-      damage: this.weaponManager.getDamage(),
+      stats: this.stats,
       scrap: this.run.scrap,
       pending: this.run.pendingLevelUps + xp.levelsGained,
       level: xp.level,

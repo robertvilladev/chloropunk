@@ -70,7 +70,8 @@ export class GameOverScene extends Phaser.Scene {
     // Retry button click
     retryButton.on("pointerdown", () => {
       this.scene.stop(SCENE_KEYS.UI);
-      this.scene.start(SCENE_KEYS.GAME, {}); // {} = fresh run (Phaser reuses old data otherwise)
+      this.scene.stop(SCENE_KEYS.GAME); // it sits paused under this overlay
+      this.scene.start(SCENE_KEYS.LOADOUT); // new run: pick a weapon again
     });
 
     // Main menu button
@@ -99,12 +100,14 @@ export class GameOverScene extends Phaser.Scene {
     // Menu button click
     menuButton.on("pointerdown", () => {
       this.scene.stop(SCENE_KEYS.UI);
+      this.scene.stop(SCENE_KEYS.GAME); // it sits paused under this overlay
       this.scene.start(SCENE_KEYS.MENU);
     });
 
     // ESC to menu
     this.input.keyboard?.once("keydown-ESC", () => {
       this.scene.stop(SCENE_KEYS.UI);
+      this.scene.stop(SCENE_KEYS.GAME); // it sits paused under this overlay
       this.scene.start(SCENE_KEYS.MENU);
     });
 

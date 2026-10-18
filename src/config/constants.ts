@@ -21,7 +21,6 @@ export const GAME_CONFIG = {
   INITIAL_WEAPON_RANGE: 300,
 
   // Pickups
-  PICKUP_RADIUS: 80,
   MAGNET_SPEED: 420,
   MAX_PICKUPS: 300,
 
@@ -38,6 +37,8 @@ export const SCENE_KEYS = {
   UI: "UIScene",
   GAME_OVER: "GameOverScene",
   VICTORY: "VictoryScene",
+  LEVEL_UP: "LevelUpScene",
+  LOADOUT: "LoadoutScene",
 } as const;
 
 export const ASSET_KEYS = {

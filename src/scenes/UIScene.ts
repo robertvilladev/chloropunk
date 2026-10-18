@@ -69,7 +69,7 @@ export class UIScene extends Phaser.Scene {
     this.statsText = this.add.text(
       20,
       60,
-      "Health: 100/100\nSpeed: 160\nDamage: 10\nScrap: 0",
+      "",
       {
         fontSize: "16px",
         color: "#ffffff",
@@ -120,8 +120,10 @@ export class UIScene extends Phaser.Scene {
     this.levelText.setText(
       `LV ${stats.level}${stats.pending > 0 ? ` (+${stats.pending})` : ""}`
     );
+    const s = stats.stats;
     this.statsText.setText(
-      `Wave: ${stats.wave}\nHealth: ${stats.health}/${stats.maxHealth}\nSpeed: ${stats.speed}\nDamage: ${stats.damage}`
+      `Wave: ${stats.wave}\nHP: ${stats.health}/${stats.maxHealth}\nArmor: ${s.armor}\nDodge: ${s.dodge}%\n` +
+        `Dmg: ${s.damage}%\nAtk spd: ${s.attackSpeed}%\nCrit: ${s.crit}%\nSpeed: ${s.speed}%`
     );
   };
 

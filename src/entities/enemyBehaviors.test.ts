@@ -36,6 +36,15 @@ describe("steer", () => {
     expect(mag(steer("dasher", s, O, P, 0.2, params))).toBeCloseTo(70);
   });
 
+  it("dasher keeps its dash direction", () => {
+    const params = { speed: 70, ...enemies.pepper.params };
+    const s = createEnemyState(enemies.pepper, 1);
+    steer("dasher", s, O, P, 2.6, params); // dash starts aimed at (100,0)
+    const r = steer("dasher", s, O, { x: 0, y: 100 }, 0.1, params);
+    expect(r.vx).toBeCloseTo(320);
+    expect(r.vy).toBeCloseTo(0);
+  });
+
   it("shooter keeps distance and fires", () => {
     const params = { speed: 60, ...enemies.carrot.params };
     const s = createEnemyState(enemies.carrot, 1);

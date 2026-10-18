@@ -15,8 +15,8 @@ declare module "@assets/data/enemies.json" {
 }
 
 declare module "@assets/data/weapons.json" {
-  import type { WeaponData } from "@/types";
-  const weapons: Record<string, WeaponData>;
+  import type { WeaponDef } from "@/types";
+  const weapons: Record<string, WeaponDef>;
   export default weapons;
 }
 
@@ -24,4 +24,16 @@ declare module "@assets/data/waves.json" {
   import type { WaveDef } from "@/types";
   const data: { waves: WaveDef[] };
   export default data;
+}
+
+declare module "@assets/data/items.json" {
+  import type { ItemDef } from "@/types";
+  const items: Record<string, ItemDef>;
+  export default items;
+}
+
+declare module "@assets/data/upgrades.json" {
+  import type { StatKey } from "@/types";
+  const upgrades: Partial<Record<StatKey, [number, number, number, number]>>;
+  export default upgrades;
 }

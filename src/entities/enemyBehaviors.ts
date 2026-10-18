@@ -7,6 +7,9 @@ export interface EnemyState {
   damage: number;
   timer: number;
   phase: "move" | "dash";
+  // dash direction, locked when a dash starts
+  dirX: number;
+  dirY: number;
 }
 
 export interface Steer {
@@ -17,7 +20,7 @@ export interface Steer {
 
 export function createEnemyState(def: EnemyDef, wave: number): EnemyState {
   const { hp, damage } = scaleEnemy(def, wave);
-  return { hp, maxHp: hp, damage, timer: 0, phase: "move" };
+  return { hp, maxHp: hp, damage, timer: 0, phase: "move", dirX: 0, dirY: 0 };
 }
 
 /**
@@ -37,8 +40,8 @@ export function steer(
   const dx = player.x - self.x;
   const dy = player.y - self.y;
   const dist = Math.hypot(dx, dy) || 1;
-  const ux = dx / dist;
-  const uy = dy / dist;
+  let ux = dx / dist;
+  let uy = dy / dist;
   let speed = params.speed;
   let dir = 1; // +1 toward player, -1 away
   out.fire = false;
@@ -48,11 +51,17 @@ export function steer(
     if (state.phase === "move" && state.timer >= params.dashEvery) {
       state.phase = "dash";
       state.timer = 0;
+      state.dirX = ux;
+      state.dirY = uy;
     } else if (state.phase === "dash" && state.timer >= params.dashTime) {
       state.phase = "move";
       state.timer = 0;
     }
-    if (state.phase === "dash") speed = params.dashSpeed;
+    if (state.phase === "dash") {
+      speed = params.dashSpeed;
+      ux = state.dirX;
+      uy = state.dirY;
+    }
   } else if (behavior === "shooter") {
     state.timer += dt;
     if (dist < params.keepDistance) dir = -1;

@@ -1,6 +1,6 @@
 import { DEPTH, GAME_CONFIG } from "@/config/constants";
 import type { Rng } from "@/core/rng";
-import { advanceCursor, buildSpawnSchedule } from "@/core/waves";
+import { advanceCursor, buildSpawnSchedule, edgePoint } from "@/core/waves";
 import {
   createEnemyState,
   steer,
@@ -118,8 +118,8 @@ export class EnemyManager {
     return true;
   }
 
-  /** Kill with death effects (drop event, exploder blast). */
-  killEnemy(enemy: Sprite): void {
+  /** Kill with death effects (exploder blast; drops unless `drops` is false). */
+  killEnemy(enemy: Sprite, drops = true): void {
     if (!enemy.active) return;
     const def = enemy.getData("def") as EnemyDef;
     const { x, y } = enemy;
@@ -133,7 +133,7 @@ export class EnemyManager {
         def.params!.blastDamage
       );
     }
-    this.scene.events.emit("enemyKilled", x, y, def);
+    this.scene.events.emit("enemyKilled", x, y, def, drops);
   }
 
   /** Push an enemy; tanks ignore it. */
@@ -211,31 +211,16 @@ export class EnemyManager {
     });
   }
 
-  /** Point on the rectangle EDGE_INSET px inside the arena, >= 160 px from the player. */
+  /** Point on the rectangle EDGE_INSET px inside the arena, >= 160 px from the player (one RNG draw). */
   private pickEdgePoint(player: Vector2): Vector2 {
-    const w = GAME_CONFIG.WIDTH - 2 * EDGE_INSET;
-    const h = GAME_CONFIG.HEIGHT - 2 * EDGE_INSET;
-    const p = { x: 0, y: 0 };
-    for (let tries = 0; tries < 10; tries++) {
-      let t = this.rng.next() * 2 * (w + h);
-      if (t < w) {
-        p.x = t;
-        p.y = 0;
-      } else if ((t -= w) < h) {
-        p.x = w;
-        p.y = t;
-      } else if ((t -= h) < w) {
-        p.x = w - t;
-        p.y = h;
-      } else {
-        p.x = 0;
-        p.y = h - (t - w);
-      }
-      p.x += EDGE_INSET;
-      p.y += EDGE_INSET;
-      if (Math.hypot(p.x - player.x, p.y - player.y) >= MIN_PLAYER_DIST) break;
-    }
-    return p;
+    return edgePoint(
+      this.rng.next(),
+      player,
+      GAME_CONFIG.WIDTH,
+      GAME_CONFIG.HEIGHT,
+      EDGE_INSET,
+      MIN_PLAYER_DIST
+    );
   }
 
   private updateTelegraphs(dt: number): void {
