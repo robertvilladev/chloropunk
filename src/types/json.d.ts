@@ -31,3 +31,9 @@ declare module "@assets/data/items.json" {
   const items: Record<string, ItemDef>;
   export default items;
 }
+
+declare module "@assets/data/upgrades.json" {
+  import type { StatKey } from "@/types";
+  const upgrades: Partial<Record<StatKey, [number, number, number, number]>>;
+  export default upgrades;
+}

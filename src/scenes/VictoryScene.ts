@@ -74,7 +74,9 @@ export class VictoryScene extends Phaser.Scene {
         this.scene.start(SCENE_KEYS.GAME_OVER, { complete: true });
         return;
       }
-      this.scene.start(SCENE_KEYS.SHOP, { run: this.run });
+      // One pick per level gained, then the shop
+      const next = this.run && this.run.pendingLevelUps > 0 ? SCENE_KEYS.LEVEL_UP : SCENE_KEYS.SHOP;
+      this.scene.start(next, { run: this.run });
     });
     // Main menu button
     const menuButton = this.add.text(width / 2, height / 2 + 150, "MAIN MENU", {
