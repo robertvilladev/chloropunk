@@ -201,3 +201,18 @@ M2 turns `pendingLevelUps` into level-up picks; in M1 it is only counted and sho
 - [ ] **Step 2: Measure** in `npm run dev`: press `F2` on wave 5 with the pistol firing; FPS readout stays ≥ 55 for 20 s. If not, profile (Chrome Performance) and remove per-frame allocations in `EnemyManager.update`, `steer` callers and `PickupManager.update` (reuse vectors, iterate `children.entries` with index loops).
 - [ ] **Step 3: Run** `npm run build && npx vitest run` — expect PASS.
 - [ ] **Step 4: Commit** `perf: hold 60fps with 150 enemies`.
+
+---
+
+## M1 outcome and carry-overs
+
+Shipped on `feat/m1-waves-and-feel` (1662fc4..bd38983). Measured 60 fps for 20 s with 150 active enemies on wave 5 (dev build). The final whole-branch review found 0 Critical and 0 Important issues.
+
+Deferred to the M2 plan (found in review, judged Minor):
+- **Perf:** pool death-burst particles (8 Rectangles and 8 tweens per kill) and cache the enemy colour per def; `getPosition()` allocates 3× per frame; `damageNumber` re-renders text 3× per hit.
+- **Feel:** pepper dash re-aims every frame (lock the direction at dash start); tomato touched during i-frames gives free kills and scrap; no enemy-to-enemy separation.
+- **Seed:** `pickEdgePoint` draws a variable number of RNG values, so spawns depend on player movement; draw a fixed count per telegraph.
+- **Robustness:** `rng.int`/`pick` don't guard against max<min or an empty array; `buildSpawnSchedule` hangs if `every<=0`; spawns can still land within 160 px after 10 retries.
+- **Dev only:** F3 isn't captured (opens browser find); `debugSpawn` draws from the spawn RNG.
+- **M3 restyle:** Menu, Shop, Victory and UIScene colours are hardcoded rather than taken from `theme.ts`; the wave-1 banner can render in a fallback font before Google Fonts loads; the vignette is flat in Canvas mode; death bursts may render under actors.
+- **Stopgap:** after wave 10, Victory → GameOver shows "RUN COMPLETE". M4 replaces this with the boss and the run summary.
