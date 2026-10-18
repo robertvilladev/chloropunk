@@ -40,7 +40,8 @@ Spec: [§4 steps 1, 4, 5; §5 stats/weapons/items](docs/superpowers/specs/2026-1
 Spec: [§6 look and feel, §7 screens](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md). Mockups approved ([copies](docs/superpowers/specs/mockups/README.md)). Owner scope: fighter + 5 enemies get 2-frame walk + hit frame, pickups get sprites, no weapon/item icons, plain graphite floor, **SFX moved to M4**.
 
 - ✅ Sprite-grid pipeline: grids in `src/art/`, baked to textures at boot (`textures.ts`); fighter, 5 enemies and scrap on screen with walk/hit frames
-- ⬜ Replace placeholder shapes (generated in `BootScene`) with sprites; 3/4 y-sorting, soft shadows, neon glow FX
+- ✅ 3/4 y-sorted depth (`core/depth.ts` `actorDepth`, bands in `DEPTH`): actors in [40, 50), projectiles 60, FX 70, numbers 90
+- ⬜ Soft shadows, neon glow FX
 - ⬜ "Chlorophyll" `theme.ts` applied to every screen (Menu, Shop, Victory, UIScene still hardcode colours); fonts Bungee / IBM Plex Mono / VT323
 - ⬜ HUD, level-up, shop, loadout and menu screens per the mockups; stat previews on hover; mouse + keyboard
 
