@@ -1,7 +1,7 @@
 import { bodyOffset } from "@/art/body";
 import { DEPTH, GAME_CONFIG } from "@/config/constants";
 import type { Rng } from "@/core/rng";
-import { facingFlip } from "@/core/depth";
+import { actorDepth, facingFlip } from "@/core/depth";
 import { advanceCursor, buildSpawnSchedule, edgePoint } from "@/core/waves";
 import {
   createEnemyState,
@@ -255,7 +255,7 @@ export class EnemyManager {
     enemy.setFlipX(false);
     enemy.clearTint();
     enemy.enableBody(true, x, y, true, true);
-    enemy.setDepth(DEPTH.ENEMIES).setCollideWorldBounds(true);
+    enemy.setDepth(actorDepth(y)).setCollideWorldBounds(true);
     const off = bodyOffset(def.sprite, def.radius);
     (enemy.body as Phaser.Physics.Arcade.Body).setCircle(def.radius, off.x, off.y);
     enemy.anims.resume();
@@ -279,6 +279,8 @@ export class EnemyManager {
       steer(def.behavior, state, enemy, player, dt, this.params.get(def.id)!, out);
       enemy.setVelocity(out.vx + knock.x, out.vy + knock.y);
       enemy.flipX = facingFlip(out.vx + knock.x, enemy.flipX);
+      const d = actorDepth(enemy.y);
+      if (Math.round(d * 100) !== Math.round(enemy.depth * 100)) enemy.setDepth(d); // only re-sort on a visible change
       knock.x *= decay;
       knock.y *= decay;
       if (out.fire) this.fireBolt(enemy, def, state, player);

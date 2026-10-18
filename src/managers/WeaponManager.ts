@@ -1,4 +1,5 @@
 import { DEPTH } from "@/config/constants";
+import { actorDepth } from "@/core/depth";
 import { THEME } from "@/config/theme";
 import type { Rng } from "@/core/rng";
 import { CRIT_MULT, weaponStats, type WeaponStats } from "@/core/weapons";
@@ -80,7 +81,7 @@ export class WeaponManager {
         ws: weaponStats(def, w.tier, o.stats),
         timer: 0,
         offset: slotOffset(i, o.weapons.length),
-        sprite: this.scene.add.image(0, 0, `weapon_${def.id}`).setDepth(DEPTH.PLAYER + 1),
+        sprite: this.scene.add.image(0, 0, `weapon_${def.id}`).setDepth(DEPTH.ACTORS + 0.01),
         gfx:
           def.behavior === "beam" || def.behavior === "melee-arc"
             ? this.scene.add.graphics().setDepth(DEPTH.PROJECTILES)
@@ -99,8 +100,10 @@ export class WeaponManager {
     const dt = dtMs / 1000;
     this.clock += dt;
     const slot = this.slot;
+    const depth = actorDepth(player.y) + 0.01; // just in front of the owner
     for (let i = 0; i < this.equipped.length; i++) {
       const w = this.equipped[i];
+      if (Math.round(depth * 100) !== Math.round(w.sprite.depth * 100)) w.sprite.setDepth(depth);
       if (w.def.behavior === "orbital") {
         this.updateDrone(w, player, enemies, dt);
         continue;

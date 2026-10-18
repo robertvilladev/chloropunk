@@ -118,7 +118,7 @@ export class GameScene extends Phaser.Scene {
 
     // 7b. Feedback effects
     for (const def of Object.values(enemyDefs)) {
-      this.burstColors.set(def.id, Phaser.Display.Color.HexStringToColor(def.color ?? "#ffffff").color);
+      this.burstColors.set(def.id, Phaser.Display.Color.HexStringToColor(def.color ?? THEME_CSS.text).color);
     }
     this.juice = new Juice(this);
 

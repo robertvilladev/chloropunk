@@ -51,9 +51,10 @@ export const ASSET_KEYS = {
 export const DEPTH = {
   BACKGROUND: 0,
   GROUND_EFFECTS: 10,
-  SCRAP: 20,
-  PROJECTILES: 30,
-  ENEMIES: 40,
-  PLAYER: 50,
+  SCRAP: 20, // pickups: lowest actor layer
+  ACTORS: 40, // base of the y-sorted band [40, 49.99]
+  PROJECTILES: 60,
+  FX: 70, // bursts, blasts
+  NUMBERS: 90, // damage numbers, banner
   UI: 100,
 } as const;

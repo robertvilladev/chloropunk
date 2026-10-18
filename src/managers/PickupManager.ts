@@ -1,4 +1,5 @@
-import { DEPTH, GAME_CONFIG } from "@/config/constants";
+import { GAME_CONFIG } from "@/config/constants";
+import { pickupDepth } from "@/core/depth";
 import type { Vector2 } from "@/types";
 import Phaser from "phaser";
 
@@ -30,7 +31,7 @@ export class PickupManager {
     }
     s.enableBody(true, x, y, true, true);
     (s.body as Phaser.Physics.Arcade.Body).setSize(PICKUP_SIZE, PICKUP_SIZE); // never the 48x24 strip base frame
-    s.setDepth(DEPTH.SCRAP);
+    s.setDepth(pickupDepth(y));
     s.setVelocity(0, 0);
     s.setData("value", amount);
     s.play("pickup_scrap_spin", true);

@@ -1,7 +1,7 @@
 import { bodyOffset } from "@/art/body";
 import { GAME_CONFIG } from "@/config/constants";
 import { THEME } from "@/config/theme";
-import { facingFlip } from "@/core/depth";
+import { actorDepth, facingFlip } from "@/core/depth";
 import type { Rng } from "@/core/rng";
 import { damageTaken } from "@/core/stats";
 import type { Stats } from "@/types";
@@ -54,7 +54,7 @@ export class PlayerManager {
     const off = bodyOffset("player", PLAYER_RADIUS);
     (this.player.body as Phaser.Physics.Arcade.Body).setCircle(PLAYER_RADIUS, off.x, off.y);
     this.player.play("player_walk");
-    this.player.setDepth(50); // Above enemies
+    this.player.setDepth(actorDepth(this.player.y));
 
     console.log("✓ PlayerManager: Player created");
   }
@@ -71,6 +71,8 @@ export class PlayerManager {
     // Set velocity
     body.setVelocity(velocityX * speed, velocityY * speed);
     this.player.flipX = facingFlip(velocityX * speed, this.player.flipX);
+    const d = actorDepth(this.player.y);
+    if (Math.round(d * 100) !== Math.round(this.player.depth * 100)) this.player.setDepth(d);
 
     // Normalize diagonal movement
     if (velocityX !== 0 && velocityY !== 0) {

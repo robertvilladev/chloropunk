@@ -50,7 +50,7 @@ export class Juice {
         lifespan: 350,
         alpha: { start: 1, end: 0 },
       })
-      .setDepth(DEPTH.ENEMIES + 1);
+      .setDepth(DEPTH.FX);
   }
 
   damageNumber(x: number, y: number, amount: number, crit: boolean): void {
@@ -65,7 +65,7 @@ export class Juice {
           color: crit ? THEME_CSS.lime : THEME_CSS.text,
         })
         .setOrigin(0.5)
-        .setDepth(DEPTH.UI - 2);
+        .setDepth(DEPTH.NUMBERS);
       pool[this.next[kind]] = t;
     }
     this.next[kind] = (this.next[kind] + 1) % MAX_NUMBERS;
@@ -159,7 +159,7 @@ export class Juice {
           color,
         })
         .setOrigin(0.5)
-        .setDepth(DEPTH.UI - 2)
+        .setDepth(DEPTH.NUMBERS)
     );
     this.scene.tweens.add({
       targets: texts,
