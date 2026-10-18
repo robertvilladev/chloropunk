@@ -64,7 +64,7 @@ export class GameOverScene extends Phaser.Scene {
     // Retry button click
     retryButton.on("pointerdown", () => {
       this.scene.stop(SCENE_KEYS.UI);
-      this.scene.start(SCENE_KEYS.GAME);
+      this.scene.start(SCENE_KEYS.GAME, {}); // {} = fresh run (Phaser reuses old data otherwise)
     });
 
     // Main menu button

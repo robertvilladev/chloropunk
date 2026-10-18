@@ -1,6 +1,7 @@
 import { SCENE_KEYS } from "@/config/constants";
 import { CoinManager } from "@/managers/CoinManager";
 import { ShopManager } from "@/managers/ShopManager";
+import type { RunState } from "@/types";
 import Phaser from "phaser";
 
 /**
@@ -10,12 +11,14 @@ export class ShopScene extends Phaser.Scene {
   private coinManager!: CoinManager;
   private shopManager!: ShopManager;
   private coinText!: Phaser.GameObjects.Text;
+  private run!: RunState;
 
   constructor() {
     super({ key: SCENE_KEYS.SHOP });
   }
 
-  create(data: { coins?: number }) {
+  create(data: { run: RunState }) {
+    this.run = data.run;
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
 
@@ -24,7 +27,7 @@ export class ShopScene extends Phaser.Scene {
 
     // Initialize managers
     this.coinManager = new CoinManager(this);
-    this.coinManager.setCoinCount(data.coins || 0);
+    this.coinManager.setCoinCount(this.run.coins);
     this.shopManager = new ShopManager(this);
 
     // Title
@@ -48,11 +51,6 @@ export class ShopScene extends Phaser.Scene {
       }
     );
     this.coinText.setOrigin(1, 0);
-
-    // Listen for coin updates
-    this.events.on("coinCollected", (count: number) => {
-      this.coinText.setText(`Coins: ${count}`);
-    });
 
     // Create upgrade buttons
     this.createUpgradeButtons();
@@ -85,8 +83,7 @@ export class ShopScene extends Phaser.Scene {
     startButton.on("pointerdown", () => {
       this.scene.stop(SCENE_KEYS.UI);
       this.scene.start(SCENE_KEYS.GAME, {
-        upgrades: this.shopManager.getPurchasedUpgrades(),
-        coins: this.coinManager.getCoinCount(),
+        run: { ...this.run, coins: this.coinManager.getCoinCount() },
       });
     });
 
@@ -142,6 +139,7 @@ export class ShopScene extends Phaser.Scene {
     // Click handler
     button.on("pointerdown", () => {
       if (this.shopManager.purchaseUpgrade(upgrade.id, this.coinManager)) {
+        this.run.bonus[upgrade.stat as keyof RunState["bonus"]] += upgrade.value;
         // Success - update UI
         this.coinText.setText(`Coins: ${this.coinManager.getCoinCount()}`);
         // Could add visual feedback here

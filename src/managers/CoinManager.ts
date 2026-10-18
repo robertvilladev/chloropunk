@@ -31,8 +31,7 @@ export class CoinManager {
 
     if (!coin) return;
 
-    coin.setActive(true);
-    coin.setVisible(true);
+    coin.enableBody(true, x, y, true, true);
     coin.setData("value", value);
 
     // Add slight random movement
@@ -66,9 +65,8 @@ export class CoinManager {
    * Remove a coin
    */
   removeCoin(coin: Phaser.Physics.Arcade.Sprite): void {
-    coin.setActive(false);
-    coin.setVisible(false);
-    coin.setVelocity(0, 0);
+    // Disable the body too, or hidden coins keep getting collected
+    coin.disableBody(true, true);
   }
 
   /**

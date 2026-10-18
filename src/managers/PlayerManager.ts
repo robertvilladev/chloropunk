@@ -10,6 +10,7 @@ export class PlayerManager {
   private player!: Phaser.Physics.Arcade.Sprite;
   private health: number = 100;
   private maxHealth: number = 100;
+  private speed: number = GAME_CONFIG.INITIAL_PLAYER_SPEED;
   private invulnerableTimer: number = 0;
   private invulnerableDuration: number = 1000; // 1 second invulnerability after hit
 
@@ -20,7 +21,11 @@ export class PlayerManager {
   /**
    * Create and initialize the player
    */
-  create(): void {
+  create(maxHealth: number = 100, speed: number = GAME_CONFIG.INITIAL_PLAYER_SPEED): void {
+    this.maxHealth = maxHealth;
+    this.health = maxHealth;
+    this.speed = speed;
+
     // Create player sprite at center
     this.player = this.scene.physics.add.sprite(
       GAME_CONFIG.PLAYER_START_X,
@@ -42,7 +47,7 @@ export class PlayerManager {
     if (!this.player || !this.player.body) return;
 
     const body = this.player.body as Phaser.Physics.Arcade.Body;
-    const speed = GAME_CONFIG.INITIAL_PLAYER_SPEED;
+    const speed = this.speed;
 
     // Set velocity
     body.setVelocity(velocityX * speed, velocityY * speed);
@@ -129,6 +134,13 @@ export class PlayerManager {
    */
   getMaxHealth(): number {
     return this.maxHealth;
+  }
+
+  /**
+   * Get movement speed
+   */
+  getSpeed(): number {
+    return this.speed;
   }
 
   /**

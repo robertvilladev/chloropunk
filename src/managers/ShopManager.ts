@@ -14,8 +14,6 @@ interface ShopUpgrade {
  * ShopManager - Handles shop upgrades and player progression
  */
 export class ShopManager {
-  private scene: Phaser.Scene;
-  private purchasedUpgradeIds: Set<string> = new Set();
   private upgrades: ShopUpgrade[] = [
     {
       id: "health",
@@ -43,9 +41,7 @@ export class ShopManager {
     },
   ];
 
-  constructor(scene: Phaser.Scene) {
-    this.scene = scene;
-  }
+  constructor(_scene: Phaser.Scene) {}
 
   /**
    * Get available upgrades
@@ -62,33 +58,11 @@ export class ShopManager {
     if (!upgrade) return false;
 
     if (coinManager.spendCoins(upgrade.cost)) {
-      // Track purchased upgrade
-      this.purchasedUpgradeIds.add(upgradeId);
-      // Apply the upgrade
-      this.applyUpgrade(upgrade);
       console.log(`Purchased ${upgrade.name}`);
       return true;
     }
 
     return false;
-  }
-
-  /**
-   * Get list of purchased upgrades
-   */
-  getPurchasedUpgrades(): ShopUpgrade[] {
-    return this.upgrades.filter((u) => this.purchasedUpgradeIds.has(u.id));
-  }
-
-  /**
-   * Apply upgrade to player stats
-   */
-  private applyUpgrade(upgrade: ShopUpgrade): void {
-    // Emit event to update player stats
-    this.scene.events.emit("upgradePurchased", {
-      stat: upgrade.stat,
-      value: upgrade.value,
-    });
   }
 
   /**

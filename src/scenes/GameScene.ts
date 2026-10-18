@@ -1,4 +1,4 @@
-import { SCENE_KEYS } from "@/config/constants";
+import { GAME_CONFIG, SCENE_KEYS } from "@/config/constants";
 import { CoinManager } from "@/managers/CoinManager";
 import { EnemyManager } from "@/managers/EnemyManager";
 import { InputManager } from "@/managers/InputManager";
@@ -6,7 +6,19 @@ import { PlayerManager } from "@/managers/PlayerManager";
 import { WaveManager } from "@/managers/WaveManager";
 import { WeaponManager } from "@/managers/WeaponManager";
 import { WorldManager } from "@/managers/WorldManager";
+import type { RunState } from "@/types";
 import Phaser from "phaser";
+
+// Custom events emitted on this scene; listeners are removed on shutdown
+// because Phaser keeps scene.events listeners across restarts
+const GAME_EVENTS = [
+  "playerDied",
+  "enemyKilled",
+  "coinCollected",
+  "speedChanged",
+  "playerHealthChanged",
+  "timerUpdate",
+];
 
 /**
  * GameScene - Main gameplay scene
@@ -36,11 +48,24 @@ export class GameScene extends Phaser.Scene {
 
   // Stats tracking
   private enemiesKilled: number = 0;
-  private coinsEarned: number = 0;
   private isGameOver: boolean = false;
+
+  // Persistent run state (wave, coins, upgrades)
+  private run!: RunState;
 
   constructor() {
     super({ key: SCENE_KEYS.GAME });
+  }
+
+  /**
+   * Receive run state from the shop; no data means a fresh run
+   */
+  init(data: { run?: RunState }) {
+    this.run = data.run ?? {
+      wave: 1,
+      coins: 0,
+      bonus: { maxHealth: 0, speed: 0, damage: 0 },
+    };
   }
 
   /**
@@ -57,12 +82,15 @@ export class GameScene extends Phaser.Scene {
 
     // 3. Create player
     this.playerManager = new PlayerManager(this);
-    this.playerManager.create();
+    this.playerManager.create(
+      100 + this.run.bonus.maxHealth,
+      GAME_CONFIG.INITIAL_PLAYER_SPEED + this.run.bonus.speed
+    );
 
     // 4. Initialize wave system
     this.waveManager = new WaveManager(this);
     this.waveManager.create();
-    this.waveManager.startWave(1); // Start first wave
+    this.waveManager.startWave(this.run.wave);
 
     // 5. Initialize enemy system
     this.enemyManager = new EnemyManager(this);
@@ -70,11 +98,12 @@ export class GameScene extends Phaser.Scene {
 
     // 6. Initialize weapon system
     this.weaponManager = new WeaponManager(this);
-    this.weaponManager.create();
+    this.weaponManager.create(this.run.bonus.damage);
 
     // 7. Initialize coin system
     this.coinManager = new CoinManager(this);
     this.coinManager.create();
+    this.coinManager.setCoinCount(this.run.coins);
 
     // 8. Set up collision detection
     this.setupCollisions();
@@ -88,7 +117,7 @@ export class GameScene extends Phaser.Scene {
     // 10. Initialize round timer
     this.roundTimeRemaining = this.roundDuration;
     this.enemiesKilled = 0;
-    this.coinsEarned = 0;
+    this.gameSpeed = 1;
     this.isGameOver = false;
 
     // Listen for player death
@@ -97,11 +126,10 @@ export class GameScene extends Phaser.Scene {
     // Listen for enemy kills
     this.events.on("enemyKilled", this.onEnemyKilled, this);
 
-    // Listen for coin collection
-    this.events.on("coinCollected", this.onCoinCollected, this);
-
     // Listen for speed changes
     this.events.on("speedChanged", this.onSpeedChanged, this);
+
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.cleanup, this);
 
     console.log("✓ GameScene: Initialized with modular architecture");
   }
@@ -215,7 +243,7 @@ export class GameScene extends Phaser.Scene {
    */
   private setupSceneControls(): void {
     this.inputManager.onKeyPress("ESC", () => {
-      this.cleanup();
+      this.scene.stop(SCENE_KEYS.UI);
       this.scene.start(SCENE_KEYS.MENU);
     });
   }
@@ -252,10 +280,13 @@ export class GameScene extends Phaser.Scene {
     this.isGameOver = true;
 
     console.log("Round Complete!");
+    const coins = this.coinManager.getCoinCount();
+    const coinsEarned = coins - this.run.coins;
     this.scene.pause();
     this.scene.launch(SCENE_KEYS.VICTORY, {
       enemiesKilled: this.enemiesKilled,
-      coinsEarned: this.coinsEarned,
+      coinsEarned,
+      run: { ...this.run, wave: this.run.wave + 1, coins },
     });
   }
 
@@ -269,19 +300,9 @@ export class GameScene extends Phaser.Scene {
     enemyY: number
   ): void {
     this.enemiesKilled++;
-    this.coinsEarned += coinValue;
 
     // Spawn coin at enemy position
     this.coinManager.spawnCoin(enemyX, enemyY, coinValue);
-  }
-
-  /**
-   * Handle coin collected
-   */
-  private onCoinCollected(_coinCount: number): void {
-    // This handler is intentionally left empty.
-    // Coin count is updated automatically by CoinManager and UI is updated via events.
-    // This method exists for future extensibility (e.g., analytics tracking, custom effects).
   }
 
   /**
@@ -300,12 +321,20 @@ export class GameScene extends Phaser.Scene {
     this.waveManager?.destroy();
     this.worldManager?.destroy();
     this.inputManager?.destroy();
+    GAME_EVENTS.forEach((event) => this.events.removeAllListeners(event));
   }
 
   /**
-   * Called when scene is shut down
+   * Current player stats for the HUD
    */
-  shutdown(): void {
-    this.cleanup();
+  getPlayerStats() {
+    return {
+      wave: this.run.wave,
+      health: this.playerManager.getHealth(),
+      maxHealth: this.playerManager.getMaxHealth(),
+      speed: this.playerManager.getSpeed(),
+      damage: this.weaponManager.getDamage(),
+      coins: this.coinManager.getCoinCount(),
+    };
   }
 }

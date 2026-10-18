@@ -74,3 +74,10 @@ export interface GameConfig {
   spawnDistance: number;
   waveInterval: number;
 }
+
+/** State that survives between rounds of a single run */
+export interface RunState {
+  wave: number;
+  coins: number;
+  bonus: { maxHealth: number; speed: number; damage: number };
+}

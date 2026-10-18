@@ -28,6 +28,7 @@ export class WeaponManager {
   private projectiles: Phaser.Physics.Arcade.Group;
   private equippedWeapons: EquippedWeapon[] = [];
   private maxWeapons: number = 5; // Can equip 3-5 weapons
+  private bonusDamage: number = 0;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -40,7 +41,8 @@ export class WeaponManager {
   /**
    * Initialize weapon system
    */
-  create(): void {
+  create(bonusDamage: number = 0): void {
+    this.bonusDamage = bonusDamage;
     // Start with a basic pistol
     this.equipWeapon("basicGun");
     console.log("✓ WeaponManager: Initialized with basic gun");
@@ -71,6 +73,13 @@ export class WeaponManager {
 
     console.log(`Equipped ${type} weapon`);
     return true;
+  }
+
+  /**
+   * Damage of the primary weapon, including upgrades
+   */
+  getDamage(): number {
+    return (this.equippedWeapons[0]?.data.damage ?? 0) + this.bonusDamage;
   }
 
   /**
@@ -152,8 +161,8 @@ export class WeaponManager {
 
     if (!projectile) return;
 
-    projectile.setActive(true);
-    projectile.setVisible(true);
+    // Pooled sprites keep a disabled body; reset it at the spawn point
+    projectile.enableBody(true, startPos.x, startPos.y, true, true);
 
     // Set projectile velocity
     const velocity = {
@@ -165,7 +174,7 @@ export class WeaponManager {
     projectile.setRotation(angle);
 
     // Store weapon data on projectile
-    projectile.setData("damage", weaponData.damage);
+    projectile.setData("damage", weaponData.damage + this.bonusDamage);
     projectile.setData("knockback", 50); // Default knockback
     projectile.setData("range", weaponData.range);
     projectile.setData("startX", startPos.x);
@@ -225,9 +234,8 @@ export class WeaponManager {
    * Remove a projectile
    */
   removeProjectile(projectile: Phaser.Physics.Arcade.Sprite): void {
-    projectile.setActive(false);
-    projectile.setVisible(false);
-    projectile.setVelocity(0, 0);
+    // Disable the body too, or hidden projectiles keep hitting enemies
+    projectile.disableBody(true, true);
   }
 
   /**
