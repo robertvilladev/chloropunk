@@ -1,4 +1,6 @@
 import { SCENE_KEYS } from "@/config/constants";
+import { THEME, THEME_CSS } from "@/config/theme";
+import { button, panel, scanlines, text } from "./ui";
 import Phaser from "phaser";
 
 /**
@@ -17,99 +19,30 @@ export class GameOverScene extends Phaser.Scene {
   }
 
   create() {
-    const width = this.cameras.main.width;
-    const height = this.cameras.main.height;
+    const { width, height } = this.cameras.main;
+    const cx = width / 2;
+    const accent = this.complete ? THEME.lime : THEME.danger;
+    this.cameras.main.setBackgroundColor(THEME.bg);
+    scanlines(this);
+    const pw = 460, ph = 330;
+    panel(this, cx - pw / 2, height / 2 - ph / 2, pw, ph, { border: accent, shadow: true });
+    text(this, cx, height / 2 - 105, this.complete ? "RUN COMPLETE" : "GAME OVER", 44, this.complete ? THEME_CSS.lime : THEME_CSS.danger, "display").setOrigin(0.5);
+    text(this, cx, height / 2 - 55, this.complete ? "You cleared every wave!" : "You were defeated!", 16, THEME_CSS.textMuted).setOrigin(0.5);
 
-    // Semi-transparent background
-    this.add.rectangle(0, 0, width, height, 0x000000, 0.8).setOrigin(0);
-
-    // Game Over title
-    const titleText = this.add.text(width / 2, height / 3, this.complete ? "RUN COMPLETE" : "GAME OVER", {
-      fontSize: "64px",
-      color: this.complete ? "#00ff00" : "#ff0000",
-      fontStyle: "bold",
-    });
-    titleText.setOrigin(0.5);
-
-    // Subtitle
-    const subtitleText = this.add.text(
-      width / 2,
-      height / 3 + 70,
-      this.complete ? "You cleared every wave!" : "You were defeated!",
-      {
-        fontSize: "24px",
-        color: "#ffffff",
-      }
-    );
-    subtitleText.setOrigin(0.5);
-
-    // Retry button
-    const retryButton = this.add.text(
-      width / 2,
-      height / 2 + 20,
-      "TRY AGAIN",
-      {
-        fontSize: "24px",
-        color: "#ffffff",
-        backgroundColor: "#444444",
-        padding: { x: 20, y: 10 },
-        fontStyle: "bold",
-      }
-    );
-    retryButton.setOrigin(0.5);
-    retryButton.setInteractive({ useHandCursor: true });
-
-    // Retry button hover effects
-    retryButton.on("pointerover", () => {
-      retryButton.setStyle({ backgroundColor: "#666666" });
-    });
-    retryButton.on("pointerout", () => {
-      retryButton.setStyle({ backgroundColor: "#444444" });
-    });
-
-    // Retry button click
-    retryButton.on("pointerdown", () => {
+    const toMenu = () => {
+      this.scene.stop(SCENE_KEYS.UI);
+      this.scene.stop(SCENE_KEYS.GAME); // it sits paused under this overlay
+      this.scene.start(SCENE_KEYS.MENU);
+    };
+    button(this, cx, height / 2 + 20, "TRY AGAIN", () => {
       this.scene.stop(SCENE_KEYS.UI);
       this.scene.stop(SCENE_KEYS.GAME); // it sits paused under this overlay
       this.scene.start(SCENE_KEYS.LOADOUT); // new run: pick a weapon again
-    });
-
-    // Main menu button
-    const menuButton = this.add.text(
-      width / 2,
-      height / 2 + 90,
-      "MAIN MENU",
-      {
-        fontSize: "20px",
-        color: "#ffffff",
-        backgroundColor: "#444444",
-        padding: { x: 15, y: 8 },
-      }
-    );
-    menuButton.setOrigin(0.5);
-    menuButton.setInteractive({ useHandCursor: true });
-
-    // Menu button hover effects
-    menuButton.on("pointerover", () => {
-      menuButton.setStyle({ backgroundColor: "#666666" });
-    });
-    menuButton.on("pointerout", () => {
-      menuButton.setStyle({ backgroundColor: "#444444" });
-    });
-
-    // Menu button click
-    menuButton.on("pointerdown", () => {
-      this.scene.stop(SCENE_KEYS.UI);
-      this.scene.stop(SCENE_KEYS.GAME); // it sits paused under this overlay
-      this.scene.start(SCENE_KEYS.MENU);
-    });
+    }, true, true, { size: 20, font: "display", w: 220, h: 48 });
+    button(this, cx, height / 2 + 90, "MAIN MENU", toMenu, false, true, { size: 14, w: 220, h: 36 });
 
     // ESC to menu
-    this.input.keyboard?.once("keydown-ESC", () => {
-      this.scene.stop(SCENE_KEYS.UI);
-      this.scene.stop(SCENE_KEYS.GAME); // it sits paused under this overlay
-      this.scene.start(SCENE_KEYS.MENU);
-    });
+    this.input.keyboard?.once("keydown-ESC", toMenu);
 
     console.log("✓ GameOverScene: Initialized");
   }

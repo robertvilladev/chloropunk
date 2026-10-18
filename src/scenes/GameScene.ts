@@ -14,6 +14,7 @@ import { WeaponManager } from "@/managers/WeaponManager";
 import { WorldManager } from "@/managers/WorldManager";
 import type { EnemyDef, RunState, Stats } from "@/types";
 import enemyDefs from "@assets/data/enemies.json";
+import { applyGlow } from "@/fx/glow";
 import Phaser from "phaser";
 
 const BANNER_MS = 900; // matches Juice.banner total duration
@@ -92,6 +93,7 @@ export class GameScene extends Phaser.Scene {
     // 1. Create world/environment
     this.worldManager = new WorldManager(this);
     this.worldManager.create();
+    applyGlow(this);
 
     // 2. Initialize input handling
     this.inputManager = new InputManager(this);
@@ -118,7 +120,7 @@ export class GameScene extends Phaser.Scene {
 
     // 7b. Feedback effects
     for (const def of Object.values(enemyDefs)) {
-      this.burstColors.set(def.id, Phaser.Display.Color.HexStringToColor(def.color ?? "#ffffff").color);
+      this.burstColors.set(def.id, Phaser.Display.Color.HexStringToColor(def.color ?? THEME_CSS.text).color);
     }
     this.juice = new Juice(this);
 
@@ -455,6 +457,7 @@ export class GameScene extends Phaser.Scene {
       health: this.playerManager.getHealth(),
       maxHealth: this.playerManager.getMaxHealth(),
       stats: this.stats,
+      weapons: this.run.weapons,
       scrap: this.run.scrap,
       pending: this.run.pendingLevelUps + xp.levelsGained,
       level: xp.level,

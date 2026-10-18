@@ -1,5 +1,5 @@
 import { SCENE_KEYS } from "@/config/constants";
-import { THEME, THEME_CSS } from "@/config/theme";
+import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import { combine, combinePairs, sellWeapon, weaponBuyMode } from "@/core/inventory";
 import { createRng, type Rng } from "@/core/rng";
 import {
@@ -14,15 +14,15 @@ import {
 } from "@/core/shop";
 import { STAT_KEYS, STAT_LABELS, computeStats, statDiff } from "@/core/stats";
 import { sellPrice, weaponStats } from "@/core/weapons";
-import type { ItemDef, Offer, RunState, Stats, WeaponDef } from "@/types";
+import type { ItemDef, Offer, RunState, StatKey, Stats, WeaponDef } from "@/types";
 import itemDefs from "@assets/data/items.json";
 import weaponDefs from "@assets/data/weapons.json";
 import Phaser from "phaser";
-import { DISPLAY_FONT, button, onKeys, text } from "./ui";
+import { truncate } from "@/core/labels";
+import { button, onKeys, panel, text, tierTab } from "./ui";
 
 const weapons = weaponDefs as Record<string, WeaponDef>;
 const items = itemDefs as Record<string, ItemDef>;
-const tierColor = (t: number) => THEME_CSS.tier[t - 1];
 const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
 
 /**
@@ -36,6 +36,7 @@ export class ShopScene extends Phaser.Scene {
   private ui!: Phaser.GameObjects.Container;
   private previewUp!: Phaser.GameObjects.Text;
   private previewDown!: Phaser.GameObjects.Text;
+  private statBox!: Phaser.GameObjects.Container;
   private focus = -1; // focused owned weapon (Tab)
   private offerFocus = -1; // focused offer (arrow keys), shows its preview
 
@@ -51,6 +52,7 @@ export class ShopScene extends Phaser.Scene {
     this.shop = openShop(this.run, this.rng, computeStats(this.run).luck);
     this.cameras.main.setBackgroundColor(THEME.bg);
     this.input.keyboard!.addCapture("TAB,SPACE");
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard!.removeCapture("TAB,SPACE"));
     onKeys(this, (e) => this.onKey(e));
     this.ui = this.add.container(0, 0);
     this.render();
@@ -153,7 +155,8 @@ export class ShopScene extends Phaser.Scene {
       const fmt = (d: [string, number][]) =>
         d.map(([k, v]) => `${signed(v)} ${STAT_LABELS[k as keyof Stats]}`).join("   ");
       this.previewUp.setText(fmt(diff.filter(([, v]) => v > 0))).setColor(THEME_CSS.lime);
-      this.previewDown.setText(fmt(diff.filter(([, v]) => v < 0)));
+      this.previewDown.setText(fmt(diff.filter(([, v]) => v < 0))).setColor(THEME_CSS.danger);
+      this.drawStats(new Map(diff));
     } else {
       const ws = weaponStats(weapons[o.id], o.tier, now);
       const mode = weaponBuyMode(this.run.weapons, o.id, o.tier);
@@ -161,9 +164,26 @@ export class ShopScene extends Phaser.Scene {
         mode === "merge" ? `merges into T${o.tier + 1}` : mode === "add" ? "takes a free slot" : "NO SLOT";
       this.previewUp
         .setText(`DMG ${ws.damage}  CD ${ws.cooldown.toFixed(2)}s  RANGE ${ws.range}  — ${what}`)
-        .setColor(THEME_CSS.lime);
+        .setColor(mode === "blocked" ? THEME_CSS.danger : THEME_CSS.lime);
       this.previewDown.setText("");
+      this.drawStats();
     }
+  }
+
+  /** Stats column; `diff` (focused item offer) adds the `→ after` preview. */
+  private drawStats(diff?: Map<string, number>): void {
+    this.statBox.removeAll(true);
+    const stats = this.stats();
+    STAT_KEYS.forEach((k: StatKey, n) => {
+      const y = n * 13;
+      const v = stats[k];
+      const d = diff?.get(k) ?? 0;
+      this.statBox.add(text(this, 0, y, STAT_LABELS[k], 11, THEME_CSS.textMuted));
+      const after = d ? text(this, 176, y, `→ ${v + d}`, 11, d > 0 ? THEME_CSS.lime : THEME_CSS.danger).setOrigin(1, 0) : null;
+      const now = text(this, after ? 176 - after.width - 6 : 176, y, `${v}`, 11, THEME_CSS.pink300).setOrigin(1, 0);
+      this.statBox.add(now);
+      if (after) this.statBox.add(after);
+    });
   }
 
   private render(): void {
@@ -174,48 +194,61 @@ export class ShopScene extends Phaser.Scene {
     };
     const stats = this.stats();
 
-    add(this.add.text(20, 14, `SHOP · WAVE ${this.run.wave}`, { fontFamily: DISPLAY_FONT, fontSize: "26px", color: THEME_CSS.lime }));
-    add(text(this, 780, 20, `SCRAP ${this.run.scrap}`, 20, THEME_CSS.lime).setOrigin(1, 0));
+    add(text(this, 24, 24, `WAVE ${String(this.run.wave).padStart(2, "0")} CLEARED`, 10, THEME_CSS.textMuted));
+    add(this.add.text(24, 40, "BLACK MARKET", { fontFamily: FONTS.display, fontSize: "28px", color: THEME_CSS.text }));
+    const cost = rerollCost(this.run.wave, this.shop.rerolls);
+    add(panel(this, 500, 28, 128, 44, { border: THEME.line, fill: THEME.surface2 }));
+    add(this.add.rectangle(518, 50, 10, 10, THEME.lime).setAngle(45));
+    add(text(this, 620, 50, `${this.run.scrap}`, 28, THEME_CSS.lime, "pixel").setOrigin(1, 0.5));
+    add(button(this, 704, 50, `REROLL ${cost}`, () => this.reroll(), false, this.run.scrap >= cost, { w: 120, h: 44, size: 13 }));
 
     this.shop.offers.forEach((o, i) => this.renderOffer(add, o, i, stats));
 
-    this.previewUp = add(text(this, 20, 252, "Hover an offer to preview · ←/→ preview · 1-4 buy · Shift+1-4 lock · R reroll", 13, THEME_CSS.textMuted));
-    this.previewDown = add(text(this, 20, 270, "", 13, THEME_CSS.danger));
-
-    // Owned weapons
+    // Weapons panel
     const pairs = combinePairs(this.run.weapons);
-    add(text(this, 20, 296, `WEAPONS ${this.run.weapons.length}/6 · Tab focus · S sell · C combine`, 13, THEME_CSS.textMuted));
-    this.run.weapons.forEach((w, i) => {
-      const x = 20 + i * 128;
+    add(panel(this, 24, 292, 536, 236, { border: THEME.line, fill: THEME.surface2 }));
+    add(text(this, 36, 302, `WEAPONS ${this.run.weapons.length} / 6`, 10, THEME_CSS.textMuted));
+    add(text(this, 548, 302, "TAB FOCUS · S SELL · C COMBINE", 10, THEME_CSS.textMuted).setOrigin(1, 0));
+    for (let i = 0; i < 6; i++) {
+      const x = 36 + i * 86;
+      const y = 326;
+      const w = this.run.weapons[i];
+      if (!w) {
+        add(this.add.rectangle(x, y, 78, 116).setOrigin(0).setStrokeStyle(2, THEME.line, 0.6));
+        continue;
+      }
       const def = weapons[w.id];
       const focused = i === this.focus;
-      add(this.add.rectangle(x, 316, 120, 96, THEME.surface).setOrigin(0).setStrokeStyle(focused ? 3 : 1, focused ? THEME.pink : THEME.line));
-      add(text(this, x + 8, 322, def.name, 12));
-      add(text(this, x + 8, 340, `T${w.tier}`, 12, tierColor(w.tier)));
-      add(button(this, x + 60, 372, `SELL +${sellPrice(def, w.tier, this.run.wave)}`, () => this.sell(i), false, this.run.weapons.length > 1));
+      add(this.add.rectangle(x, y, 78, 116, THEME.surface).setOrigin(0).setStrokeStyle(focused ? 3 : 2, focused ? THEME.pink : THEME.tier[w.tier - 1]));
+      add(tierTab(this, x + 6, y, w.tier, true));
+      add(
+        text(this, x + 6, y + 12, truncate(def.name.toUpperCase(), 22), 10)
+          .setWordWrapWidth(66, true)
+          .setMaxLines(2)
+      );
       if (pairs.some(([a, b]) => a === i || b === i)) {
-        add(button(this, x + 60, 398, "COMBINE", () => this.combine(i), true));
+        add(button(this, x + 39, y + 66, "COMBINE", () => this.combine(i), true, true, { w: 66, h: 22, size: 10 }));
       }
-    });
-
-    // Stats (two columns) and owned items
-    add(text(this, 20, 430, "STATS", 13, THEME_CSS.pink));
-    STAT_KEYS.forEach((k, n) => {
-      const col = n < 8 ? 0 : 1;
-      const row = n % 8;
-      const v = stats[k];
-      const color = v > 0 ? THEME_CSS.text : v < 0 ? THEME_CSS.danger : THEME_CSS.textMuted;
-      add(text(this, 20 + col * 190, 450 + row * 17, `${STAT_LABELS[k]}: ${v}`, 12, color));
-    });
+      add(button(this, x + 39, y + 96, `SELL +${sellPrice(def, w.tier, this.run.wave)}`, () => this.sell(i), false, this.run.weapons.length > 1, { w: 66, h: 22, size: 10 }));
+    }
     const counts = new Map<string, number>();
     for (const id of this.run.items) counts.set(id, (counts.get(id) ?? 0) + 1);
-    add(text(this, 410, 430, "ITEMS", 13, THEME_CSS.pink));
+    add(text(this, 36, 456, "ITEMS", 10, THEME_CSS.textMuted));
     add(
-      text(this, 410, 450, [...counts].map(([id, n]) => `${items[id].name}${n > 1 ? ` ×${n}` : ""}`).join("\n") || "—", 12).setWordWrapWidth(200)
+      text(this, 36, 472, [...counts].map(([id, n]) => `${items[id].name}${n > 1 ? ` ×${n}` : ""}`).join(" · ") || "—", 11)
+        .setWordWrapWidth(512, true)
+        .setMaxLines(3)
     );
 
-    add(button(this, 660, 470, `REROLL (${rerollCost(this.run.wave, this.shop.rerolls)})`, () => this.reroll(), false, this.run.scrap >= rerollCost(this.run.wave, this.shop.rerolls)));
-    add(button(this, 690, 540, "NEXT WAVE ▶", () => this.next(), true));
+    // Stats panel
+    add(panel(this, 576, 292, 200, 236, { border: THEME.line, fill: THEME.surface2 }));
+    add(text(this, 588, 302, "STATS", 10, THEME_CSS.textMuted));
+    this.statBox = add(this.add.container(588, 322));
+    this.drawStats();
+
+    this.previewUp = add(text(this, 24, 540, "←/→ preview · 1-4 buy · Shift+1-4 lock · R reroll", 11, THEME_CSS.textMuted).setWordWrapWidth(520, true));
+    this.previewDown = add(text(this, 24, 560, "", 11, THEME_CSS.danger).setWordWrapWidth(520, true));
+    add(button(this, 672, 564, "NEXT WAVE", () => this.next(), true, true, { w: 200, h: 44, size: 18, font: "display" }));
   }
 
   private renderOffer(
@@ -224,39 +257,55 @@ export class ShopScene extends Phaser.Scene {
     i: number,
     stats: Stats
   ): void {
-    const x = 20 + i * 192;
-    const y = 60;
+    const x = 24 + i * 191;
+    const y = 100;
+    const w = 177;
+    const h = 176;
     const locked = this.shop.locked[i];
     const focused = i === this.offerFocus;
+    const tc = o ? THEME.tier[o.tier - 1] : THEME.line;
+    if (locked) add(this.add.rectangle(x + 4, y + 4, w, h, THEME.pink).setOrigin(0));
+    else if (o?.tier === 4) add(this.add.rectangle(x - 4, y - 4, w + 8, h + 8, tc, 0.18).setOrigin(0));
     const card = add(
-      this.add
-        .rectangle(x, y, 180, 180, THEME.surface)
-        .setOrigin(0)
-        .setStrokeStyle(locked || focused ? 3 : 1, locked ? THEME.pink : focused ? THEME.lime : THEME.line)
+      this.add.rectangle(x, y, w, h, THEME.surface).setOrigin(0).setStrokeStyle(focused ? 3 : 2, focused ? THEME.lime : tc)
     );
-    add(text(this, x + 8, y + 6, `[${i + 1}]`, 12, THEME_CSS.textMuted));
     if (!o) {
-      add(text(this, x + 90, y + 90, "SOLD", 16, THEME_CSS.textMuted).setOrigin(0.5));
+      add(text(this, x + w / 2, y + h / 2, "SOLD", 16, THEME_CSS.textMuted).setOrigin(0.5));
       return;
     }
     const status = offerStatus(this.shop, this.run, i);
-    const name = o.kind === "weapon" ? weapons[o.id].name : items[o.id].name;
-    add(text(this, x + 172, y + 6, `T${o.tier}`, 12, tierColor(o.tier)).setOrigin(1, 0));
-    add(text(this, x + 8, y + 26, name, 14).setWordWrapWidth(164));
-    add(text(this, x + 8, y + 64, o.kind === "weapon" ? weapons[o.id].tags.join(" · ") : "item", 11, THEME_CSS.textMuted));
-    const body =
+    const def = o.kind === "weapon" ? weapons[o.id] : items[o.id];
+    add(tierTab(this, x + 10, y, o.tier));
+    add(text(this, x + 12, y + 12, `[${i + 1}]`, 10, THEME_CSS.textMuted));
+    add(
+      this.add
+        .text(x + 12, y + 28, truncate(def.name.toUpperCase(), 30), { fontFamily: FONTS.display, fontSize: "12px", color: THEME_CSS.text })
+        .setWordWrapWidth(153, true)
+        .setMaxLines(2)
+    );
+    const owned = this.run.weapons.filter((w) => w.id === o.id).length;
+    const kind =
+      o.kind === "weapon"
+        ? `WEAPON · ${weapons[o.id].tags.join(" · ").toUpperCase()}${owned ? ` · OWNED ×${owned}` : ""}`
+        : "ITEM";
+    add(text(this, x + 12, y + 62, kind, 9, owned ? THEME_CSS.pink300 : THEME_CSS.textMuted).setWordWrapWidth(153, true).setMaxLines(2));
+    const lines: [string, string][] =
       o.kind === "weapon"
         ? (() => {
             const ws = weaponStats(weapons[o.id], o.tier, stats);
-            return `DMG ${ws.damage}\nCD ${ws.cooldown.toFixed(2)}s\nRANGE ${ws.range}`;
+            return [[`DMG ${ws.damage}`, THEME_CSS.text], [`CD ${ws.cooldown.toFixed(2)}s`, THEME_CSS.text], [`RANGE ${ws.range}`, THEME_CSS.text]];
           })()
-        : Object.entries(items[o.id].mods)
-            .map(([k, v]) => `${signed(v!)} ${STAT_LABELS[k as keyof Stats]}`)
-            .join("\n");
-    add(text(this, x + 8, y + 82, body, 12));
-    const priceLabel = status === "blocked" ? "NO SLOT" : `${o.price} scrap`;
-    add(text(this, x + 8, y + 152, priceLabel, 14, status === "ok" ? THEME_CSS.lime : THEME_CSS.danger));
-    add(button(this, x + 140, y + 160, locked ? "LOCKED" : "LOCK", () => this.lock(i)));
+        : Object.entries(items[o.id].mods).map(([k, v]) => [
+            `${signed(v!)} ${STAT_LABELS[k as keyof Stats]}`,
+            v! > 0 ? THEME_CSS.lime : THEME_CSS.danger,
+          ]);
+    lines.forEach(([t, c], n) => add(text(this, x + 12, y + 90 + n * 14, truncate(t, 24), 12, c)));
+
+    add(this.add.rectangle(x + 10, y + h - 38, w - 20, 28, THEME.surface2).setOrigin(0).setStrokeStyle(2, THEME.line));
+    add(
+      text(this, x + w / 2, y + h - 24, status === "blocked" ? "NO SLOT" : `◆ ${o.price}`, 14, status === "ok" ? THEME_CSS.lime : THEME_CSS.danger).setOrigin(0.5)
+    );
+    add(button(this, x + w - 36, y + 14, locked ? "LOCKED" : "LOCK", () => this.lock(i), false, true, { w: locked ? 56 : 40, h: 18, size: 9 }));
 
     card.setInteractive({ useHandCursor: true });
     card.on("pointerover", () => this.preview(i));

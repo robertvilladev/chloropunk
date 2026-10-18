@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Level-up</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#c6ff3d}a:hover{color:#edf2ec}
+</style>
+</helmet>
+<div style="position: relative; width: 800px; height: 600px; box-sizing: border-box; padding: 32px; overflow: hidden; background: #12151b; color: #edf2ec; font-family: 'IBM Plex Mono', ui-monospace, monospace; display: flex; flex-direction: column; gap: 28px">
+  <div style="display: flex; justify-content: space-between; align-items: flex-end">
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 10px; letter-spacing: 0.18em; color: #c6ff3d">LEVEL 5 REACHED · 1 OF 2 PICKS</span>
+      <h1 style="margin: 0; font-family: Bungee, sans-serif; font-weight: 400; font-size: 34px; line-height: 1">UPGRADE</h1>
+    </div>
+    <button type="button" style="min-height: 44px; padding: 0 18px; border: 2px solid #2c323d; background: transparent; color: #edf2ec; font: 600 13px 'IBM Plex Mono', monospace; letter-spacing: 0.1em; cursor: pointer">REROLL <span style="color: #c6ff3d">3</span></button>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px">
+    <button type="button" style="position: relative; display: flex; flex-direction: column; gap: 10px; padding: 22px 14px 14px; min-height: 200px; background: #1c2029; border: 2px solid #a9b0b8; color: #edf2ec; text-align: left; font-family: 'IBM Plex Mono', monospace; cursor: pointer">
+      <span style="position: absolute; top: -9px; left: 12px; padding: 1px 6px; background: #a9b0b8; color: #12151b; font-size: 9px; font-weight: 600; letter-spacing: 0.1em">T1 · COMMON</span>
+      <span style="font-family: Bungee, sans-serif; font-size: 14px">REFLEX CHIP</span>
+      <span style="font-size: 14px; font-weight: 600; color: #c6ff3d; font-variant-numeric: tabular-nums">+5% Attack speed</span>
+    </button>
+    <button type="button" style="position: relative; display: flex; flex-direction: column; gap: 10px; padding: 22px 14px 14px; min-height: 200px; background: #1c2029; border: 2px solid #ff4f9a; box-shadow: 4px 4px 0 #ff4f9a; color: #edf2ec; text-align: left; font-family: 'IBM Plex Mono', monospace; cursor: pointer">
+      <span style="position: absolute; top: -9px; left: 12px; padding: 1px 6px; background: #ff4f9a; color: #12151b; font-size: 9px; font-weight: 600; letter-spacing: 0.1em">T3 · RARE</span>
+      <span style="font-family: Bungee, sans-serif; font-size: 14px">TITAN PLATING</span>
+      <span style="font-size: 14px; font-weight: 600; color: #c6ff3d; font-variant-numeric: tabular-nums">+3 Armor</span>
+      <span style="font-size: 14px; font-weight: 600; color: #c6ff3d; font-variant-numeric: tabular-nums">+10 Max HP</span>
+    </button>
+    <button type="button" style="position: relative; display: flex; flex-direction: column; gap: 10px; padding: 22px 14px 14px; min-height: 200px; background: #1c2029; border: 2px solid #3ad8ff; color: #edf2ec; text-align: left; font-family: 'IBM Plex Mono', monospace; cursor: pointer">
+      <span style="position: absolute; top: -9px; left: 12px; padding: 1px 6px; background: #3ad8ff; color: #12151b; font-size: 9px; font-weight: 600; letter-spacing: 0.1em">T2 · UNCOMMON</span>
+      <span style="font-family: Bungee, sans-serif; font-size: 14px">MAGNET COIL</span>
+      <span style="font-size: 14px; font-weight: 600; color: #c6ff3d; font-variant-numeric: tabular-nums">+30 Pickup range</span>
+    </button>
+    <button type="button" style="position: relative; display: flex; flex-direction: column; gap: 10px; padding: 22px 14px 14px; min-height: 200px; background: #1c2029; border: 2px solid #a9b0b8; color: #edf2ec; text-align: left; font-family: 'IBM Plex Mono', monospace; cursor: pointer">
+      <span style="position: absolute; top: -9px; left: 12px; padding: 1px 6px; background: #a9b0b8; color: #12151b; font-size: 9px; font-weight: 600; letter-spacing: 0.1em">T1 · COMMON</span>
+      <span style="font-family: Bungee, sans-serif; font-size: 14px">CALF SERVOS</span>
+      <span style="font-size: 14px; font-weight: 600; color: #c6ff3d; font-variant-numeric: tabular-nums">+6% Speed</span>
+    </button>
+  </div>
+  <div style="margin-top: auto; display: flex; gap: 32px; padding: 16px; background: #171a21; border: 2px solid #2c323d; font-size: 12px; font-variant-numeric: tabular-nums">
+    <span style="color: #949ca3">ARMOR <b style="color: #ff9cc6">2</b> → <b style="color: #c6ff3d">5</b></span>
+    <span style="color: #949ca3">MAX HP <b style="color: #ff9cc6">120</b> → <b style="color: #c6ff3d">130</b></span>
+    <span style="color: #949ca3">DAMAGE <b style="color: #ff9cc6">+15%</b></span>
+    <span style="color: #949ca3">ATK SPEED <b style="color: #ff9cc6">+10%</b></span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":800,"height":600}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

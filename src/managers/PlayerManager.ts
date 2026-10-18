@@ -1,9 +1,13 @@
+import { boxOffset } from "@/art/body";
 import { GAME_CONFIG } from "@/config/constants";
+import { THEME } from "@/config/theme";
+import { actorDepth, facingFlip } from "@/core/depth";
 import type { Rng } from "@/core/rng";
 import { damageTaken } from "@/core/stats";
 import type { Stats } from "@/types";
 
 const DODGE_IFRAMES_MS = 500;
+const PLAYER_BODY = 32; // pre-M3 32x32 square body
 import Phaser from "phaser";
 
 /**
@@ -47,7 +51,10 @@ export class PlayerManager {
 
     // Set player physics properties
     this.player.setCollideWorldBounds(true);
-    this.player.setDepth(50); // Above enemies
+    const off = boxOffset("player", PLAYER_BODY, PLAYER_BODY);
+    (this.player.body as Phaser.Physics.Arcade.Body).setSize(PLAYER_BODY, PLAYER_BODY).setOffset(off.x, off.y);
+    this.player.play("player_walk");
+    this.player.setDepth(actorDepth(this.player.y));
 
     console.log("✓ PlayerManager: Player created");
   }
@@ -63,6 +70,9 @@ export class PlayerManager {
 
     // Set velocity
     body.setVelocity(velocityX * speed, velocityY * speed);
+    this.player.flipX = facingFlip(velocityX * speed, this.player.flipX);
+    const d = actorDepth(this.player.y);
+    if (Math.round(d * 100) !== Math.round(this.player.depth * 100)) this.player.setDepth(d);
 
     // Normalize diagonal movement
     if (velocityX !== 0 && velocityY !== 0) {
@@ -132,7 +142,7 @@ export class PlayerManager {
     this.scene.events.emit("playerHit");
 
     // Flash red
-    this.player.setTint(0xff0000);
+    this.player.setTint(THEME.danger);
     this.scene.time.delayedCall(100, () => {
       this.player.clearTint();
     });

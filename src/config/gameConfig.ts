@@ -9,17 +9,23 @@ import { UIScene } from "@/scenes/UIScene";
 import { VictoryScene } from "@/scenes/VictoryScene";
 import Phaser from "phaser";
 import { GAME_CONFIG } from "./constants";
+import { rendererFromSearch } from "./renderer";
+import { THEME_CSS } from "./theme";
+
+export { rendererFromSearch };
+
+const RENDERER = { auto: Phaser.AUTO, canvas: Phaser.CANVAS, webgl: Phaser.WEBGL };
 
 /**
  * Main Phaser game configuration
  */
 export const phaserConfig: Phaser.Types.Core.GameConfig = {
-  type: Phaser.AUTO,
+  type: RENDERER[rendererFromSearch(window.location.search)],
   width: GAME_CONFIG.WIDTH,
   height: GAME_CONFIG.HEIGHT,
   canvasStyle: "margin: 0 auto;",
   parent: "game-container",
-  backgroundColor: "#2d2d2d",
+  backgroundColor: THEME_CSS.bg,
   pixelArt: true, // Crisp pixel rendering
   roundPixels: true,
   antialias: false,

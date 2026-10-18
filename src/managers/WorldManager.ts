@@ -1,3 +1,5 @@
+import { DEPTH } from "@/config/constants";
+import { THEME } from "@/config/theme";
 import Phaser from "phaser";
 
 /**
@@ -22,9 +24,8 @@ export class WorldManager {
     this.scene.physics.world.setBounds(0, 0, width, height);
 
     // Set background
-    this.scene.cameras.main.setBackgroundColor(0x2d2d2d);
+    this.scene.cameras.main.setBackgroundColor(THEME.bg);
 
-    // TODO: Add background tiles, decorations, etc.
     this.createBackground();
 
     console.log("✓ WorldManager: World created");
@@ -34,25 +35,13 @@ export class WorldManager {
    * Create background visuals
    */
   private createBackground(): void {
-    // Simple grid background for now
-    const graphics = this.scene.add.graphics();
-    graphics.lineStyle(1, 0x404040, 0.3);
-
-    const width = this.scene.cameras.main.width;
-    const height = this.scene.cameras.main.height;
-    const gridSize = 50;
-
-    // Draw vertical lines
-    for (let x = 0; x <= width; x += gridSize) {
-      graphics.lineBetween(x, 0, x, height);
-    }
-
-    // Draw horizontal lines
-    for (let y = 0; y <= height; y += gridSize) {
-      graphics.lineBetween(0, y, width, y);
-    }
-
-    graphics.setDepth(0); // Behind everything
+    const { width, height } = this.scene.cameras.main;
+    const g = this.scene.add.graphics().setDepth(DEPTH.BACKGROUND);
+    g.fillStyle(THEME.bg).fillRect(0, 0, width, height);
+    g.lineStyle(1, THEME.line, 0.25);
+    for (let x = 0; x <= width; x += 48) g.lineBetween(x, 0, x, height);
+    for (let y = 0; y <= height; y += 48) g.lineBetween(0, y, width, y);
+    g.lineStyle(2, THEME.lime, 0.8).strokeRect(1, 1, width - 2, height - 2);
   }
 
   /**

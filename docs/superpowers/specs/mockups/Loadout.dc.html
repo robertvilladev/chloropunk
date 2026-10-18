@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Loadout pick</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#c6ff3d}a:hover{color:#edf2ec}
+</style>
+</helmet>
+<div style="width: 800px; height: 600px; box-sizing: border-box; padding: 32px; background: #12151b; color: #edf2ec; font-family: 'IBM Plex Mono', ui-monospace, monospace; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; flex-direction: column; gap: 6px">
+    <span style="font-size: 10px; letter-spacing: 0.18em; color: #ff9cc6">LOADOUT</span>
+    <h1 style="margin: 0; font-family: Bungee, sans-serif; font-weight: 400; font-size: 32px; line-height: 1">PICK YOUR STARTER</h1>
+    <p style="margin: 0; font-size: 13px; color: #949ca3">One weapon to start. You'll find more in the shop.</p>
+  </div>
+  <div style="display: flex; gap: 24px; align-items: stretch">
+    <div style="width: 200px; display: flex; flex-direction: column; gap: 12px; padding: 16px; background: #171a21; border: 2px solid #2c323d">
+      <span style="font-size: 10px; letter-spacing: 0.14em; color: #949ca3">FIGHTER</span>
+      <div aria-hidden="true" style="position: relative; align-self: center; width: 128px; height: 136px">
+        <div style="position: absolute; left: 24px; bottom: 0; width: 80px; height: 14px; border-radius: 50%; background: rgba(13,14,23,0.85)"></div>
+        <img src="/_blob/acb58c979228886bd1a639a312a0ff5a" alt="" style="position: absolute; left: 0; top: 0; width: 128px; height: 128px; image-rendering: pixelated">
+      </div>
+      <h2 style="margin: 0; font-family: Bungee, sans-serif; font-weight: 400; font-size: 16px">THE PEELER</h2>
+      <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums">
+        <li style="display: flex; justify-content: space-between"><span style="color: #949ca3; font-weight: 400">Max HP</span><span style="color: #ff9cc6">100</span></li>
+        <li style="display: flex; justify-content: space-between"><span style="color: #949ca3; font-weight: 400">Speed</span><span style="color: #ff9cc6">160</span></li>
+        <li style="display: flex; justify-content: space-between"><span style="color: #949ca3; font-weight: 400">Armor</span><span style="color: #ff9cc6">0</span></li>
+        <li style="display: flex; justify-content: space-between"><span style="color: #949ca3; font-weight: 400">Pickup range</span><span style="color: #ff9cc6">80</span></li>
+      </ul>
+    </div>
+    <div style="flex-grow: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+      <button type="button" style="display: flex; flex-direction: column; gap: 8px; padding: 16px; background: #1c2029; border: 2px solid #ff4f9a; box-shadow: 4px 4px 0 #ff4f9a; color: #edf2ec; text-align: left; font-family: 'IBM Plex Mono', monospace; cursor: pointer">
+        <div aria-hidden="true" style="height: 72px; background: #171a21; display: flex; align-items: center; justify-content: center"><div style="width: 40px; height: 12px; background: #6b7088; border: 2px solid #0d0e17; border-right: 6px solid #4ff0ff"></div></div>
+        <span style="font-family: Bungee, sans-serif; font-size: 14px">NEON PISTOL</span>
+        <span style="font-size: 9px; letter-spacing: 0.14em; color: #949ca3">RANGED · SINGLE TARGET</span>
+        <span style="font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums">12 dmg · 0.8s · 320 range</span>
+        <span style="font-size: 11px; color: #949ca3">Steady and reliable. Good with crit items.</span>
+      </button>
+      <button type="button" style="display: flex; flex-direction: column; gap: 8px; padding: 16px; background: #1c2029; border: 2px solid #2c323d; color: #edf2ec; text-align: left; font-family: 'IBM Plex Mono', monospace; cursor: pointer">
+        <div aria-hidden="true" style="height: 72px; background: #171a21; display: flex; align-items: center; justify-content: center"><div style="width: 48px; height: 16px; background: #6b7088; border: 2px solid #0d0e17; border-right: 8px solid #ff6b3d"></div></div>
+        <span style="font-family: Bungee, sans-serif; font-size: 14px">SCATTER CANNON</span>
+        <span style="font-size: 9px; letter-spacing: 0.14em; color: #949ca3">RANGED · CONE</span>
+        <span style="font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums">4×6 dmg · 1.3s · 180 range</span>
+        <span style="font-size: 11px; color: #949ca3">Shreds crowds up close.</span>
+      </button>
+      <button type="button" style="display: flex; flex-direction: column; gap: 8px; padding: 16px; background: #1c2029; border: 2px solid #2c323d; color: #edf2ec; text-align: left; font-family: 'IBM Plex Mono', monospace; cursor: pointer">
+        <div aria-hidden="true" style="height: 72px; background: #171a21; display: flex; align-items: center; justify-content: center"><div style="width: 8px; height: 48px; background: #b8bdd4; border: 2px solid #0d0e17; transform: rotate(35deg)"></div></div>
+        <span style="font-family: Bungee, sans-serif; font-size: 14px">MONO-BLADE</span>
+        <span style="font-size: 9px; letter-spacing: 0.14em; color: #949ca3">MELEE · ARC</span>
+        <span style="font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums">18 dmg · 1.0s · 90 range</span>
+        <span style="font-size: 11px; color: #949ca3">Hits everything in a swing. Stay close.</span>
+      </button>
+    </div>
+  </div>
+  <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center">
+    <button type="button" style="min-height: 44px; padding: 0 20px; border: 2px solid #2c323d; background: transparent; color: #edf2ec; font: 600 13px 'IBM Plex Mono', monospace; letter-spacing: 0.1em; cursor: pointer">BACK</button>
+    <button type="button" style="min-height: 52px; padding: 0 32px; border: 0; background: #c6ff3d; color: #12151b; font: 400 18px Bungee, sans-serif; cursor: pointer; box-shadow: 4px 4px 0 #ff4f9a">DROP IN</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":800,"height":600}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

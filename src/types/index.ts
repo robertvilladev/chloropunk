@@ -104,9 +104,15 @@ export type WeaponBehavior =
 
 type DamageTag = "melee" | "ranged" | "elemental";
 
+export interface CharacterDef {
+  name: string;
+  title: string;
+}
+
 export interface WeaponDef {
   id: string;
   name: string;
+  blurb: string;
   behavior: WeaponBehavior;
   tags: DamageTag[];
   damage: [number, number, number, number]; // per tier

@@ -1,11 +1,9 @@
 import { DEPTH } from "@/config/constants";
-import { THEME, THEME_CSS } from "@/config/theme";
+import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import { loadSettings } from "@/core/settings";
 import Phaser from "phaser";
 
 const MAX_NUMBERS = 40; // per pool (normal, crit)
-const PIXEL_FONT = "VT323, monospace";
-const DISPLAY_FONT = "Bungee, Impact, sans-serif";
 const LOW_HP = 0.25;
 const MAX_BLASTS = 8;
 const SHAKES = {
@@ -25,26 +23,18 @@ export class Juice {
   private burst: Phaser.GameObjects.Particles.ParticleEmitter;
   private blasts: Phaser.GameObjects.Arc[] = [];
   private nextBlast = 0;
-  private vignette: Phaser.GameObjects.Graphics;
+  private vignette: Phaser.GameObjects.Image;
   private vignetteTween?: Phaser.Tweens.Tween;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
     this.reducedShake = loadSettings().reducedShake; // read once
-    const { width: w, height: h } = scene.scale;
-    const edge = 90;
     this.vignette = scene.add
-      .graphics()
+      .image(0, 0, "vignette")
+      .setOrigin(0)
+      .setDisplaySize(scene.scale.width, scene.scale.height)
       .setDepth(DEPTH.UI - 1)
       .setAlpha(0);
-    this.vignette.fillGradientStyle(THEME.danger, THEME.danger, THEME.danger, THEME.danger, 0.7, 0.7, 0, 0);
-    this.vignette.fillRect(0, 0, w, edge);
-    this.vignette.fillGradientStyle(THEME.danger, THEME.danger, THEME.danger, THEME.danger, 0, 0, 0.7, 0.7);
-    this.vignette.fillRect(0, h - edge, w, edge);
-    this.vignette.fillGradientStyle(THEME.danger, THEME.danger, THEME.danger, THEME.danger, 0.7, 0, 0.7, 0);
-    this.vignette.fillRect(0, 0, edge, h);
-    this.vignette.fillGradientStyle(THEME.danger, THEME.danger, THEME.danger, THEME.danger, 0, 0.7, 0, 0.7);
-    this.vignette.fillRect(w - edge, 0, edge, h);
     this.burst = scene.add
       .particles(0, 0, "pixel", {
         emitting: false,
@@ -52,7 +42,7 @@ export class Juice {
         lifespan: 350,
         alpha: { start: 1, end: 0 },
       })
-      .setDepth(DEPTH.ENEMIES + 1);
+      .setDepth(DEPTH.FX);
   }
 
   damageNumber(x: number, y: number, amount: number, crit: boolean): void {
@@ -62,12 +52,12 @@ export class Juice {
     if (!t) {
       t = this.scene.add
         .text(0, 0, "", {
-          fontFamily: PIXEL_FONT,
+          fontFamily: FONTS.pixel,
           fontSize: crit ? "36px" : "24px",
           color: crit ? THEME_CSS.lime : THEME_CSS.text,
         })
         .setOrigin(0.5)
-        .setDepth(DEPTH.UI - 2);
+        .setDepth(DEPTH.NUMBERS);
       pool[this.next[kind]] = t;
     }
     this.next[kind] = (this.next[kind] + 1) % MAX_NUMBERS;
@@ -87,8 +77,13 @@ export class Juice {
   }
 
   hitFlash(sprite: Phaser.GameObjects.Sprite): void {
-    sprite.setTintFill(0xffffff);
-    this.scene.time.delayedCall(60, () => sprite.clearTint());
+    sprite.anims.pause();
+    sprite.setFrame("hit");
+    this.scene.time.delayedCall(80, () => {
+      if (!sprite.active || sprite.frame.name !== "hit") return;
+      sprite.anims.resume();
+      sprite.setFrame(sprite.anims.currentFrame?.textureFrame ?? "walk0");
+    });
   }
 
   shake(kind: "hit" | "kill"): void {
@@ -151,12 +146,12 @@ export class Juice {
     const texts = layers.map(([dx, color]) =>
       this.scene.add
         .text(w / 2 + dx, h / 3, text, {
-          fontFamily: DISPLAY_FONT,
+          fontFamily: FONTS.display,
           fontSize: "64px",
           color,
         })
         .setOrigin(0.5)
-        .setDepth(DEPTH.UI - 2)
+        .setDepth(DEPTH.NUMBERS)
     );
     this.scene.tweens.add({
       targets: texts,

@@ -28,7 +28,8 @@
       "speed": 520,
       "pierce": 0,
       "knockback": 50
-    }
+    },
+    "blurb": "Steady and reliable. Good with crit items."
   },
   "shotgun": {
     "id": "shotgun",
@@ -60,7 +61,8 @@
       "pellets": 5,
       "spread": 40,
       "knockback": 70
-    }
+    },
+    "blurb": "Shreds crowds up close."
   },
   "laser": {
     "id": "laser",
@@ -91,7 +93,8 @@
       "width": 10,
       "duration": 0.15,
       "knockback": 0
-    }
+    },
+    "blurb": "A piercing beam that melts lines of enemies."
   },
   "blade": {
     "id": "blade",
@@ -121,7 +124,8 @@
     "params": {
       "arc": 120,
       "knockback": 120
-    }
+    },
+    "blurb": "Hits everything in a swing. Stay close."
   },
   "drone": {
     "id": "drone",
@@ -152,7 +156,8 @@
       "orbitSpeed": 3,
       "hitRadius": 14,
       "knockback": 30
-    }
+    },
+    "blurb": "Orbits you and shoots on its own. Hands-free damage."
   },
   "rocket": {
     "id": "rocket",
@@ -183,6 +188,7 @@
       "speed": 360,
       "blastRadius": 60,
       "knockback": 90
-    }
+    },
+    "blurb": "Slow, heavy blasts that clear whole clusters."
   }
 }

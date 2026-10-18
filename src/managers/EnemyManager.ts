@@ -1,5 +1,7 @@
-import { DEPTH, GAME_CONFIG } from "@/config/constants";
+import { bodyOffset } from "@/art/body";
+import { DEPTH, GAME_CONFIG, HIT_SIZE } from "@/config/constants";
 import type { Rng } from "@/core/rng";
+import { actorDepth, facingFlip } from "@/core/depth";
 import { advanceCursor, buildSpawnSchedule, edgePoint } from "@/core/waves";
 import {
   createEnemyState,
@@ -249,11 +251,16 @@ export class EnemyManager {
   private spawnEnemy(def: EnemyDef, x: number, y: number): void {
     const enemy = this.enemies.get(x, y, def.sprite) as Sprite | null;
     if (!enemy) return; // pool full
-    enemy.setTexture(def.sprite);
+    enemy.setTexture(def.sprite, "walk0");
+    enemy.setFlipX(false);
     enemy.clearTint();
     enemy.enableBody(true, x, y, true, true);
-    enemy.setDepth(DEPTH.ENEMIES).setCollideWorldBounds(true);
-    (enemy.body as Phaser.Physics.Arcade.Body).setCircle(def.radius);
+    enemy.setDepth(actorDepth(y)).setCollideWorldBounds(true);
+    const off = bodyOffset(def.sprite, def.radius);
+    (enemy.body as Phaser.Physics.Arcade.Body).setCircle(def.radius, off.x, off.y);
+    enemy.anims.resume();
+    enemy.play(`${def.sprite}_walk`, true);
+    enemy.anims.setProgress(Math.random()); // cosmetic: keeps the seeded rng stream untouched
     enemy.setData("def", def);
     enemy.setData("state", createEnemyState(def, this.wave));
     enemy.setData("knock", { x: 0, y: 0 });
@@ -271,6 +278,9 @@ export class EnemyManager {
       const knock = enemy.getData("knock") as Vector2;
       steer(def.behavior, state, enemy, player, dt, this.params.get(def.id)!, out);
       enemy.setVelocity(out.vx + knock.x, out.vy + knock.y);
+      enemy.flipX = facingFlip(out.vx + knock.x, enemy.flipX);
+      const d = actorDepth(enemy.y);
+      if (Math.round(d * 100) !== Math.round(enemy.depth * 100)) enemy.setDepth(d); // only re-sort on a visible change
       knock.x *= decay;
       knock.y *= decay;
       if (out.fire) this.fireBolt(enemy, def, state, player);
@@ -288,6 +298,7 @@ export class EnemyManager {
     const angle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
     const speed = def.params!.boltSpeed;
     bolt.enableBody(true, enemy.x, enemy.y, true, true);
+    bolt.setSize(...HIT_SIZE.enemy_bolt);
     bolt.setDepth(DEPTH.PROJECTILES);
     bolt.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
     bolt.setData("damage", state.damage);

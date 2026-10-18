@@ -8,7 +8,7 @@ vi.mock("phaser", () => ({ default: {} }));
 
 function makePlayer(dodge: number, rollValue: number) {
   const emitted: string[] = [];
-  const sprite = { setCollideWorldBounds: () => sprite, setDepth: () => sprite, setTint() {}, clearTint() {} };
+  const sprite = { setCollideWorldBounds: () => sprite, setDepth: () => sprite, setTint() {}, clearTint() {}, play() {}, body: { setSize() { return this; }, setOffset() { return this; } } };
   const scene = {
     events: { emit: (name: string) => emitted.push(name) },
     time: { delayedCall() {} },

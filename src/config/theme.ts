@@ -12,6 +12,9 @@ const HEX = {
   pink700: "#b8336f",
   danger: "#ff6b3d",
   success: "#c6ff3d",
+  deep: "#0d0f13",
+  faint: "#4a5260",
+  scanline: "#05070a",
 } as const;
 const TIER_HEX = ["#a9b0b8", "#3ad8ff", "#ff4f9a", "#ffb13b"] as const;
 
@@ -25,3 +28,9 @@ export const THEME = {
   }),
   tier: TIER_HEX.map(num),
 };
+
+export const FONTS = {
+  display: "Bungee, Impact, sans-serif",
+  ui: "IBM Plex Mono, monospace",
+  pixel: "VT323, monospace",
+} as const;
