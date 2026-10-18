@@ -16,7 +16,7 @@
 |---|---|---|
 | **M1 Waves & feel** (this plan) | 5 vegetable enemies with behaviours, 10 data-driven waves, pooled spawning with telegraphs, scrap + XP + levels, damage numbers / flash / shake / bursts / banner, cleanup | PR #13 |
 | M2 Build-crafting | `computeStats`, items.json (~15), 6 weapon behaviours with tiers 1–4, level-up picks, shop (4 offers, reroll, lock, sell, combine), loadout pick | M1 |
-| M3 Look | Sprite-grid pipeline (Claude-authored pixel data → textures), 3/4 y-sorting + shadows + glow FX, `theme.ts` applied to every screen per the mockups, Orbitron/Oxanium/Silkscreen | M1; UI tasks wait for owner review of the mockups |
+| M3 Look | Sprite-grid pipeline (Claude-authored pixel data → textures), 3/4 y-sorting + shadows + glow FX, `theme.ts` applied to every screen per the mockups, Bungee/IBM Plex Mono/VT323; start from the mockup sprite grids in `docs/superpowers/specs/sprite-grids.py` | M1; UI tasks wait for owner review of the mockups |
 | M4 Boss & run end | Wave 10 boss (no timer), victory/defeat summary, pause + settings, best-wave record, README rewrite | M2, M3 |
 
 ## Global Constraints
@@ -30,7 +30,7 @@
 - Feedback: damage numbers (crits highlighted), white hit flash, knockback, screen shake on player hit and big kills, death burst, scrap magnet, low-HP vignette, wave start/end banner; a reduced-screen-shake setting.
 - Don't regress PR #13: reset per-run fields in `create()`, `disableBody`/`enableBody` for pooled sprites, remove scene event listeners on shutdown.
 - CI (`npm run build`, `npm run test:coverage`) stays green.
-- Colours come from the design system (`theme.ts`): violet `#9184d9` = state, signal `#fcee0a` = events, danger `#e3645e`.
+- Colours come from the design system (`theme.ts`): lime `#c6ff3d` = actions/good events, pink `#ff4f9a` = state, danger `#ff6b3d`; fonts Bungee / IBM Plex Mono / VT323.
 
 ## Review Focus
 
@@ -51,7 +51,7 @@
 - Test: `src/core/rng.test.ts`
 
 **Interfaces:**
-- Produces: `THEME` — `{ bg, surface, surface2, line, text, textMuted, violet, violet300, violet700, signal, signalInk, danger, success, tier: [t1, t2, t3, t4] }` as `number` (0xRRGGBB) plus `THEME_CSS` with the same keys as `#rrggbb` strings; values copied from the design system tokens (`#161826`, `#232532`, `#1c1e2c`, `#383946`, `#e9e9ed`, `#9397ab`, `#9184d9`, `#d2cefd`, `#5d5294`, `#fcee0a`, `#161826`, `#e3645e`, `#54b66e`, tiers `#b2b6ca #3ab7d6 #9184d9 #ff8a3d`).
+- Produces: `THEME` — `{ bg, surface, surface2, line, text, textMuted, lime, limeInk, pink, pink300, pink700, danger, success, tier: [t1, t2, t3, t4] }` as `number` (0xRRGGBB) plus `THEME_CSS` with the same keys as `#rrggbb` strings; values from the design system tokens (`#12151b`, `#1c2029`, `#171a21`, `#2c323d`, `#edf2ec`, `#949ca3`, `#c6ff3d`, `#12151b`, `#ff4f9a`, `#ff9cc6`, `#b8336f`, `#ff6b3d`, success = lime `#c6ff3d`, tiers `#a9b0b8 #3ad8ff #ff4f9a #ffb13b`).
 - Produces: `interface Rng { next(): number; int(min: number, maxInclusive: number): number; pick<T>(items: readonly T[]): T }` and `createRng(seed: number): Rng` (mulberry32).
 
 - [ ] **Step 1: Write failing tests** in `src/core/rng.test.ts`:
@@ -164,7 +164,7 @@ M2 turns `pendingLevelUps` into level-up picks; in M1 it is only counted and sho
 - Produces: `PickupManager` with `spawnScrap(x: number, y: number, amount: number)`, `update(player: Vector2)` (pulls pickups within `PICKUP_RADIUS` toward the player at `MAGNET_SPEED`), `collectAll(): number` (returns total value and clears), `getGroup()`. Emits `scrapCollected(value)`. Each scrap gives `value` scrap and `value` XP. Pool max 300.
 - Wave end in `GameScene.onRoundComplete`: `enemyManager.clearAll()` and clear enemy bolts first (Review Focus 5), then `collectAll()`, apply XP via `addXp` (adds `levelsGained` to `run.pendingLevelUps`), then show the summary.
 
-- [ ] **Step 1: Implement** `PickupManager` and the wiring above; HUD shows XP bar (violet), `LV n`, scrap count.
+- [ ] **Step 1: Implement** `PickupManager` and the wiring above; HUD shows XP bar (pink), `LV n`, scrap count.
 - [ ] **Step 2: Run** `npx tsc --noEmit && npx vitest run` — expect PASS.
 - [ ] **Step 3: Manual check** with `npm run dev`: scrap is pulled in when close; at wave end leftover scrap is added to the counter; a tomato killed in the last second does not damage the player after the banner (Review Focus 5); scrap and level carry into the next wave.
 - [ ] **Step 4: Commit** `feat: scrap and xp pickups with magnet`.
@@ -180,7 +180,7 @@ M2 turns `pendingLevelUps` into level-up picks; in M1 it is only counted and sho
 - Consumes: `THEME` (Task 1), `enemyHit` / `enemyKilled` (Task 4).
 - Produces: `class Juice { constructor(scene: Phaser.Scene); damageNumber(x: number, y: number, amount: number, crit: boolean): void; hitFlash(sprite: Phaser.GameObjects.Sprite): void; shake(kind: "hit" | "kill"): void; deathBurst(x: number, y: number, color: number): void; lowHp(ratio: number): void; banner(text: string): void }`.
 - Produces: `interface Settings { reducedShake: boolean }`, `loadSettings(storage?: Pick<Storage, "getItem">): Settings`, `saveSettings(s: Settings, storage?: Pick<Storage, "setItem">): void` — key `vv.settings`; wraps storage access in try/catch and falls back to `{ reducedShake: false }`.
-- Values: damage numbers float up 24 px and fade over 600 ms (pooled Text objects, max 60), crits in `signal` at 1.5× size; hit flash = white tint 60 ms; shake `hit` = 120 ms / 0.006, `kill` = 80 ms / 0.003 only for potato kills; `reducedShake` disables both; death burst = 8 pixel particles in the enemy colour; low-HP vignette = `danger` edge overlay pulsing under 25% HP; banner = `WAVE 07` at wave start and `WAVE CLEARED` at wave end, Orbitron-style big text in `signal`.
+- Values: damage numbers float up 24 px and fade over 600 ms (pooled Text objects, max 60), crits in `lime` at 1.5× size (VT323); hit flash = white tint 60 ms; shake `hit` = 120 ms / 0.006, `kill` = 80 ms / 0.003 only for potato kills; `reducedShake` disables both; death burst = 8 pixel particles in the enemy colour; low-HP vignette = `danger` edge overlay pulsing under 25% HP; banner = `WAVE 07` at wave start and `WAVE CLEARED` at wave end, Bungee in `lime` with the pink/cyan RGB-split shadow.
 
 - [ ] **Step 1: Write failing tests** in `src/core/settings.test.ts`:
   - `defaults when storage empty`: `loadSettings({getItem: () => null})` → `{reducedShake: false}`.

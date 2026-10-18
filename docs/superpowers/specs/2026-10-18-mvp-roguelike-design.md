@@ -145,16 +145,14 @@ generator (e.g. PixelLab, Retro Diffusion) or an artist without code changes.
 Priority is a game that *feels* like a game; art is good enough to be coherent
 and readable, and is revisited after the loop is fun.
 
-**Palette and type** (from *Sudoku 2077*):
-- Ground `#161826`, surfaces `#232532` / `#1c1e2c`, text `#e9e9ed`.
-- **Violet `#9184d9` = state**: player, owned items, selected, stats.
-- **Signal yellow `#fcee0a` = events/actions**: hits, pickups, wave banner,
-  primary buttons.
-- Error/damage red `#e3645e`, success green `#54b66e`.
-- Display font **Orbitron**, UI font **Oxanium** (bitmap/pixel font acceptable
-  in-game if the webfonts don't render crisply).
-- Motifs: corner-bracket frames, scanline hatch, glitch shake on damage/errors,
-  clipped-corner primary buttons.
+**Palette and type** ("Chlorophyll", chosen by the owner over the original *Sudoku 2077*-derived look, which felt too close to that app):
+- Ground: neutral cool graphite `#12151b`, surfaces `#1c2029` / `#171a21`, line `#2c323d`, text `#edf2ec`, muted `#949ca3`. No colour washes on the ground.
+- **Lime `#c6ff3d` = actions and good events**: primary buttons, scrap, crits, wave banner, positive deltas.
+- **Pink `#ff4f9a` = state**: the player, owned/selected things, XP, offset shadows.
+- Danger `#ff6b3d` (orange-red, kept apart from pink). Rarity: grey `#a9b0b8`, cyan `#3ad8ff`, pink `#ff4f9a`, amber `#ffb13b`.
+- Display font **Bungee**, UI font **IBM Plex Mono**, in-game numbers **VT323**.
+- Motifs: radius 0, hard 4px pink offset shadow under primary elements, tier chips on cards, RGB-split on the logo and wave banner only, a lime slime-drip edge on the main menu, barely-visible scanlines in menus.
+- Sprites: 16×16 pixel grids drawn at 3×, fighter in a pink hood with cyan visor; flames/fuses `#ffd23f`.
 
 **Design system in Claude Design (decided).** Claude builds the design system
 (palette, type, frames, button styles) and mockups of the key screens (HUD,
