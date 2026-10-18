@@ -1,3 +1,5 @@
+> **OBSOLETE (prototype era), proposed for deletion.** Describes the original scaffold, not the current game. See [ROADMAP.md](ROADMAP.md), [README.md](README.md) and [ARCHITECTURE.md](ARCHITECTURE.md).
+
 # Project Structure Documentation
 
 ## 📁 Complete Folder Overview
