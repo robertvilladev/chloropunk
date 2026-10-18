@@ -33,9 +33,9 @@ export class PickupManager {
     s.setData("value", amount);
   }
 
-  /** Pull pickups within PICKUP_RADIUS toward the player. */
-  update(player: Vector2): void {
-    const r2 = GAME_CONFIG.PICKUP_RADIUS * GAME_CONFIG.PICKUP_RADIUS;
+  /** Pull pickups within `radius` toward the player. */
+  update(player: Vector2, radius: number): void {
+    const r2 = radius * radius;
     const list = this.group.children.entries;
     for (let i = 0; i < list.length; i++) {
       const s = list[i] as Sprite;

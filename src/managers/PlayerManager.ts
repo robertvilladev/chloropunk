@@ -1,4 +1,7 @@
 import { GAME_CONFIG } from "@/config/constants";
+import type { Rng } from "@/core/rng";
+import { damageTaken } from "@/core/stats";
+import type { Stats } from "@/types";
 import Phaser from "phaser";
 
 /**
@@ -13,6 +16,9 @@ export class PlayerManager {
   private speed: number = GAME_CONFIG.INITIAL_PLAYER_SPEED;
   private invulnerableTimer: number = 0;
   private invulnerableDuration: number = 1000; // 1 second invulnerability after hit
+  private stats!: Stats;
+  private rng!: Rng;
+  private regenAcc = 0; // fractional HP healed so far
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -21,10 +27,14 @@ export class PlayerManager {
   /**
    * Create and initialize the player
    */
-  create(maxHealth: number = 100, speed: number = GAME_CONFIG.INITIAL_PLAYER_SPEED): void {
-    this.maxHealth = maxHealth;
-    this.health = maxHealth;
-    this.speed = speed;
+  create(stats: Stats, rng: Rng): void {
+    this.stats = stats;
+    this.rng = rng;
+    this.maxHealth = stats.maxHp;
+    this.health = stats.maxHp;
+    this.speed = GAME_CONFIG.INITIAL_PLAYER_SPEED * (1 + stats.speed / 100);
+    this.invulnerableTimer = 0;
+    this.regenAcc = 0;
 
     // Create player sprite at center
     this.player = this.scene.physics.add.sprite(
@@ -57,6 +67,17 @@ export class PlayerManager {
       body.velocity.normalize().scale(speed);
     }
 
+    // Regen: hpRegen / 5 HP per second
+    if (this.stats.hpRegen > 0 && this.health > 0 && this.health < this.maxHealth) {
+      this.regenAcc += (this.stats.hpRegen / 5) * (delta / 1000);
+      if (this.regenAcc >= 1) {
+        const heal = Math.floor(this.regenAcc);
+        this.regenAcc -= heal;
+        this.health = Math.min(this.maxHealth, this.health + heal);
+        this.scene.events.emit("playerHealthChanged", this.health, this.maxHealth);
+      }
+    }
+
     // Update invulnerability timer
     if (this.invulnerableTimer > 0) {
       this.invulnerableTimer -= delta;
@@ -87,9 +108,14 @@ export class PlayerManager {
   /**
    * Take damage
    */
-  takeDamage(amount: number): void {
+  takeDamage(raw: number): void {
     // Don't take damage if invulnerable
     if (this.invulnerableTimer > 0) return;
+    if (this.rng.next() < this.stats.dodge / 100) {
+      this.scene.events.emit("playerDodged");
+      return;
+    }
+    const amount = damageTaken(raw, this.stats.armor);
 
     this.health -= amount;
     this.invulnerableTimer = this.invulnerableDuration;

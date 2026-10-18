@@ -21,7 +21,6 @@ export const GAME_CONFIG = {
   INITIAL_WEAPON_RANGE: 300,
 
   // Pickups
-  PICKUP_RADIUS: 80,
   MAGNET_SPEED: 420,
   MAX_PICKUPS: 300,
 

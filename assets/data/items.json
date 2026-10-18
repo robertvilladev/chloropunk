@@ -1,0 +1,145 @@
+{
+  "visor": {
+    "id": "visor",
+    "name": "Cyber Visor",
+    "rarity": 1,
+    "price": 12,
+    "mods": {
+      "crit": 5
+    }
+  },
+  "grip": {
+    "id": "grip",
+    "name": "Grip Tape",
+    "rarity": 1,
+    "price": 10,
+    "mods": {
+      "attackSpeed": 8
+    }
+  },
+  "synthsteak": {
+    "id": "synthsteak",
+    "name": "Synth Steak",
+    "rarity": 1,
+    "price": 10,
+    "mods": {
+      "maxHp": 8
+    }
+  },
+  "hoodie": {
+    "id": "hoodie",
+    "name": "Kevlar Hoodie",
+    "rarity": 1,
+    "price": 14,
+    "mods": {
+      "armor": 2,
+      "speed": -3
+    }
+  },
+  "sneakers": {
+    "id": "sneakers",
+    "name": "Neon Sneakers",
+    "rarity": 1,
+    "price": 12,
+    "mods": {
+      "speed": 6
+    }
+  },
+  "coil": {
+    "id": "coil",
+    "name": "Magnet Coil",
+    "rarity": 1,
+    "price": 10,
+    "mods": {
+      "pickupRadius": 30
+    }
+  },
+  "chip": {
+    "id": "chip",
+    "name": "Lucky Chip",
+    "rarity": 1,
+    "price": 12,
+    "mods": {
+      "luck": 10
+    }
+  },
+  "nanopatch": {
+    "id": "nanopatch",
+    "name": "Nano Patch",
+    "rarity": 2,
+    "price": 25,
+    "mods": {
+      "hpRegen": 3
+    }
+  },
+  "overclock": {
+    "id": "overclock",
+    "name": "Overclock Chip",
+    "rarity": 2,
+    "price": 30,
+    "mods": {
+      "attackSpeed": 18,
+      "maxHp": -5
+    }
+  },
+  "knuckles": {
+    "id": "knuckles",
+    "name": "Brass Knuckles",
+    "rarity": 2,
+    "price": 25,
+    "mods": {
+      "melee": 4
+    }
+  },
+  "scope": {
+    "id": "scope",
+    "name": "Scope Lens",
+    "rarity": 2,
+    "price": 25,
+    "mods": {
+      "ranged": 3,
+      "range": 40
+    }
+  },
+  "harvester": {
+    "id": "harvester",
+    "name": "Scrap Harvester",
+    "rarity": 2,
+    "price": 30,
+    "mods": {
+      "harvesting": 6
+    }
+  },
+  "plasma": {
+    "id": "plasma",
+    "name": "Plasma Cell",
+    "rarity": 3,
+    "price": 50,
+    "mods": {
+      "elemental": 6,
+      "damage": 5
+    }
+  },
+  "glass": {
+    "id": "glass",
+    "name": "Glass Cannon Implant",
+    "rarity": 3,
+    "price": 55,
+    "mods": {
+      "damage": 25,
+      "maxHp": -20,
+      "armor": -2
+    }
+  },
+  "ghost": {
+    "id": "ghost",
+    "name": "Ghost Module",
+    "rarity": 4,
+    "price": 90,
+    "mods": {
+      "dodge": 15,
+      "speed": 10,
+      "maxHp": -10
+    }
+  }
+}

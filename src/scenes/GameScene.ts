@@ -1,7 +1,9 @@
-import { GAME_CONFIG, SCENE_KEYS } from "@/config/constants";
+import { SCENE_KEYS } from "@/config/constants";
 import { THEME_CSS } from "@/config/theme";
 import { createRng, type Rng } from "@/core/rng";
 import { addXp, xpToNext } from "@/core/progression";
+import { newRun } from "@/core/run";
+import { computeStats } from "@/core/stats";
 import { clampDelta } from "@/core/time";
 import { waveDuration } from "@/core/waves";
 import { Juice } from "@/fx/Juice";
@@ -11,7 +13,7 @@ import { PickupManager } from "@/managers/PickupManager";
 import { PlayerManager } from "@/managers/PlayerManager";
 import { WeaponManager } from "@/managers/WeaponManager";
 import { WorldManager } from "@/managers/WorldManager";
-import type { EnemyDef, RunState } from "@/types";
+import type { EnemyDef, RunState, Stats } from "@/types";
 import enemyDefs from "@assets/data/enemies.json";
 import Phaser from "phaser";
 
@@ -28,6 +30,7 @@ const GAME_EVENTS = [
   "speedChanged",
   "playerHealthChanged",
   "playerHit",
+  "playerDodged",
   "timerUpdate",
 ];
 
@@ -68,8 +71,9 @@ export class GameScene extends Phaser.Scene {
   private waveEarned: number = 0;
   private isGameOver: boolean = false;
 
-  // Persistent run state (wave, scrap, xp, upgrades)
+  // Persistent run state (wave, scrap, xp, build)
   private run!: RunState;
+  private stats!: Stats;
 
   constructor() {
     super({ key: SCENE_KEYS.GAME });
@@ -81,15 +85,9 @@ export class GameScene extends Phaser.Scene {
   init(data: { run?: RunState }) {
     const fresh = !data.run;
     const urlSeed = Number(new URLSearchParams(window.location.search).get("seed"));
-    this.run = data.run ?? {
-      wave: 1,
-      scrap: 0,
-      xp: 0,
-      level: 1,
-      pendingLevelUps: 0,
-      bonus: { maxHealth: 0, speed: 0, damage: 0 },
-      seed: Number.isInteger(urlSeed) && urlSeed !== 0 ? urlSeed : Date.now(),
-    };
+    this.run =
+      data.run ??
+      newRun(Number.isInteger(urlSeed) && urlSeed !== 0 ? urlSeed : Date.now(), "pistol");
     if (fresh) console.info(`Run seed: ${this.run.seed}`);
   }
 
@@ -106,15 +104,13 @@ export class GameScene extends Phaser.Scene {
     this.inputManager.create();
 
     // 3. Create player
-    this.playerManager = new PlayerManager(this);
-    this.playerManager.create(
-      100 + this.run.bonus.maxHealth,
-      GAME_CONFIG.INITIAL_PLAYER_SPEED + this.run.bonus.speed
-    );
-
-    // 4. Initialize enemy system and start this wave's spawn schedule
+    this.stats = computeStats(this.run);
     this.rng = createRng(this.run.seed + this.run.wave);
     this.combatRng = createRng(this.run.seed + this.run.wave + 7919);
+    this.playerManager = new PlayerManager(this);
+    this.playerManager.create(this.stats, this.combatRng);
+
+    // 4. Initialize enemy system and start this wave's spawn schedule
     this.roundDuration = waveDuration(this.run.wave);
     this.enemyManager = new EnemyManager(this);
     this.enemyManager.create();
@@ -122,7 +118,7 @@ export class GameScene extends Phaser.Scene {
 
     // 6. Initialize weapon system
     this.weaponManager = new WeaponManager(this);
-    this.weaponManager.create(this.combatRng, this.run.bonus.damage);
+    this.weaponManager.create(this.combatRng, 0);
 
     // 7. Initialize pickups
     this.pickupManager = new PickupManager(this);
@@ -207,7 +203,7 @@ export class GameScene extends Phaser.Scene {
     );
 
     // 3b. Pull nearby scrap toward the player
-    this.pickupManager.update(player);
+    this.pickupManager.update(player, this.stats.pickupRadius);
 
     // 4. Update weapon system
     this.weaponManager.update(
@@ -381,6 +377,9 @@ export class GameScene extends Phaser.Scene {
     this.waveEarned += leftover;
 
     const xp = addXp(this.run, this.waveEarned);
+    // Harvesting: bonus scrap at wave end (scrap only, never XP)
+    this.run.scrap += this.stats.harvesting;
+    this.waveEarned += this.stats.harvesting;
     this.playerManager.getSprite().setVelocity(0, 0);
     // Let the banner play before handing off; the timer dies with the scene
     // on shutdown, and isGameOver (set above) prevents a second call
@@ -482,8 +481,7 @@ export class GameScene extends Phaser.Scene {
       wave: this.run.wave,
       health: this.playerManager.getHealth(),
       maxHealth: this.playerManager.getMaxHealth(),
-      speed: this.playerManager.getSpeed(),
-      damage: this.weaponManager.getDamage(),
+      stats: this.stats,
       scrap: this.run.scrap,
       pending: this.run.pendingLevelUps + xp.levelsGained,
       level: xp.level,

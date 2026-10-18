@@ -18,16 +18,6 @@ export const GameState = {
 
 export type GameState = (typeof GameState)[keyof typeof GameState];
 
-export interface PlayerStats {
-  maxHealth: number;
-  currentHealth: number;
-  damage: number;
-  fireRate: number;
-  moveSpeed: number;
-  experience: number;
-  level: number;
-}
-
 export type EnemyBehavior =
   | "chaser"
   | "dasher"
@@ -50,15 +40,6 @@ export interface EnemyDef {
   params?: Record<string, number>;
 }
 
-export interface WeaponData {
-  type: string;
-  damage: number;
-  fireRate: number;
-  range: number;
-  projectileSpeed: number;
-  spriteKey: string;
-}
-
 /** Spawn `count` enemies every `every` s from `start` until `end` (default: wave duration, exclusive). */
 export interface SpawnGroup {
   enemy: string;
@@ -79,21 +60,46 @@ export interface SpawnEvent {
   count: number;
 }
 
-export interface ShopItem {
+export type StatKey =
+  | "maxHp"
+  | "hpRegen"
+  | "armor"
+  | "dodge"
+  | "speed"
+  | "damage"
+  | "melee"
+  | "ranged"
+  | "elemental"
+  | "attackSpeed"
+  | "crit"
+  | "range"
+  | "pickupRadius"
+  | "luck"
+  | "harvesting";
+
+export type Stats = Record<StatKey, number>;
+export type Mods = Partial<Stats>;
+
+export type Tier = 1 | 2 | 3 | 4;
+
+export interface OwnedWeapon {
   id: string;
-  name: string;
-  description: string;
-  price: number;
-  stat: keyof PlayerStats;
-  value: number;
-  type: "upgrade" | "weapon";
+  tier: Tier;
 }
 
-export interface GameConfig {
-  width: number;
-  height: number;
-  spawnDistance: number;
-  waveInterval: number;
+export interface Offer {
+  kind: "weapon" | "item";
+  id: string;
+  tier: Tier;
+  price: number;
+}
+
+export interface ItemDef {
+  id: string;
+  name: string;
+  rarity: Tier;
+  price: number;
+  mods: Mods;
 }
 
 /** State that survives between rounds of a single run */
@@ -103,6 +109,9 @@ export interface RunState {
   xp: number;
   level: number;
   pendingLevelUps: number;
-  bonus: { maxHealth: number; speed: number; damage: number };
   seed: number;
+  weapons: OwnedWeapon[];
+  items: string[]; // item ids, repeats allowed
+  levelMods: Mods; // summed level-up picks
+  lockedOffers: Offer[];
 }

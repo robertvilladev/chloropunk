@@ -25,3 +25,9 @@ declare module "@assets/data/waves.json" {
   const data: { waves: WaveDef[] };
   export default data;
 }
+
+declare module "@assets/data/items.json" {
+  import type { ItemDef } from "@/types";
+  const items: Record<string, ItemDef>;
+  export default items;
+}
