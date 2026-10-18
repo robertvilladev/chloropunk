@@ -3,7 +3,7 @@ import { THEME, THEME_CSS } from "@/config/theme";
 import { loadSettings } from "@/core/settings";
 import Phaser from "phaser";
 
-const MAX_NUMBERS = 60;
+const MAX_NUMBERS = 40; // per pool (normal, crit)
 const PIXEL_FONT = "VT323, monospace";
 const DISPLAY_FONT = "Bungee, Impact, sans-serif";
 const LOW_HP = 0.25;
@@ -18,8 +18,10 @@ const SHAKES = {
 export class Juice {
   private scene: Phaser.Scene;
   private reducedShake: boolean;
-  private numbers: Phaser.GameObjects.Text[] = [];
-  private nextNumber = 0;
+  // Two pre-styled pools so a hit only calls setText (each style change re-renders)
+  private pools = { normal: [] as Phaser.GameObjects.Text[], crit: [] as Phaser.GameObjects.Text[] };
+  private next = { normal: 0, crit: 0 };
+  private burst: Phaser.GameObjects.Particles.ParticleEmitter;
   private vignette: Phaser.GameObjects.Graphics;
   private vignetteTween?: Phaser.Tweens.Tween;
 
@@ -40,23 +42,35 @@ export class Juice {
     this.vignette.fillRect(0, 0, edge, h);
     this.vignette.fillGradientStyle(THEME.danger, THEME.danger, THEME.danger, THEME.danger, 0, 0.7, 0, 0.7);
     this.vignette.fillRect(w - edge, 0, edge, h);
+    this.burst = scene.add
+      .particles(0, 0, "pixel", {
+        emitting: false,
+        speed: 80,
+        lifespan: 350,
+        alpha: { start: 1, end: 0 },
+      })
+      .setDepth(DEPTH.ENEMIES + 1);
   }
 
   damageNumber(x: number, y: number, amount: number, crit: boolean): void {
-    let t = this.numbers[this.nextNumber];
+    const kind = crit ? "crit" : "normal";
+    const pool = this.pools[kind];
+    let t = pool[this.next[kind]];
     if (!t) {
       t = this.scene.add
-        .text(0, 0, "", { fontFamily: PIXEL_FONT })
+        .text(0, 0, "", {
+          fontFamily: PIXEL_FONT,
+          fontSize: crit ? "36px" : "24px",
+          color: crit ? THEME_CSS.lime : THEME_CSS.text,
+        })
         .setOrigin(0.5)
         .setDepth(DEPTH.UI - 2);
-      this.numbers[this.nextNumber] = t;
+      pool[this.next[kind]] = t;
     }
-    this.nextNumber = (this.nextNumber + 1) % MAX_NUMBERS;
+    this.next[kind] = (this.next[kind] + 1) % MAX_NUMBERS;
 
     this.scene.tweens.killTweensOf(t);
     t.setText(String(Math.round(amount)))
-      .setFontSize(crit ? 36 : 24)
-      .setColor(crit ? THEME_CSS.lime : THEME_CSS.text)
       .setPosition(x, y)
       .setAlpha(1)
       .setVisible(true);
@@ -81,20 +95,8 @@ export class Juice {
   }
 
   deathBurst(x: number, y: number, color: number): void {
-    for (let i = 0; i < 8; i++) {
-      const a = (i / 8) * Math.PI * 2;
-      const p = this.scene.add
-        .rectangle(x, y, 4, 4, color)
-        .setDepth(DEPTH.GROUND_EFFECTS);
-      this.scene.tweens.add({
-        targets: p,
-        x: x + Math.cos(a) * 28,
-        y: y + Math.sin(a) * 28,
-        alpha: 0,
-        duration: 350,
-        onComplete: () => p.destroy(),
-      });
-    }
+    this.burst.particleTint = color;
+    this.burst.explode(8, x, y);
   }
 
   lowHp(ratio: number): void {

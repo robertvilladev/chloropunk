@@ -12,6 +12,7 @@ import { PlayerManager } from "@/managers/PlayerManager";
 import { WeaponManager } from "@/managers/WeaponManager";
 import { WorldManager } from "@/managers/WorldManager";
 import type { EnemyDef, RunState } from "@/types";
+import enemyDefs from "@assets/data/enemies.json";
 import Phaser from "phaser";
 
 const BANNER_MS = 900; // matches Juice.banner total duration
@@ -48,6 +49,8 @@ export class GameScene extends Phaser.Scene {
   private weaponManager!: WeaponManager;
   private pickupManager!: PickupManager;
   private juice!: Juice;
+  // Death-burst colour per enemy id, parsed once
+  private burstColors = new Map<string, number>();
 
   // Round timer
   private roundTimeRemaining: number = 20;
@@ -127,6 +130,9 @@ export class GameScene extends Phaser.Scene {
     this.events.on("scrapCollected", this.onScrapCollected, this);
 
     // 7b. Feedback effects
+    for (const def of Object.values(enemyDefs)) {
+      this.burstColors.set(def.id, Phaser.Display.Color.HexStringToColor(def.color ?? "#ffffff").color);
+    }
     this.juice = new Juice(this);
     this.juice.banner(`WAVE ${String(this.run.wave).padStart(2, "0")}`);
     this.events.on("enemyHit", this.onEnemyHit, this);
@@ -184,6 +190,9 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    // Player sprite doubles as its position (read once per frame)
+    const player = this.playerManager.getSprite();
+
     // 1. Get input
     const movement = this.inputManager.getMovementInput();
 
@@ -194,16 +203,16 @@ export class GameScene extends Phaser.Scene {
     this.enemyManager.update(
       dt,
       this.roundDuration - this.roundTimeRemaining,
-      this.playerManager.getPosition()
+      player
     );
 
     // 3b. Pull nearby scrap toward the player
-    this.pickupManager.update(this.playerManager.getPosition());
+    this.pickupManager.update(player);
 
     // 4. Update weapon system
     this.weaponManager.update(
       dt,
-      this.playerManager.getPosition(),
+      player,
       this.enemyManager.getEnemies()
     );
 
@@ -224,8 +233,9 @@ export class GameScene extends Phaser.Scene {
         if (!enemy.active) return;
         const def = enemy.getData("def") as EnemyDef;
         if (def.behavior === "exploder") {
-          // Touching the player detonates it
-          this.enemyManager.killEnemy(enemy);
+          // Touching the player detonates it; no drops, so walking into
+          // tomatoes during i-frames isn't free scrap
+          this.enemyManager.killEnemy(enemy, false);
           return;
         }
         this.playerManager.takeDamage(enemy.getData("state").damage);
@@ -393,13 +403,13 @@ export class GameScene extends Phaser.Scene {
   /**
    * Handle enemy killed
    */
-  private onEnemyKilled(x: number, y: number, def: EnemyDef): void {
+  private onEnemyKilled(x: number, y: number, def: EnemyDef, drops: boolean): void {
     this.enemiesKilled++;
 
-    this.juice.deathBurst(x, y, Phaser.Display.Color.HexStringToColor(def.color ?? "#ffffff").color);
+    this.juice.deathBurst(x, y, this.burstColors.get(def.id)!);
     if (def.shakeOnKill) this.juice.shake("kill");
 
-    this.pickupManager.spawnScrap(x, y, def.scrap);
+    if (drops) this.pickupManager.spawnScrap(x, y, def.scrap);
   }
 
   private onEnemyHit(

@@ -104,6 +104,12 @@ export class BootScene extends Phaser.Scene {
     graphics.fillCircle(8, 8, 6);
     graphics.generateTexture("ui_heart", 16, 16);
 
+    // White pixel for tinted particles
+    graphics.clear();
+    graphics.fillStyle(0xffffff);
+    graphics.fillRect(0, 0, 4, 4);
+    graphics.generateTexture("pixel", 4, 4);
+
     graphics.destroy();
   }
 

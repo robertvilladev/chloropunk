@@ -4,6 +4,7 @@ import wavesJson from "@assets/data/waves.json";
 import {
   buildSpawnSchedule,
   advanceCursor,
+  edgePoint,
   scaleEnemy,
   waveDuration,
 } from "./waves";
@@ -95,5 +96,29 @@ describe("shakeOnKill flag", () => {
   it("is set only on the potato", () => {
     const flagged = Object.values(enemies).filter((e) => (e as { shakeOnKill?: boolean }).shakeOnKill);
     expect(flagged.map((e) => e.id)).toEqual(["potato"]);
+  });
+});
+
+describe("edgePoint", () => {
+  const far = { x: -10000, y: -10000 };
+  it("is on the inset rectangle", () => {
+    for (let i = 0; i < 10; i++) {
+      const p = edgePoint(i / 10, far, 800, 600, 40, 160);
+      const onX = p.x === 40 || p.x === 760;
+      const onY = p.y === 40 || p.y === 560;
+      expect(onX || onY).toBe(true);
+    }
+  });
+
+  it("keeps minDist from the player", () => {
+    for (let gx = 0; gx < 9; gx++) {
+      for (let gy = 0; gy < 9; gy++) {
+        const player = { x: (gx / 8) * 800, y: (gy / 8) * 600 };
+        for (let i = 0; i < 50; i++) {
+          const p = edgePoint(i / 50, player, 800, 600, 40, 160);
+          expect(Math.hypot(p.x - player.x, p.y - player.y)).toBeGreaterThanOrEqual(160);
+        }
+      }
+    }
   });
 });

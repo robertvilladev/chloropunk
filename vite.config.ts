@@ -1,6 +1,6 @@
 import path from "path";
 import { fileURLToPath } from "url";
-import { defineConfig } from "vite";
+import { configDefaults, defineConfig } from "vitest/config";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -31,6 +31,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
+    // other sessions' git worktrees live under .claude/
+    exclude: [...configDefaults.exclude, ".claude/**"],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
