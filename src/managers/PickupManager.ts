@@ -3,6 +3,7 @@ import type { Vector2 } from "@/types";
 import Phaser from "phaser";
 
 type Sprite = Phaser.Physics.Arcade.Sprite;
+const PICKUP_SIZE = 24;
 
 /**
  * PickupManager - pooled scrap pickups. Each scrap is worth `value` scrap
@@ -21,13 +22,14 @@ export class PickupManager {
   }
 
   spawnScrap(x: number, y: number, amount: number): void {
-    const s = this.group.get(x, y, "pickup_scrap") as Sprite | null;
+    const s = this.group.get(x, y, "pickup_scrap", "0") as Sprite | null;
     if (!s) {
       // Pool exhausted: bank the value immediately rather than lose it
       this.scene.events.emit("scrapCollected", amount);
       return;
     }
     s.enableBody(true, x, y, true, true);
+    (s.body as Phaser.Physics.Arcade.Body).setSize(PICKUP_SIZE, PICKUP_SIZE); // never the 48x24 strip base frame
     s.setDepth(DEPTH.SCRAP);
     s.setVelocity(0, 0);
     s.setData("value", amount);
