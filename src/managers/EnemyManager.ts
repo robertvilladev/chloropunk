@@ -1,5 +1,5 @@
 import { bodyOffset } from "@/art/body";
-import { DEPTH, GAME_CONFIG } from "@/config/constants";
+import { DEPTH, GAME_CONFIG, HIT_SIZE } from "@/config/constants";
 import type { Rng } from "@/core/rng";
 import { actorDepth, facingFlip } from "@/core/depth";
 import { advanceCursor, buildSpawnSchedule, edgePoint } from "@/core/waves";
@@ -298,6 +298,7 @@ export class EnemyManager {
     const angle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
     const speed = def.params!.boltSpeed;
     bolt.enableBody(true, enemy.x, enemy.y, true, true);
+    bolt.setSize(...HIT_SIZE.enemy_bolt);
     bolt.setDepth(DEPTH.PROJECTILES);
     bolt.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
     bolt.setData("damage", state.damage);

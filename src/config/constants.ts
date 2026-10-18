@@ -58,3 +58,11 @@ export const DEPTH = {
   NUMBERS: 90, // damage numbers, banner
   UI: 100,
 } as const;
+
+/** Original (pre-halo) hit areas of projectile textures; the baked halo must not change collisions. */
+export const HIT_SIZE: Record<string, [number, number]> = {
+  projectile_basic: [8, 8],
+  enemy_bolt: [8, 8],
+  proj_pellet: [6, 6],
+  proj_rocket: [10, 6],
+};

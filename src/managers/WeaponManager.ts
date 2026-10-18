@@ -1,4 +1,4 @@
-import { DEPTH } from "@/config/constants";
+import { DEPTH, HIT_SIZE } from "@/config/constants";
 import { actorDepth } from "@/core/depth";
 import { THEME } from "@/config/theme";
 import type { Rng } from "@/core/rng";
@@ -262,6 +262,7 @@ export class WeaponManager {
     if (!pr) return;
     pr.setTexture(key);
     pr.enableBody(true, from.x, from.y, true, true);
+    pr.setSize(...HIT_SIZE[key]);
     pr.setDepth(DEPTH.PROJECTILES);
     const speed = w.def.params.speed;
     pr.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
