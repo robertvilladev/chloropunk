@@ -457,6 +457,7 @@ export class GameScene extends Phaser.Scene {
       health: this.playerManager.getHealth(),
       maxHealth: this.playerManager.getMaxHealth(),
       stats: this.stats,
+      weapons: this.run.weapons,
       scrap: this.run.scrap,
       pending: this.run.pendingLevelUps + xp.levelsGained,
       level: xp.level,

@@ -1,12 +1,11 @@
 import { DEPTH, SCENE_KEYS } from "@/config/constants";
+import wavesData from "@assets/data/waves.json";
 import { THEME, THEME_CSS } from "@/config/theme";
 import { formatClock } from "@/core/labels";
 import type { GameScene } from "@/scenes/GameScene";
 import { panel, text } from "@/scenes/ui";
 import Phaser from "phaser";
 
-/** MVP run length (spec: 10 waves, boss on 10). */
-const RUN_WAVES = 10;
 const HP_W = 216; // inner width of the 220px HP bar (2px border)
 const XP_W = 140;
 
@@ -21,6 +20,7 @@ export class UIScene extends Phaser.Scene {
   private xpFill!: Phaser.GameObjects.Rectangle;
   private levelText!: Phaser.GameObjects.Text;
   private waveText!: Phaser.GameObjects.Text;
+  private waveSplit: Phaser.GameObjects.Text[] = [];
   private timerText!: Phaser.GameObjects.Text;
   private scrapBox!: Phaser.GameObjects.Rectangle;
   private scrapGem!: Phaser.GameObjects.Rectangle;
@@ -42,16 +42,21 @@ export class UIScene extends Phaser.Scene {
     const h = this.cameras.main.height;
 
     // Top-left: HP bar, then XP bar + level
-    panel(this, 30, 16, 220, 20, { fill: THEME.surface2 }).setStrokeStyle(2, THEME.line).setDepth(DEPTH.UI);
-    this.hpFill = this.add.rectangle(32, 18, HP_W, 16, THEME.pink).setOrigin(0).setDepth(DEPTH.UI);
-    text(this, 36, 26, "HP", 11).setOrigin(0, 0.5).setDepth(DEPTH.UI + 1);
-    this.hpValue = text(this, 244, 26, "", 11).setOrigin(1, 0.5).setDepth(DEPTH.UI + 1);
-    this.add.rectangle(30, 45, XP_W, 6, THEME.surface2).setOrigin(0, 0.5).setDepth(DEPTH.UI);
-    this.xpFill = this.add.rectangle(30, 45, XP_W, 6, THEME.pink).setOrigin(0, 0.5).setDepth(DEPTH.UI);
-    this.levelText = text(this, 30 + XP_W + 8, 45, "LV 1", 10, THEME_CSS.pink300).setOrigin(0, 0.5).setDepth(DEPTH.UI);
+    panel(this, 30, 16, 220, 24, { fill: THEME.surface2 }).setStrokeStyle(2, THEME.line).setDepth(DEPTH.UI);
+    this.hpFill = this.add.rectangle(32, 18, HP_W, 20, THEME.danger).setOrigin(0).setDepth(DEPTH.UI);
+    text(this, 36, 28, "HP", 11).setFontStyle("600").setOrigin(0, 0.5).setDepth(DEPTH.UI + 1);
+    this.hpValue = text(this, 244, 28, "", 11).setFontStyle("600").setOrigin(1, 0.5).setDepth(DEPTH.UI + 1);
+    this.add.rectangle(30, 49, XP_W, 6, THEME.surface2).setOrigin(0, 0.5).setDepth(DEPTH.UI);
+    this.xpFill = this.add.rectangle(30, 49, XP_W, 6, THEME.pink).setOrigin(0, 0.5).setDepth(DEPTH.UI);
+    this.levelText = text(this, 30 + XP_W + 8, 49, "LV 1", 10, THEME_CSS.pink300).setLetterSpacing(1.4).setOrigin(0, 0.5).setDepth(DEPTH.UI);
 
     // Top-centre: wave + timer
+    // 1px RGB split: pink +1px / cyan -1px behind the lime label
     this.waveText = text(this, w / 2, 10, "", 12, THEME_CSS.lime, "display").setOrigin(0.5, 0).setDepth(DEPTH.UI);
+    this.waveSplit = [
+      text(this, w / 2 + 1, 10, "", 12, THEME_CSS.pink, "display").setOrigin(0.5, 0).setDepth(DEPTH.UI - 1),
+      text(this, w / 2 - 1, 10, "", 12, THEME_CSS.tier[1], "display").setOrigin(0.5, 0).setDepth(DEPTH.UI - 1),
+    ];
     this.timerText = text(this, w / 2, 24, "", 40, THEME_CSS.text, "pixel").setOrigin(0.5, 0).setDepth(DEPTH.UI);
 
     // Top-right: scrap (laid out right-to-left in layoutScrap so any digit count fits)
@@ -61,7 +66,18 @@ export class UIScene extends Phaser.Scene {
       .setDepth(DEPTH.UI);
     this.scrapGem = this.add.rectangle(0, 34, 10, 10, THEME.lime).setAngle(45).setDepth(DEPTH.UI + 1);
     this.scrapValue = text(this, 0, 20, "0", 26, THEME_CSS.lime, "pixel").setOrigin(1, 0).setDepth(DEPTH.UI + 1);
-    this.scrapLabel = text(this, 0, 30, "SCRAP", 10, THEME_CSS.textMuted).setOrigin(1, 0).setDepth(DEPTH.UI + 1);
+    this.scrapLabel = text(this, 0, 30, "SCRAP", 10, THEME_CSS.textMuted).setLetterSpacing(1.4).setOrigin(1, 0).setDepth(DEPTH.UI + 1);
+
+    // Bottom-left: 6 weapon slots, framed by tier colour (no icons); weapons only change in the shop
+    const owned = (this.scene.get(SCENE_KEYS.GAME) as GameScene | undefined)?.getPlayerStats().weapons ?? [];
+    for (let i = 0; i < 6; i++) {
+      const wpn = owned[i];
+      this.add
+        .rectangle(30 + i * 42, h - 52, 36, 36, THEME.surface2)
+        .setOrigin(0)
+        .setStrokeStyle(2, wpn ? THEME.tier[wpn.tier - 1] : THEME.line)
+        .setDepth(DEPTH.UI);
+    }
 
     if (import.meta.env.DEV) this.createSpeedControls(h);
 
@@ -87,7 +103,8 @@ export class UIScene extends Phaser.Scene {
   private refresh = (): void => {
     const stats = (this.scene.get(SCENE_KEYS.GAME) as GameScene).getPlayerStats();
     this.updateHealth(stats.health, stats.maxHealth);
-    this.waveText.setText(`WAVE ${String(stats.wave).padStart(2, "0")} / ${RUN_WAVES}`);
+    const wave = `WAVE ${String(stats.wave).padStart(2, "0")} / ${wavesData.waves.length}`;
+    [this.waveText, ...this.waveSplit].forEach((t) => t.setText(wave));
     this.scrapValue.setText(String(stats.scrap));
     this.layoutScrap();
     this.xpFill.width = XP_W * Math.min(1, stats.xp / stats.xpNeeded);
@@ -154,8 +171,7 @@ export class UIScene extends Phaser.Scene {
   updateHealth(current: number, max: number) {
     const low = max > 0 && current / max < 0.25;
     this.hpFill.width = HP_W * Phaser.Math.Clamp(current / max, 0, 1);
-    this.hpFill.setFillStyle(low ? THEME.danger : THEME.pink);
-    this.hpValue.setText(`${Math.ceil(current)}/${max}`);
+        this.hpValue.setText(`${Math.ceil(current)}/${max}`);
     this.hpValue.setColor(low ? THEME_CSS.danger : THEME_CSS.text);
     if (low && !this.hpFlash) {
       this.hpFlash = this.tweens.add({ targets: this.hpValue, alpha: 0.3, duration: 250, yoyo: true, repeat: -1 });
