@@ -24,7 +24,6 @@ export interface PlayerStats {
   damage: number;
   fireRate: number;
   moveSpeed: number;
-  coins: number;
   experience: number;
   level: number;
 }
@@ -47,6 +46,7 @@ export interface EnemyDef {
   sprite: string;
   radius: number;
   color?: string; // death-burst colour, "#rrggbb"
+  shakeOnKill?: boolean; // screen shake when killed
   params?: Record<string, number>;
 }
 

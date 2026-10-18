@@ -76,6 +76,8 @@ export class GameScene extends Phaser.Scene {
    * Receive run state from the shop; no data means a fresh run
    */
   init(data: { run?: RunState }) {
+    const fresh = !data.run;
+    const urlSeed = Number(new URLSearchParams(window.location.search).get("seed"));
     this.run = data.run ?? {
       wave: 1,
       scrap: 0,
@@ -83,8 +85,9 @@ export class GameScene extends Phaser.Scene {
       level: 1,
       pendingLevelUps: 0,
       bonus: { maxHealth: 0, speed: 0, damage: 0 },
-      seed: Date.now(),
+      seed: Number.isInteger(urlSeed) && urlSeed !== 0 ? urlSeed : Date.now(),
     };
+    if (fresh) console.info(`Run seed: ${this.run.seed}`);
   }
 
   /**
@@ -143,6 +146,9 @@ export class GameScene extends Phaser.Scene {
     this.roundTimeRemaining = this.roundDuration;
     this.enemiesKilled = 0;
     this.gameSpeed = 1;
+    this.physics.world.timeScale = 1;
+    this.time.timeScale = 1;
+    this.tweens.timeScale = 1;
     this.isGameOver = false;
 
     // Listen for player death
@@ -182,7 +188,7 @@ export class GameScene extends Phaser.Scene {
     const movement = this.inputManager.getMovementInput();
 
     // 2. Update player
-    this.playerManager.update(movement.x, movement.y, delta);
+    this.playerManager.update(movement.x, movement.y, dt);
 
     // 3. Update enemy system (elapsed = seconds into this wave)
     this.enemyManager.update(
@@ -391,7 +397,7 @@ export class GameScene extends Phaser.Scene {
     this.enemiesKilled++;
 
     this.juice.deathBurst(x, y, Phaser.Display.Color.HexStringToColor(def.color ?? "#ffffff").color);
-    if (def.id === "potato") this.juice.shake("kill");
+    if (def.shakeOnKill) this.juice.shake("kill");
 
     this.pickupManager.spawnScrap(x, y, def.scrap);
   }
@@ -438,6 +444,10 @@ export class GameScene extends Phaser.Scene {
    */
   private onSpeedChanged(speed: number): void {
     this.gameSpeed = speed;
+    // Arcade: lower timeScale = faster. Code-driven timers use the scaled dt.
+    this.physics.world.timeScale = 1 / speed;
+    this.time.timeScale = speed;
+    this.tweens.timeScale = speed;
     console.log(`Game speed changed to ${speed}x`);
   }
 

@@ -10,6 +10,12 @@ export class GameOverScene extends Phaser.Scene {
     super({ key: SCENE_KEYS.GAME_OVER });
   }
 
+  private complete = false;
+
+  init(data: { complete?: boolean }) {
+    this.complete = !!data.complete;
+  }
+
   create() {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
@@ -18,9 +24,9 @@ export class GameOverScene extends Phaser.Scene {
     this.add.rectangle(0, 0, width, height, 0x000000, 0.8).setOrigin(0);
 
     // Game Over title
-    const titleText = this.add.text(width / 2, height / 3, "GAME OVER", {
+    const titleText = this.add.text(width / 2, height / 3, this.complete ? "RUN COMPLETE" : "GAME OVER", {
       fontSize: "64px",
-      color: "#ff0000",
+      color: this.complete ? "#00ff00" : "#ff0000",
       fontStyle: "bold",
     });
     titleText.setOrigin(0.5);
@@ -29,7 +35,7 @@ export class GameOverScene extends Phaser.Scene {
     const subtitleText = this.add.text(
       width / 2,
       height / 3 + 70,
-      "You were defeated!",
+      this.complete ? "You cleared every wave!" : "You were defeated!",
       {
         fontSize: "24px",
         color: "#ffffff",

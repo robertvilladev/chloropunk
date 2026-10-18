@@ -1,6 +1,6 @@
 import { DEPTH, GAME_CONFIG } from "@/config/constants";
 import type { Rng } from "@/core/rng";
-import { buildSpawnSchedule } from "@/core/waves";
+import { advanceCursor, buildSpawnSchedule } from "@/core/waves";
 import {
   createEnemyState,
   steer,
@@ -76,7 +76,8 @@ export class EnemyManager {
     this.rng = rng;
     this.cursor = 0;
     const waves = wavesData.waves;
-    const def = waves.find((w) => w.wave === wave) ?? waves[waves.length - 1];
+    const def = waves.find((w) => w.wave === wave);
+    if (!def) throw new Error(`No wave ${wave} defined`);
     this.schedule = buildSpawnSchedule({ ...def, wave });
   }
 
@@ -86,9 +87,8 @@ export class EnemyManager {
 
     // Schedule is sorted: fire each event once when its time has passed
     const sched = this.schedule;
-    while (this.cursor < sched.length && sched[this.cursor].time < elapsedS) {
-      this.telegraph(sched[this.cursor++], player);
-    }
+    const end = advanceCursor(sched, this.cursor, elapsedS);
+    for (; this.cursor < end; this.cursor++) this.telegraph(sched[this.cursor], player);
 
     this.updateTelegraphs(dt);
     this.updateEnemies(dt, player);
@@ -265,6 +265,7 @@ export class EnemyManager {
     const enemy = this.enemies.get(x, y, def.sprite) as Sprite | null;
     if (!enemy) return; // pool full
     enemy.setTexture(def.sprite);
+    enemy.clearTint();
     enemy.enableBody(true, x, y, true, true);
     enemy.setDepth(DEPTH.ENEMIES).setCollideWorldBounds(true);
     (enemy.body as Phaser.Physics.Arcade.Body).setCircle(def.radius);

@@ -25,10 +25,6 @@ export const GAME_CONFIG = {
   MAGNET_SPEED: 420,
   MAX_PICKUPS: 300,
 
-  // Progression
-  BASE_EXP_FOR_LEVEL: 100,
-  EXP_SCALE_PER_LEVEL: 1.5,
-
   // Wave scaling
   WAVE_DIFFICULTY_SCALE: 1.2,
   BASE_ENEMIES_PER_WAVE: 10,

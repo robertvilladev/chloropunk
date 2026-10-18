@@ -3,7 +3,7 @@ import enemies from "@assets/data/enemies.json";
 import wavesJson from "@assets/data/waves.json";
 import {
   buildSpawnSchedule,
-  dueEvents,
+  advanceCursor,
   scaleEnemy,
   waveDuration,
 } from "./waves";
@@ -46,22 +46,28 @@ describe("buildSpawnSchedule", () => {
   });
 });
 
-describe("dueEvents", () => {
+describe("advanceCursor", () => {
   const schedule = [0, 0.5, 1.0].map((time) => ({ time, enemy: "pea", count: 1 }));
 
-  it("fires each event once across frames", () => {
-    const frames: [number, number][] = [
-      [0, 0.3],
-      [0.3, 0.5],
-      [0.5, 0.51],
-      [0.51, 1.0],
-    ];
-    const fired = frames.flatMap(([a, b]) => dueEvents(schedule, a, b));
-    expect(fired.map((e) => e.time)).toEqual([0, 0.5, 1.0]);
+  it("fires each event exactly once across frames, incl. t=0 and zero-length frames", () => {
+    let cursor = 0;
+    const fired: number[] = [];
+    for (const t of [0.0001, 0.0001, 0.3, 0.5, 0.51, 0.51, 1.01, 2]) {
+      const next = advanceCursor(schedule, cursor, t);
+      for (let i = cursor; i < next; i++) fired.push(schedule[i].time);
+      cursor = next;
+    }
+    expect(fired).toEqual([0, 0.5, 1.0]);
   });
 
-  it("returns all events in one big frame", () => {
-    expect(dueEvents(schedule, 0, 1.0)).toHaveLength(3);
+  it("end boundary is exclusive", () => {
+    expect(advanceCursor(schedule, 0, 0.5)).toBe(1);
+    expect(advanceCursor(schedule, 1, 0.5)).toBe(1);
+    expect(advanceCursor(schedule, 1, 0.5001)).toBe(2);
+  });
+
+  it("handles an empty schedule", () => {
+    expect(advanceCursor([], 0, 10)).toBe(0);
   });
 });
 
@@ -82,5 +88,12 @@ describe("waves.json", () => {
         expect(g.every).toBeGreaterThan(0);
       }
     }
+  });
+});
+
+describe("shakeOnKill flag", () => {
+  it("is set only on the potato", () => {
+    const flagged = Object.values(enemies).filter((e) => (e as { shakeOnKill?: boolean }).shakeOnKill);
+    expect(flagged.map((e) => e.id)).toEqual(["potato"]);
   });
 });

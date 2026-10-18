@@ -17,15 +17,17 @@ export function buildSpawnSchedule(def: WaveDef): SpawnEvent[] {
   return events.sort((a, b) => a.time - b.time);
 }
 
-/** Events with from < time <= to (from === 0 also includes time 0). */
-export function dueEvents(
+/**
+ * Advance a cursor over a time-sorted schedule: returns the first index whose
+ * event is not yet due (time >= elapsedS). Events fired are schedule[cursor..result).
+ */
+export function advanceCursor(
   schedule: SpawnEvent[],
-  from: number,
-  to: number
-): SpawnEvent[] {
-  return schedule.filter(
-    (e) => (e.time > from || (from === 0 && e.time === 0)) && e.time <= to
-  );
+  cursor: number,
+  elapsedS: number
+): number {
+  while (cursor < schedule.length && schedule[cursor].time < elapsedS) cursor++;
+  return cursor;
 }
 
 export function scaleEnemy(

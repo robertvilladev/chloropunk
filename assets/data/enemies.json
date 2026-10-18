@@ -38,7 +38,8 @@
     "behavior": "tank",
     "sprite": "enemy_potato",
     "radius": 20,
-    "color": "#b07a43"
+    "color": "#b07a43",
+    "shakeOnKill": true
   },
   "carrot": {
     "id": "carrot",
