@@ -1,4 +1,6 @@
-# 📦 Importing Assets Guide
+# Importing Assets Guide
+
+> Only JSON data is in use today. Sprites are generated in code by `BootScene`; real sprite/audio assets arrive in M3 (see [ROADMAP.md](ROADMAP.md)). `@ecs` and `@ui` aliases exist in `vite.config.ts` but their folders do not.
 
 ## JSON Data Files
 
@@ -23,26 +25,26 @@ All JSON imports are typed! Check `src/types/json.d.ts` for type declarations.
 
 ```typescript
 import waveData from "@assets/data/waves.json";
-// waveData is typed as: { waves: WaveData[] }
+// waveData is typed as: { waves: WaveDef[] }
 
 import enemyData from "@assets/data/enemies.json";
-// enemyData is typed as: Record<string, EnemyData>
+// enemyData is typed as: Record<string, EnemyDef>
 ```
 
 ### Usage Example
 
 ```typescript
-import type { EnemyData } from "@/types";
+import type { EnemyDef } from "@/types";
 import enemyDataJson from "@assets/data/enemies.json";
 
 export class EnemyManager {
-  private enemyData: Record<string, EnemyData>;
+  private enemyData: Record<string, EnemyDef>;
   
   constructor() {
     this.enemyData = enemyDataJson;
   }
   
-  getEnemyStats(type: string): EnemyData {
+  getEnemyStats(type: string): EnemyDef {
     return this.enemyData[type];
   }
 }

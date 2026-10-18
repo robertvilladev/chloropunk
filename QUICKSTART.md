@@ -1,3 +1,5 @@
+> **OBSOLETE (prototype era), proposed for deletion.** Describes the original scaffold, not the current game. See [ROADMAP.md](ROADMAP.md), [README.md](README.md) and [ARCHITECTURE.md](ARCHITECTURE.md).
+
 # 🚀 Quick Start Guide
 
 Welcome to your Brotato-inspired roguelike project! This guide will help you understand the setup and start coding.
