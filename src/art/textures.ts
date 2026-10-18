@@ -4,6 +4,7 @@ import { ACTOR_FRAME, actorShiftX, FEET_Y, gridTop, PIXEL } from "./body";
 import { gridBounds, type Grid } from "./grid";
 import { PALETTE } from "./palette";
 import { PICKUPS } from "./pickups";
+import { THEME } from "@/config/theme";
 
 export { ACTOR_FRAME };
 const PICKUP_PX = 24;
@@ -61,6 +62,27 @@ export function buildPickupTextures(scene: Phaser.Scene): void {
     });
     tex.refresh();
   }
+}
+
+/** vignette: 800x600, transparent centre, danger-coloured edge (alpha 0.7 -> 0 over 90px). Canvas-safe. */
+export function buildFxTextures(scene: Phaser.Scene): void {
+  const [w, h, edge] = [800, 600, 90];
+  const rgb = `${THEME.danger >> 16},${(THEME.danger >> 8) & 255},${THEME.danger & 255}`;
+  const tex = scene.textures.createCanvas("vignette", w, h);
+  if (!tex) return;
+  const ctx = tex.getContext();
+  const side = (x0: number, y0: number, x1: number, y1: number, rx: number, ry: number, rw: number, rh: number) => {
+    const gr = ctx.createLinearGradient(x0, y0, x1, y1);
+    gr.addColorStop(0, `rgba(${rgb},0.7)`);
+    gr.addColorStop(1, `rgba(${rgb},0)`);
+    ctx.fillStyle = gr;
+    ctx.fillRect(rx, ry, rw, rh);
+  };
+  side(0, 0, 0, edge, 0, 0, w, edge);
+  side(0, h, 0, h - edge, 0, h - edge, w, edge);
+  side(0, 0, edge, 0, 0, 0, edge, h);
+  side(w, 0, w - edge, 0, w - edge, 0, edge, h);
+  tex.refresh();
 }
 
 export function registerAnimations(scene: Phaser.Scene): void {

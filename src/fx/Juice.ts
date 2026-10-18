@@ -23,26 +23,18 @@ export class Juice {
   private burst: Phaser.GameObjects.Particles.ParticleEmitter;
   private blasts: Phaser.GameObjects.Arc[] = [];
   private nextBlast = 0;
-  private vignette: Phaser.GameObjects.Graphics;
+  private vignette: Phaser.GameObjects.Image;
   private vignetteTween?: Phaser.Tweens.Tween;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
     this.reducedShake = loadSettings().reducedShake; // read once
-    const { width: w, height: h } = scene.scale;
-    const edge = 90;
     this.vignette = scene.add
-      .graphics()
+      .image(0, 0, "vignette")
+      .setOrigin(0)
+      .setDisplaySize(scene.scale.width, scene.scale.height)
       .setDepth(DEPTH.UI - 1)
       .setAlpha(0);
-    this.vignette.fillGradientStyle(THEME.danger, THEME.danger, THEME.danger, THEME.danger, 0.7, 0.7, 0, 0);
-    this.vignette.fillRect(0, 0, w, edge);
-    this.vignette.fillGradientStyle(THEME.danger, THEME.danger, THEME.danger, THEME.danger, 0, 0, 0.7, 0.7);
-    this.vignette.fillRect(0, h - edge, w, edge);
-    this.vignette.fillGradientStyle(THEME.danger, THEME.danger, THEME.danger, THEME.danger, 0.7, 0, 0.7, 0);
-    this.vignette.fillRect(0, 0, edge, h);
-    this.vignette.fillGradientStyle(THEME.danger, THEME.danger, THEME.danger, THEME.danger, 0, 0.7, 0, 0.7);
-    this.vignette.fillRect(w - edge, 0, edge, h);
     this.burst = scene.add
       .particles(0, 0, "pixel", {
         emitting: false,

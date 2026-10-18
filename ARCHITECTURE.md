@@ -11,6 +11,7 @@ src/
   core/                 pure logic: rng, waves (spawn schedule), progression (XP/levels), run (newRun),
                         stats (computeStats), weapons (tier stats, prices), inventory (slots, merge, sell),
                         shop (offers, reroll, lock), levelup (picks), time, settings, depth (y-sort, facing)
+  fx/glow.ts            isWebGL() guard for WebGL-only FX; renderer picked via ?renderer=canvas|webgl (config/renderer.ts)
   fx/Juice.ts           all hit/kill feedback (numbers, flash, shake, bursts, vignette, banners)
   art/                  sprite grids (actors, pickups, palette), body.ts (pure hitbox offset), textures.ts bakes CanvasTextures + walk anims at boot
   types/, utils/        shared types, math helpers

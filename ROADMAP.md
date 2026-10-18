@@ -65,7 +65,7 @@ From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) an
 - **Input:** `ShopScene` captures Tab/Space globally and never releases them
 - **Robustness:** `rng.int` unguarded for max<min; `buildSpawnSchedule` hangs if `every<=0`
 - **Dev only:** F3 isn't captured (opens browser find); `debugSpawn` draws from the spawn RNG
-- **M3:** hardcoded colours outside `theme.ts` (Menu, Victory, GameOver, UIScene); shop / level-up / loadout are placeholder layouts; wave-1 banner can show a fallback font before Google Fonts loads; vignette is flat in Canvas mode
+- **M3:** hardcoded colours outside `theme.ts` (Menu, Victory, GameOver, UIScene); shop / level-up / loadout are placeholder layouts; wave-1 banner can show a fallback font before Google Fonts loads
 - **M4:** Victory → GameOver "RUN COMPLETE" is a stopgap
 - **(proposed)** `vite.config.ts` still defines aliases for the non-existent `@ecs` and `@ui` folders
 - **(proposed)** `STRUCTURE.md`, `PROJECT_SUMMARY.md` and `QUICKSTART.md` describe the old prototype (ShopScene "display upgrades", 3 weapons); fold into README/ARCHITECTURE or delete
