@@ -1,12 +1,14 @@
 import { GAME_CONFIG, SCENE_KEYS } from "@/config/constants";
+import { createRng, type Rng } from "@/core/rng";
+import { clampDelta } from "@/core/time";
+import { waveDuration } from "@/core/waves";
 import { CoinManager } from "@/managers/CoinManager";
 import { EnemyManager } from "@/managers/EnemyManager";
 import { InputManager } from "@/managers/InputManager";
 import { PlayerManager } from "@/managers/PlayerManager";
-import { WaveManager } from "@/managers/WaveManager";
 import { WeaponManager } from "@/managers/WeaponManager";
 import { WorldManager } from "@/managers/WorldManager";
-import type { RunState } from "@/types";
+import type { EnemyDef, RunState } from "@/types";
 import Phaser from "phaser";
 
 // Custom events emitted on this scene; listeners are removed on shutdown
@@ -14,6 +16,8 @@ import Phaser from "phaser";
 const GAME_EVENTS = [
   "playerDied",
   "enemyKilled",
+  "enemyExploded",
+  "enemyHit",
   "coinCollected",
   "speedChanged",
   "playerHealthChanged",
@@ -33,15 +37,15 @@ export class GameScene extends Phaser.Scene {
   // Managers - each handles a specific domain
   private playerManager!: PlayerManager;
   private inputManager!: InputManager;
-  private waveManager!: WaveManager;
   private worldManager!: WorldManager;
   private enemyManager!: EnemyManager;
   private weaponManager!: WeaponManager;
   private coinManager!: CoinManager;
 
   // Round timer
-  private roundTimeRemaining: number = 20; // 20 seconds for testing
+  private roundTimeRemaining: number = 20;
   private roundDuration: number = 20;
+  private rng!: Rng;
 
   // Game speed control
   private gameSpeed: number = 1;
@@ -91,14 +95,12 @@ export class GameScene extends Phaser.Scene {
       GAME_CONFIG.INITIAL_PLAYER_SPEED + this.run.bonus.speed
     );
 
-    // 4. Initialize wave system
-    this.waveManager = new WaveManager(this);
-    this.waveManager.create();
-    this.waveManager.startWave(this.run.wave);
-
-    // 5. Initialize enemy system
+    // 4. Initialize enemy system and start this wave's spawn schedule
+    this.rng = createRng(this.run.seed + this.run.wave);
+    this.roundDuration = waveDuration(this.run.wave);
     this.enemyManager = new EnemyManager(this);
     this.enemyManager.create();
+    this.enemyManager.startWave(this.run.wave, this.rng);
 
     // 6. Initialize weapon system
     this.weaponManager = new WeaponManager(this);
@@ -129,6 +131,7 @@ export class GameScene extends Phaser.Scene {
 
     // Listen for enemy kills
     this.events.on("enemyKilled", this.onEnemyKilled, this);
+    this.events.on("enemyExploded", this.onEnemyExploded, this);
 
     // Listen for speed changes
     this.events.on("speedChanged", this.onSpeedChanged, this);
@@ -145,8 +148,11 @@ export class GameScene extends Phaser.Scene {
     // Don't update if game is over
     if (this.isGameOver) return;
 
+    // Clamp stalls (tab switch) then apply game speed
+    const dt = clampDelta(delta) * this.gameSpeed;
+
     // Update round timer
-    this.roundTimeRemaining -= (delta / 1000) * this.gameSpeed;
+    this.roundTimeRemaining -= dt / 1000;
     if (this.roundTimeRemaining <= 0) {
       this.roundTimeRemaining = 0;
       this.onRoundComplete();
@@ -159,23 +165,21 @@ export class GameScene extends Phaser.Scene {
     // 2. Update player
     this.playerManager.update(movement.x, movement.y, delta);
 
-    // 3. Update enemy system
+    // 3. Update enemy system (elapsed = seconds into this wave)
     this.enemyManager.update(
-      delta * this.gameSpeed,
+      dt,
+      this.roundDuration - this.roundTimeRemaining,
       this.playerManager.getPosition()
     );
 
     // 4. Update weapon system
     this.weaponManager.update(
-      delta * this.gameSpeed,
+      dt,
       this.playerManager.getPosition(),
       this.enemyManager.getEnemies()
     );
 
-    // 5. Update wave system
-    this.waveManager.update(delta * this.gameSpeed);
-
-    // 6. Update UI (via events)
+    // 5. Update UI (via events)
     this.updateUI();
   }
 
@@ -189,8 +193,14 @@ export class GameScene extends Phaser.Scene {
       this.enemyManager.getEnemyGroup(),
       (_playerObj, enemyObj) => {
         const enemy = enemyObj as Phaser.Physics.Arcade.Sprite;
-        const damage = enemy.getData("damage") || 5;
-        this.playerManager.takeDamage(damage);
+        if (!enemy.active) return;
+        const def = enemy.getData("def") as EnemyDef;
+        if (def.behavior === "exploder") {
+          // Touching the player detonates it
+          this.enemyManager.killEnemy(enemy);
+          return;
+        }
+        this.playerManager.takeDamage(enemy.getData("state").damage);
       },
       undefined,
       this
@@ -207,23 +217,34 @@ export class GameScene extends Phaser.Scene {
         const damage = projectile.getData("damage") || 10;
         const knockback = projectile.getData("knockback") || 0;
 
-        // Apply knockback
+        // Apply knockback (tanks ignore it)
         if (knockback > 0) {
           const angle = Math.atan2(
             enemy.y - projectile.y,
             enemy.x - projectile.x
           );
-          enemy.setVelocity(
-            Math.cos(angle) * knockback,
-            Math.sin(angle) * knockback
-          );
+          this.enemyManager.knockback(enemy, angle, knockback);
         }
 
         // Damage enemy
-        this.enemyManager.damageEnemy(enemy, damage);
+        this.enemyManager.damageEnemy(enemy, damage, false);
 
         // Remove projectile
         this.weaponManager.removeProjectile(projectile);
+      },
+      undefined,
+      this
+    );
+
+    // Enemy bolts -> player
+    this.physics.add.overlap(
+      this.playerManager.getSprite(),
+      this.enemyManager.getEnemyProjectileGroup(),
+      (_playerObj, boltObj) => {
+        const bolt = boltObj as Phaser.Physics.Arcade.Sprite;
+        if (!bolt.active) return;
+        this.playerManager.takeDamage(bolt.getData("damage"));
+        this.enemyManager.removeBolt(bolt);
       },
       undefined,
       this
@@ -297,16 +318,26 @@ export class GameScene extends Phaser.Scene {
   /**
    * Handle enemy killed
    */
-  private onEnemyKilled(
-    coinValue: number,
-    _expValue: number,
-    enemyX: number,
-    enemyY: number
-  ): void {
+  private onEnemyKilled(x: number, y: number, def: EnemyDef): void {
     this.enemiesKilled++;
 
-    // Spawn coin at enemy position
-    this.coinManager.spawnCoin(enemyX, enemyY, coinValue);
+    // Spawn coin at enemy position (Task 5 replaces CoinManager)
+    this.coinManager.spawnCoin(x, y, def.scrap);
+  }
+
+  /**
+   * Exploder blast: hurt the player if inside the radius
+   */
+  private onEnemyExploded(
+    x: number,
+    y: number,
+    radius: number,
+    damage: number
+  ): void {
+    const p = this.playerManager.getPosition();
+    if (Math.hypot(p.x - x, p.y - y) <= radius) {
+      this.playerManager.takeDamage(damage);
+    }
   }
 
   /**
@@ -322,7 +353,7 @@ export class GameScene extends Phaser.Scene {
    */
   private cleanup(): void {
     this.playerManager?.destroy();
-    this.waveManager?.destroy();
+    this.enemyManager?.destroy();
     this.worldManager?.destroy();
     this.inputManager?.destroy();
     GAME_EVENTS.forEach((event) => this.events.removeAllListeners(event));

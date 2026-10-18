@@ -41,8 +41,6 @@ export const SCENE_KEYS = {
 
 export const ASSET_KEYS = {
   PLAYER: "player",
-  ENEMY_SLIME: "enemy_slime",
-  ENEMY_GOBLIN: "enemy_goblin",
   PROJECTILE_BASIC: "projectile_basic",
   COIN: "coin",
   UI_HEART: "ui_heart",
