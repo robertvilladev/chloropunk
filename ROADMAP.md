@@ -42,8 +42,8 @@ Spec: [§6 look and feel, §7 screens](docs/superpowers/specs/2026-10-18-mvp-rog
 - ✅ Sprite-grid pipeline: grids in `src/art/`, baked to textures at boot (`textures.ts`); fighter, 5 enemies and scrap on screen with walk/hit frames
 - ✅ 3/4 y-sorted depth (`core/depth.ts` `actorDepth`, bands in `DEPTH`): actors in [40, 50), projectiles 60, FX 70, numbers 90
 - ✅ Soft shadows, neon glow FX (one camera-level bloom on WebGL; baked 1px halos on Canvas)
-- ⬜ "Chlorophyll" `theme.ts` applied to every screen (Menu, Shop, Victory, UIScene still hardcode colours); fonts Bungee / IBM Plex Mono / VT323
-- ⬜ HUD, level-up, shop, loadout and menu screens per the mockups; stat previews on hover; mouse + keyboard
+- ⬜ "Chlorophyll" `theme.ts` applied to every screen (Menu, Shop, Victory still hardcode colours; HUD done); fonts Bungee / IBM Plex Mono / VT323
+- ⬜ (HUD ✅: no stats panel, 1/2/3 speed buttons dev-only) level-up, shop, loadout and menu screens per the mockups; stat previews on hover; mouse + keyboard
 
 ## M4 — Boss & run end ⬜
 Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md)
@@ -65,7 +65,7 @@ From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) an
 - **Input:** `ShopScene` captures Tab/Space globally and never releases them
 - **Robustness:** `rng.int` unguarded for max<min; `buildSpawnSchedule` hangs if `every<=0`
 - **Dev only:** F3 isn't captured (opens browser find); `debugSpawn` draws from the spawn RNG
-- **M3:** hardcoded colours outside `theme.ts` (Menu, Victory, GameOver, UIScene); shop / level-up / loadout are placeholder layouts; wave-1 banner can show a fallback font before Google Fonts loads
+- **M3:** hardcoded colours outside `theme.ts` (Menu, Victory, GameOver); shop / level-up / loadout are placeholder layouts; wave-1 banner can show a fallback font before Google Fonts loads
 - **M4:** Victory → GameOver "RUN COMPLETE" is a stopgap
 - **(proposed)** `vite.config.ts` still defines aliases for the non-existent `@ecs` and `@ui` folders
 - **(proposed)** `STRUCTURE.md`, `PROJECT_SUMMARY.md` and `QUICKSTART.md` describe the old prototype (ShopScene "display upgrades", 3 weapons); fold into README/ARCHITECTURE or delete

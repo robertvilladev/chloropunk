@@ -1,19 +1,31 @@
 import { DEPTH, SCENE_KEYS } from "@/config/constants";
 import { THEME, THEME_CSS } from "@/config/theme";
+import { formatClock } from "@/core/labels";
 import type { GameScene } from "@/scenes/GameScene";
+import { panel, text } from "@/scenes/ui";
 import Phaser from "phaser";
 
+/** MVP run length (spec: 10 waves, boss on 10). */
+const RUN_WAVES = 10;
+const HP_W = 216; // inner width of the 220px HP bar (2px border)
+const XP_W = 140;
+
 /**
- * UIScene - Persistent UI overlay (HUD)
- * Runs parallel to GameScene to display health, scrap, xp, wave info, etc.
+ * UIScene - Persistent UI overlay (HUD), per mockups/Hud.dc.html.
+ * Runs parallel to GameScene; no scanlines over the arena.
  */
 export class UIScene extends Phaser.Scene {
-  private healthText!: Phaser.GameObjects.Text;
-  private scrapText!: Phaser.GameObjects.Text;
-  private xpBar!: Phaser.GameObjects.Rectangle;
+  private hpFill!: Phaser.GameObjects.Rectangle;
+  private hpValue!: Phaser.GameObjects.Text;
+  private hpFlash?: Phaser.Tweens.Tween;
+  private xpFill!: Phaser.GameObjects.Rectangle;
   private levelText!: Phaser.GameObjects.Text;
+  private waveText!: Phaser.GameObjects.Text;
   private timerText!: Phaser.GameObjects.Text;
-  private statsText!: Phaser.GameObjects.Text;
+  private scrapBox!: Phaser.GameObjects.Rectangle;
+  private scrapGem!: Phaser.GameObjects.Rectangle;
+  private scrapValue!: Phaser.GameObjects.Text;
+  private scrapLabel!: Phaser.GameObjects.Text;
   private speedButtons: Phaser.GameObjects.Container[] = [];
   private gameSpeed: number = 1;
 
@@ -25,79 +37,33 @@ export class UIScene extends Phaser.Scene {
     // Phaser reuses scene instances, so reset per-run fields
     this.speedButtons = [];
     this.gameSpeed = 1;
+    this.hpFlash = undefined;
+    const w = this.cameras.main.width;
+    const h = this.cameras.main.height;
 
-    // Top-left: Health
-    this.healthText = this.add.text(20, 20, "❤ Health: 100/100", {
-      fontSize: "18px",
-      color: "#ff0000",
-      backgroundColor: "#000000",
-      padding: { x: 8, y: 4 },
-    });
-    this.healthText.setDepth(DEPTH.UI);
+    // Top-left: HP bar, then XP bar + level
+    panel(this, 30, 16, 220, 20, { fill: THEME.surface2 }).setStrokeStyle(2, THEME.line).setDepth(DEPTH.UI);
+    this.hpFill = this.add.rectangle(32, 18, HP_W, 16, THEME.pink).setOrigin(0).setDepth(DEPTH.UI);
+    text(this, 36, 26, "HP", 11).setOrigin(0, 0.5).setDepth(DEPTH.UI + 1);
+    this.hpValue = text(this, 244, 26, "", 11).setOrigin(1, 0.5).setDepth(DEPTH.UI + 1);
+    this.add.rectangle(30, 45, XP_W, 6, THEME.surface2).setOrigin(0, 0.5).setDepth(DEPTH.UI);
+    this.xpFill = this.add.rectangle(30, 45, XP_W, 6, THEME.pink).setOrigin(0, 0.5).setDepth(DEPTH.UI);
+    this.levelText = text(this, 30 + XP_W + 8, 45, "LV 1", 10, THEME_CSS.pink300).setOrigin(0, 0.5).setDepth(DEPTH.UI);
 
-    // Top-right: Scrap
-    this.scrapText = this.add.text(
-      this.cameras.main.width - 20,
-      20,
-      "SCRAP: 0",
-      {
-        fontSize: "18px",
-        color: THEME_CSS.lime,
-        backgroundColor: "#000000",
-        padding: { x: 8, y: 4 },
-      }
-    );
-    this.scrapText.setOrigin(1, 0);
-    this.scrapText.setDepth(DEPTH.UI);
+    // Top-centre: wave + timer
+    this.waveText = text(this, w / 2, 10, "", 12, THEME_CSS.lime, "display").setOrigin(0.5, 0).setDepth(DEPTH.UI);
+    this.timerText = text(this, w / 2, 24, "", 40, THEME_CSS.text, "pixel").setOrigin(0.5, 0).setDepth(DEPTH.UI);
 
-    // Top-center: Timer
-    this.timerText = this.add.text(
-      this.cameras.main.width / 2,
-      20,
-      "Time: 0:20",
-      {
-        fontSize: "24px",
-        color: "#00ff00",
-        backgroundColor: "#000000",
-        padding: { x: 12, y: 6 },
-      }
-    );
-    this.timerText.setOrigin(0.5, 0);
-    this.timerText.setDepth(DEPTH.UI);
-
-    // Top-left: Stats panel
-    this.statsText = this.add.text(
-      20,
-      60,
-      "",
-      {
-        fontSize: "16px",
-        color: "#ffffff",
-        backgroundColor: "#000000",
-        padding: { x: 8, y: 6 },
-      }
-    );
-    this.statsText.setDepth(DEPTH.UI);
-
-    // Bottom-left: XP bar (pink) with level
-    const barW = 300;
-    this.add
-      .rectangle(20, this.cameras.main.height - 30, barW, 12, THEME.line)
-      .setOrigin(0, 0.5)
+    // Top-right: scrap (laid out right-to-left in layoutScrap so any digit count fits)
+    this.scrapBox = panel(this, w - 30, 16, 100, 36, { fill: THEME.surface2 })
+      .setOrigin(1, 0)
+      .setStrokeStyle(2, THEME.line)
       .setDepth(DEPTH.UI);
-    this.xpBar = this.add
-      .rectangle(20, this.cameras.main.height - 30, barW, 12, THEME.pink)
-      .setOrigin(0, 0.5)
-      .setDepth(DEPTH.UI);
-    this.levelText = this.add
-      .text(20, this.cameras.main.height - 50, "LV 1", {
-        fontSize: "16px",
-        color: THEME_CSS.pink,
-      })
-      .setDepth(DEPTH.UI);
+    this.scrapGem = this.add.rectangle(0, 34, 10, 10, THEME.lime).setAngle(45).setDepth(DEPTH.UI + 1);
+    this.scrapValue = text(this, 0, 20, "0", 26, THEME_CSS.lime, "pixel").setOrigin(1, 0).setDepth(DEPTH.UI + 1);
+    this.scrapLabel = text(this, 0, 30, "SCRAP", 10, THEME_CSS.textMuted).setOrigin(1, 0).setDepth(DEPTH.UI + 1);
 
-    // Top-right: Speed controls
-    this.createSpeedControls();
+    if (import.meta.env.DEV) this.createSpeedControls(h);
 
     // Listen for game events
     const gameScene = this.scene.get(SCENE_KEYS.GAME);
@@ -105,6 +71,12 @@ export class UIScene extends Phaser.Scene {
       gameScene.events.on("playerHealthChanged", this.updateHealth, this);
       gameScene.events.on("timerUpdate", this.updateTimer, this);
       gameScene.events.on("scrapCollected", this.refresh, this);
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+        gameScene.events.off("playerHealthChanged", this.updateHealth, this);
+        gameScene.events.off("timerUpdate", this.updateTimer, this);
+        gameScene.events.off("scrapCollected", this.refresh, this);
+        this.hpFlash?.stop();
+      });
       this.refresh();
     }
   }
@@ -115,131 +87,90 @@ export class UIScene extends Phaser.Scene {
   private refresh = (): void => {
     const stats = (this.scene.get(SCENE_KEYS.GAME) as GameScene).getPlayerStats();
     this.updateHealth(stats.health, stats.maxHealth);
-    this.scrapText.setText(`SCRAP: ${stats.scrap}`);
-    this.xpBar.width = 300 * (stats.xp / stats.xpNeeded);
-    this.levelText.setText(
-      `LV ${stats.level}${stats.pending > 0 ? ` (+${stats.pending})` : ""}`
-    );
-    const s = stats.stats;
-    this.statsText.setText(
-      `Wave: ${stats.wave}\nHP: ${stats.health}/${stats.maxHealth}\nArmor: ${s.armor}\nDodge: ${s.dodge}%\n` +
-        `Dmg: ${s.damage}%\nAtk spd: ${s.attackSpeed}%\nCrit: ${s.crit}%\nSpeed: ${s.speed}%`
-    );
+    this.waveText.setText(`WAVE ${String(stats.wave).padStart(2, "0")} / ${RUN_WAVES}`);
+    this.scrapValue.setText(String(stats.scrap));
+    this.layoutScrap();
+    this.xpFill.width = XP_W * Math.min(1, stats.xp / stats.xpNeeded);
+    this.levelText.setText(`LV ${stats.level}${stats.pending > 0 ? ` (+${stats.pending})` : ""}`);
   };
 
-  /**
-   * Create speed control buttons
-   */
-  private createSpeedControls(): void {
-    const speeds = [1, 2, 3];
-    const startX = this.cameras.main.width - 120;
-    const y = this.cameras.main.height - 50;
-
-    speeds.forEach((speed, index) => {
-      const button = this.createSpeedButton(startX + index * 35, y, speed);
-      this.speedButtons.push(button);
-    });
-
-    // Set up keyboard shortcuts once (outside button creation to avoid duplicates)
-    speeds.forEach((speed) => {
-      this.input.keyboard?.on(`keydown-${speed}`, () => {
-        this.setGameSpeed(speed);
-      });
-    });
-
-    // Set initial active button
-    this.updateSpeedButtons();
+  /** Right-align label, value and gem inside a box sized to the text. */
+  private layoutScrap(): void {
+    const right = this.cameras.main.width - 30;
+    this.scrapLabel.setX(right - 10);
+    this.scrapValue.setX(this.scrapLabel.x - this.scrapLabel.width - 8);
+    this.scrapGem.setX(this.scrapValue.x - this.scrapValue.width - 8 - 5);
+    this.scrapBox.setSize(right - (this.scrapGem.x - 5) + 10, 36);
   }
 
   /**
-   * Create a speed control button
+   * Dev-only speed buttons (keys 1/2/3 too)
    */
-  private createSpeedButton(
-    x: number,
-    y: number,
-    speed: number
-  ): Phaser.GameObjects.Container {
-    const button = this.add.container(x, y);
-
-    // Button background
-    const bg = this.add.rectangle(0, 0, 30, 30, 0x444444);
-    bg.setStrokeStyle(1, 0xffffff);
-
-    // Speed text
-    const speedText = this.add.text(0, 0, speed.toString(), {
-      fontSize: "16px",
-      color: "#ffffff",
-      fontStyle: "bold",
+  private createSpeedControls(h: number): void {
+    const speeds = [1, 2, 3];
+    const startX = this.cameras.main.width - 120;
+    speeds.forEach((speed, index) => {
+      this.speedButtons.push(this.createSpeedButton(startX + index * 35, h - 30, speed));
     });
-    speedText.setOrigin(0.5);
 
-    button.add([bg, speedText]);
-    button.setSize(30, 30);
-    button.setInteractive(
-      new Phaser.Geom.Rectangle(-15, -15, 30, 30),
-      Phaser.Geom.Rectangle.Contains
+    const kb = this.input.keyboard;
+    const handlers = speeds.map((speed) => {
+      const fn = () => this.setGameSpeed(speed);
+      kb?.on(`keydown-${speed}`, fn);
+      return fn;
+    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () =>
+      speeds.forEach((speed, i) => kb?.off(`keydown-${speed}`, handlers[i]))
     );
+    this.updateSpeedButtons();
+  }
 
-    // Click handler
-    button.on("pointerdown", () => {
-      this.setGameSpeed(speed);
-    });
-
+  private createSpeedButton(x: number, y: number, speed: number): Phaser.GameObjects.Container {
+    const bg = this.add.rectangle(0, 0, 30, 30, THEME.surface2).setStrokeStyle(2, THEME.line);
+    const label = text(this, 0, 0, String(speed), 14, THEME_CSS.text).setOrigin(0.5);
+    const button = this.add.container(x, y, [bg, label]).setDepth(DEPTH.UI).setSize(30, 30);
+    button.setInteractive({ useHandCursor: true });
+    button.on("pointerdown", () => this.setGameSpeed(speed));
     return button;
   }
 
-  /**
-   * Set game speed
-   */
   private setGameSpeed(speed: number): void {
     this.gameSpeed = speed;
     this.updateSpeedButtons();
-
-    // Emit event to game scene
-    const gameScene = this.scene.get(SCENE_KEYS.GAME);
-    if (gameScene) {
-      gameScene.events.emit("speedChanged", speed);
-    }
+    this.scene.get(SCENE_KEYS.GAME)?.events.emit("speedChanged", speed);
   }
 
-  /**
-   * Update speed button appearances
-   */
   private updateSpeedButtons(): void {
     this.speedButtons.forEach((button, index) => {
-      const speed = index + 1;
-      const bg = button.list[0] as Phaser.GameObjects.Rectangle;
-
-      if (speed === this.gameSpeed) {
-        bg.setFillStyle(0x00ff00); // Active = green
-      } else {
-        bg.setFillStyle(0x444444); // Inactive = gray
-      }
+      const active = index + 1 === this.gameSpeed;
+      (button.list[0] as Phaser.GameObjects.Rectangle).setFillStyle(active ? THEME.lime : THEME.surface2);
+      (button.list[1] as Phaser.GameObjects.Text).setColor(active ? THEME_CSS.limeInk : THEME_CSS.text);
     });
   }
 
   /**
-   * Update health display
+   * Update health display; under 25% the fill turns danger and the readout flashes
    */
   updateHealth(current: number, max: number) {
-    this.healthText.setText(`❤ Health: ${current}/${max}`);
+    const low = max > 0 && current / max < 0.25;
+    this.hpFill.width = HP_W * Phaser.Math.Clamp(current / max, 0, 1);
+    this.hpFill.setFillStyle(low ? THEME.danger : THEME.pink);
+    this.hpValue.setText(`${Math.ceil(current)}/${max}`);
+    this.hpValue.setColor(low ? THEME_CSS.danger : THEME_CSS.text);
+    if (low && !this.hpFlash) {
+      this.hpFlash = this.tweens.add({ targets: this.hpValue, alpha: 0.3, duration: 250, yoyo: true, repeat: -1 });
+    } else if (!low && this.hpFlash) {
+      this.hpFlash.stop();
+      this.hpFlash = undefined;
+      this.hpValue.setAlpha(1);
+    }
   }
 
   /**
-   * Update timer display
+   * Update timer display (danger in the last 5 s)
    */
   updateTimer(timeRemaining: number): void {
-    const minutes = Math.floor(timeRemaining / 60);
-    const seconds = Math.floor(timeRemaining % 60);
-    const timeStr = `${minutes}:${seconds.toString().padStart(2, "0")}`;
-
-    // Change color to red when less than 5 seconds
-    if (timeRemaining <= 5) {
-      this.timerText.setColor("#ff0000");
-    } else {
-      this.timerText.setColor("#00ff00");
-    }
-
-    this.timerText.setText(`Time: ${timeStr}`);
+    this.timerText.setColor(timeRemaining <= 5 ? THEME_CSS.danger : THEME_CSS.text);
+    this.timerText.setText(formatClock(timeRemaining));
   }
 }
