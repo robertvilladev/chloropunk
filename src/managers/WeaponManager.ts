@@ -262,7 +262,7 @@ export class WeaponManager {
     if (!pr) return;
     pr.setTexture(key);
     pr.enableBody(true, from.x, from.y, true, true);
-    pr.setSize(...HIT_SIZE[key]);
+    pr.setSize(...HIT_SIZE[key as keyof typeof HIT_SIZE]);
     pr.setDepth(DEPTH.PROJECTILES);
     const speed = w.def.params.speed;
     pr.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);

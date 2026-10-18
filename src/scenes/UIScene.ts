@@ -171,7 +171,7 @@ export class UIScene extends Phaser.Scene {
   updateHealth(current: number, max: number) {
     const low = max > 0 && current / max < 0.25;
     this.hpFill.width = HP_W * Phaser.Math.Clamp(current / max, 0, 1);
-        this.hpValue.setText(`${Math.ceil(current)}/${max}`);
+    this.hpValue.setText(`${Math.ceil(current)}/${max}`);
     this.hpValue.setColor(low ? THEME_CSS.danger : THEME_CSS.text);
     if (low && !this.hpFlash) {
       this.hpFlash = this.tweens.add({ targets: this.hpValue, alpha: 0.3, duration: 250, yoyo: true, repeat: -1 });

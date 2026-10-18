@@ -17,8 +17,6 @@ export class BootScene extends Phaser.Scene {
     // Create loading bar
     this.createLoadingBar();
 
-    // TODO: Load assets here when we have them
-    // For now, we'll use placeholder graphics
     this.loadPlaceholderAssets();
   }
 
@@ -73,10 +71,6 @@ export class BootScene extends Phaser.Scene {
   }
 
   private loadPlaceholderAssets() {
-    // Create placeholder graphics for MVP
-    // In production, these would be actual sprite files
-
-    // For now, just create some colored rectangles as placeholders
     this.createPlaceholderSprites();
   }
 
@@ -101,7 +95,6 @@ export class BootScene extends Phaser.Scene {
     bake("projectile_basic", 8, 8, THEME.tier[1], circle(4));
     bake("proj_pellet", 6, 6, THEME.tier[3], circle(3));
     bake("proj_rocket", 10, 6, THEME.danger, rect(10, 6));
-    bake("ui_heart", 16, 16, THEME.danger, circle(8));
 
     // Weapons (sit around the player); no icons, just coloured bars
     const weaponColors: Record<string, number> = {

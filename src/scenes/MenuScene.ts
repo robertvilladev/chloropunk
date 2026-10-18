@@ -60,7 +60,7 @@ export class MenuScene extends Phaser.Scene {
       THEME_CSS.textMuted
     ).setLineSpacing(2);
 
-    this.add.image(636, 340, "player", "walk0").setDisplaySize(192, 192);
+    this.add.image(636, 340, "player", "walk0").setScale(4);
     text(this, 16, H - 12, `v${pkg.version} // MVP`, 16, THEME_CSS.faint, "pixel").setOrigin(0, 1);
 
     scanlines(this);

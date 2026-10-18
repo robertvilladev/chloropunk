@@ -41,13 +41,6 @@ export const SCENE_KEYS = {
   LOADOUT: "LoadoutScene",
 } as const;
 
-export const ASSET_KEYS = {
-  PLAYER: "player",
-  PROJECTILE_BASIC: "projectile_basic",
-  SCRAP: "scrap",
-  UI_HEART: "ui_heart",
-} as const;
-
 export const DEPTH = {
   BACKGROUND: 0,
   GROUND_EFFECTS: 10,
@@ -60,7 +53,7 @@ export const DEPTH = {
 } as const;
 
 /** Original (pre-halo) hit areas of projectile textures; the baked halo must not change collisions. */
-export const HIT_SIZE: Record<string, [number, number]> = {
+export const HIT_SIZE: Record<"projectile_basic" | "enemy_bolt" | "proj_pellet" | "proj_rocket", [number, number]> = {
   projectile_basic: [8, 8],
   enemy_bolt: [8, 8],
   proj_pellet: [6, 6],

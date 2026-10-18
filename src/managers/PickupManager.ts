@@ -4,7 +4,7 @@ import type { Vector2 } from "@/types";
 import Phaser from "phaser";
 
 type Sprite = Phaser.Physics.Arcade.Sprite;
-const PICKUP_SIZE = 24;
+const PICKUP_SIZE = 16;
 
 /**
  * PickupManager - pooled scrap pickups. Each scrap is worth `value` scrap

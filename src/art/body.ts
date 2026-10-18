@@ -22,10 +22,23 @@ export function actorShiftX(key: string): number {
   return Math.round(ACTOR_FRAME.w / 2 - ((b.x0 + b.x1 + 1) * PIXEL) / 2);
 }
 
+/** Frame-px centre of walk0's opaque bounds. */
+function artCentre(key: string): { cx: number; cy: number } {
+  const b = gridBounds(find(key).walk0);
+  return {
+    cx: ((b.x0 + b.x1 + 1) * PIXEL) / 2 + actorShiftX(key),
+    cy: gridTop(b.y1) + ((b.y0 + b.y1 + 1) * PIXEL) / 2,
+  };
+}
+
 /** `setCircle(radius, x, y)` offset that centres the circle on the opaque bounds of walk0. */
 export function bodyOffset(key: string, radius: number): { x: number; y: number } {
-  const b = gridBounds(find(key).walk0);
-  const cx = ((b.x0 + b.x1 + 1) * PIXEL) / 2 + actorShiftX(key);
-  const cy = gridTop(b.y1) + ((b.y0 + b.y1 + 1) * PIXEL) / 2;
+  const { cx, cy } = artCentre(key);
   return { x: Math.floor(cx - radius), y: Math.round(cy - radius) };
+}
+
+/** `setSize(w, h)` + `setOffset(x, y)` offset that centres a w x h box on the opaque bounds of walk0. */
+export function boxOffset(key: string, w: number, h: number): { x: number; y: number } {
+  const { cx, cy } = artCentre(key);
+  return { x: Math.floor(cx - w / 2), y: Math.round(cy - h / 2) };
 }

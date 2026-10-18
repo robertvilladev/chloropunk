@@ -1,4 +1,4 @@
-import { bodyOffset } from "@/art/body";
+import { boxOffset } from "@/art/body";
 import { GAME_CONFIG } from "@/config/constants";
 import { THEME } from "@/config/theme";
 import { actorDepth, facingFlip } from "@/core/depth";
@@ -7,7 +7,7 @@ import { damageTaken } from "@/core/stats";
 import type { Stats } from "@/types";
 
 const DODGE_IFRAMES_MS = 500;
-const PLAYER_RADIUS = 14;
+const PLAYER_BODY = 32; // pre-M3 32x32 square body
 import Phaser from "phaser";
 
 /**
@@ -51,8 +51,8 @@ export class PlayerManager {
 
     // Set player physics properties
     this.player.setCollideWorldBounds(true);
-    const off = bodyOffset("player", PLAYER_RADIUS);
-    (this.player.body as Phaser.Physics.Arcade.Body).setCircle(PLAYER_RADIUS, off.x, off.y);
+    const off = boxOffset("player", PLAYER_BODY, PLAYER_BODY);
+    (this.player.body as Phaser.Physics.Arcade.Body).setSize(PLAYER_BODY, PLAYER_BODY).setOffset(off.x, off.y);
     this.player.play("player_walk");
     this.player.setDepth(actorDepth(this.player.y));
 

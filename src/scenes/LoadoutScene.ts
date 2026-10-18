@@ -86,7 +86,7 @@ export class LoadoutScene extends Phaser.Scene {
   private characterPanel(): void {
     panel(this, 32, TOP, 200, H, { fill: THEME.surface2 }).setStrokeStyle(2, THEME.line);
     text(this, 48, TOP + 16, character.title, 10, THEME_CSS.textMuted).setLetterSpacing(1.4);
-    this.add.image(132, TOP + 94, "player", "walk0").setDisplaySize(128, 128);
+    this.add.image(132, TOP + 94, "player", "walk0").setScale(8 / 3);
     text(this, 48, TOP + 168, character.name.toUpperCase(), 16, THEME_CSS.text, "display");
     const rows: [string, number][] = [
       ["Max HP", BASE_STATS.maxHp],
