@@ -1,22 +1,32 @@
 import { GAME_CONFIG, SCENE_KEYS } from "@/config/constants";
-import { CoinManager } from "@/managers/CoinManager";
+import { THEME_CSS } from "@/config/theme";
+import { createRng, type Rng } from "@/core/rng";
+import { addXp, xpToNext } from "@/core/progression";
+import { clampDelta } from "@/core/time";
+import { waveDuration } from "@/core/waves";
+import { Juice } from "@/fx/Juice";
 import { EnemyManager } from "@/managers/EnemyManager";
 import { InputManager } from "@/managers/InputManager";
+import { PickupManager } from "@/managers/PickupManager";
 import { PlayerManager } from "@/managers/PlayerManager";
-import { WaveManager } from "@/managers/WaveManager";
 import { WeaponManager } from "@/managers/WeaponManager";
 import { WorldManager } from "@/managers/WorldManager";
-import type { RunState } from "@/types";
+import type { EnemyDef, RunState } from "@/types";
 import Phaser from "phaser";
+
+const BANNER_MS = 900; // matches Juice.banner total duration
 
 // Custom events emitted on this scene; listeners are removed on shutdown
 // because Phaser keeps scene.events listeners across restarts
 const GAME_EVENTS = [
   "playerDied",
   "enemyKilled",
-  "coinCollected",
+  "enemyExploded",
+  "enemyHit",
+  "scrapCollected",
   "speedChanged",
   "playerHealthChanged",
+  "playerHit",
   "timerUpdate",
 ];
 
@@ -33,24 +43,29 @@ export class GameScene extends Phaser.Scene {
   // Managers - each handles a specific domain
   private playerManager!: PlayerManager;
   private inputManager!: InputManager;
-  private waveManager!: WaveManager;
   private worldManager!: WorldManager;
   private enemyManager!: EnemyManager;
   private weaponManager!: WeaponManager;
-  private coinManager!: CoinManager;
+  private pickupManager!: PickupManager;
+  private juice!: Juice;
 
   // Round timer
-  private roundTimeRemaining: number = 20; // 20 seconds for testing
+  private roundTimeRemaining: number = 20;
   private roundDuration: number = 20;
+  private rng!: Rng;
+  // Separate stream for combat rolls (crits) so spawns stay reproducible per seed
+  private combatRng!: Rng;
 
   // Game speed control
   private gameSpeed: number = 1;
 
   // Stats tracking
   private enemiesKilled: number = 0;
+  // Scrap (= XP) picked up this wave; XP is applied at wave end
+  private waveEarned: number = 0;
   private isGameOver: boolean = false;
 
-  // Persistent run state (wave, coins, upgrades)
+  // Persistent run state (wave, scrap, xp, upgrades)
   private run!: RunState;
 
   constructor() {
@@ -61,11 +76,18 @@ export class GameScene extends Phaser.Scene {
    * Receive run state from the shop; no data means a fresh run
    */
   init(data: { run?: RunState }) {
+    const fresh = !data.run;
+    const urlSeed = Number(new URLSearchParams(window.location.search).get("seed"));
     this.run = data.run ?? {
       wave: 1,
-      coins: 0,
+      scrap: 0,
+      xp: 0,
+      level: 1,
+      pendingLevelUps: 0,
       bonus: { maxHealth: 0, speed: 0, damage: 0 },
+      seed: Number.isInteger(urlSeed) && urlSeed !== 0 ? urlSeed : Date.now(),
     };
+    if (fresh) console.info(`Run seed: ${this.run.seed}`);
   }
 
   /**
@@ -87,23 +109,29 @@ export class GameScene extends Phaser.Scene {
       GAME_CONFIG.INITIAL_PLAYER_SPEED + this.run.bonus.speed
     );
 
-    // 4. Initialize wave system
-    this.waveManager = new WaveManager(this);
-    this.waveManager.create();
-    this.waveManager.startWave(this.run.wave);
-
-    // 5. Initialize enemy system
+    // 4. Initialize enemy system and start this wave's spawn schedule
+    this.rng = createRng(this.run.seed + this.run.wave);
+    this.combatRng = createRng(this.run.seed + this.run.wave + 7919);
+    this.roundDuration = waveDuration(this.run.wave);
     this.enemyManager = new EnemyManager(this);
     this.enemyManager.create();
+    this.enemyManager.startWave(this.run.wave, this.rng);
 
     // 6. Initialize weapon system
     this.weaponManager = new WeaponManager(this);
-    this.weaponManager.create(this.run.bonus.damage);
+    this.weaponManager.create(this.combatRng, this.run.bonus.damage);
 
-    // 7. Initialize coin system
-    this.coinManager = new CoinManager(this);
-    this.coinManager.create();
-    this.coinManager.setCoinCount(this.run.coins);
+    // 7. Initialize pickups
+    this.pickupManager = new PickupManager(this);
+    this.waveEarned = 0;
+    this.events.on("scrapCollected", this.onScrapCollected, this);
+
+    // 7b. Feedback effects
+    this.juice = new Juice(this);
+    this.juice.banner(`WAVE ${String(this.run.wave).padStart(2, "0")}`);
+    this.events.on("enemyHit", this.onEnemyHit, this);
+    this.events.on("playerHit", this.onPlayerHit, this);
+    this.events.on("playerHealthChanged", this.onHealthChanged, this);
 
     // 8. Set up collision detection
     this.setupCollisions();
@@ -118,6 +146,9 @@ export class GameScene extends Phaser.Scene {
     this.roundTimeRemaining = this.roundDuration;
     this.enemiesKilled = 0;
     this.gameSpeed = 1;
+    this.physics.world.timeScale = 1;
+    this.time.timeScale = 1;
+    this.tweens.timeScale = 1;
     this.isGameOver = false;
 
     // Listen for player death
@@ -125,6 +156,7 @@ export class GameScene extends Phaser.Scene {
 
     // Listen for enemy kills
     this.events.on("enemyKilled", this.onEnemyKilled, this);
+    this.events.on("enemyExploded", this.onEnemyExploded, this);
 
     // Listen for speed changes
     this.events.on("speedChanged", this.onSpeedChanged, this);
@@ -141,8 +173,11 @@ export class GameScene extends Phaser.Scene {
     // Don't update if game is over
     if (this.isGameOver) return;
 
+    // Clamp stalls (tab switch) then apply game speed
+    const dt = clampDelta(delta) * this.gameSpeed;
+
     // Update round timer
-    this.roundTimeRemaining -= (delta / 1000) * this.gameSpeed;
+    this.roundTimeRemaining -= dt / 1000;
     if (this.roundTimeRemaining <= 0) {
       this.roundTimeRemaining = 0;
       this.onRoundComplete();
@@ -153,25 +188,26 @@ export class GameScene extends Phaser.Scene {
     const movement = this.inputManager.getMovementInput();
 
     // 2. Update player
-    this.playerManager.update(movement.x, movement.y, delta);
+    this.playerManager.update(movement.x, movement.y, dt);
 
-    // 3. Update enemy system
+    // 3. Update enemy system (elapsed = seconds into this wave)
     this.enemyManager.update(
-      delta * this.gameSpeed,
+      dt,
+      this.roundDuration - this.roundTimeRemaining,
       this.playerManager.getPosition()
     );
 
+    // 3b. Pull nearby scrap toward the player
+    this.pickupManager.update(this.playerManager.getPosition());
+
     // 4. Update weapon system
     this.weaponManager.update(
-      delta * this.gameSpeed,
+      dt,
       this.playerManager.getPosition(),
       this.enemyManager.getEnemies()
     );
 
-    // 5. Update wave system
-    this.waveManager.update(delta * this.gameSpeed);
-
-    // 6. Update UI (via events)
+    // 5. Update UI (via events)
     this.updateUI();
   }
 
@@ -185,8 +221,14 @@ export class GameScene extends Phaser.Scene {
       this.enemyManager.getEnemyGroup(),
       (_playerObj, enemyObj) => {
         const enemy = enemyObj as Phaser.Physics.Arcade.Sprite;
-        const damage = enemy.getData("damage") || 5;
-        this.playerManager.takeDamage(damage);
+        if (!enemy.active) return;
+        const def = enemy.getData("def") as EnemyDef;
+        if (def.behavior === "exploder") {
+          // Touching the player detonates it
+          this.enemyManager.killEnemy(enemy);
+          return;
+        }
+        this.playerManager.takeDamage(enemy.getData("state").damage);
       },
       undefined,
       this
@@ -203,20 +245,21 @@ export class GameScene extends Phaser.Scene {
         const damage = projectile.getData("damage") || 10;
         const knockback = projectile.getData("knockback") || 0;
 
-        // Apply knockback
+        // Apply knockback (tanks ignore it)
         if (knockback > 0) {
           const angle = Math.atan2(
             enemy.y - projectile.y,
             enemy.x - projectile.x
           );
-          enemy.setVelocity(
-            Math.cos(angle) * knockback,
-            Math.sin(angle) * knockback
-          );
+          this.enemyManager.knockback(enemy, angle, knockback);
         }
 
         // Damage enemy
-        this.enemyManager.damageEnemy(enemy, damage);
+        this.enemyManager.damageEnemy(
+          enemy,
+          damage,
+          projectile.getData("crit") === true
+        );
 
         // Remove projectile
         this.weaponManager.removeProjectile(projectile);
@@ -225,13 +268,26 @@ export class GameScene extends Phaser.Scene {
       this
     );
 
-    // Player <-> Coin collisions (collect coins)
+    // Enemy bolts -> player
     this.physics.add.overlap(
       this.playerManager.getSprite(),
-      this.coinManager.getCoinGroup(),
-      (_playerObj, coinObj) => {
-        const coin = coinObj as Phaser.Physics.Arcade.Sprite;
-        this.coinManager.collectCoin(coin);
+      this.enemyManager.getEnemyProjectileGroup(),
+      (_playerObj, boltObj) => {
+        const bolt = boltObj as Phaser.Physics.Arcade.Sprite;
+        if (!bolt.active) return;
+        this.playerManager.takeDamage(bolt.getData("damage"));
+        this.enemyManager.removeBolt(bolt);
+      },
+      undefined,
+      this
+    );
+
+    // Player <-> scrap collisions
+    this.physics.add.overlap(
+      this.playerManager.getSprite(),
+      this.pickupManager.getGroup(),
+      (_playerObj, scrapObj) => {
+        this.pickupManager.collect(scrapObj as Phaser.Physics.Arcade.Sprite);
       },
       undefined,
       this
@@ -245,6 +301,30 @@ export class GameScene extends Phaser.Scene {
     this.inputManager.onKeyPress("ESC", () => {
       this.scene.stop(SCENE_KEYS.UI);
       this.scene.start(SCENE_KEYS.MENU);
+    });
+    if (import.meta.env.DEV) this.setupDevKeys();
+  }
+
+  /** Dev only: F2 spawns 150 peas, F3 toggles an FPS readout. */
+  private setupDevKeys(): void {
+    const kb = this.input.keyboard!;
+    const fps = this.add
+      .text(8, 8, "", { fontFamily: "monospace", fontSize: "14px", color: THEME_CSS.lime })
+      .setDepth(1000)
+      .setScrollFactor(0)
+      .setVisible(false);
+    const spawn = () => this.enemyManager.debugSpawn("pea", 150);
+    const toggle = () => fps.setVisible(!fps.visible);
+    const tick = () => {
+      if (fps.visible) fps.setText(`${Math.round(this.game.loop.actualFps)} fps`);
+    };
+    kb.on("keydown-F2", spawn);
+    kb.on("keydown-F3", toggle);
+    this.events.on(Phaser.Scenes.Events.POST_UPDATE, tick);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      kb.off("keydown-F2", spawn);
+      kb.off("keydown-F3", toggle);
+      this.events.off(Phaser.Scenes.Events.POST_UPDATE, tick);
     });
   }
 
@@ -280,29 +360,83 @@ export class GameScene extends Phaser.Scene {
     this.isGameOver = true;
 
     console.log("Round Complete!");
-    const coins = this.coinManager.getCoinCount();
-    const coinsEarned = coins - this.run.coins;
-    this.scene.pause();
-    this.scene.launch(SCENE_KEYS.VICTORY, {
-      enemiesKilled: this.enemiesKilled,
-      coinsEarned,
-      run: { ...this.run, wave: this.run.wave + 1, coins },
+    // Clear enemies and bolts first so nothing can hurt the player after the
+    // wave is over (no drops, no blasts)
+    this.enemyManager.clearAll();
+    this.juice.banner("WAVE CLEARED");
+
+    // Leftover scrap is auto-collected
+    const leftover = this.pickupManager.collectAll();
+    this.run.scrap += leftover;
+    this.waveEarned += leftover;
+
+    const xp = addXp(this.run, this.waveEarned);
+    this.playerManager.getSprite().setVelocity(0, 0);
+    // Let the banner play before handing off; the timer dies with the scene
+    // on shutdown, and isGameOver (set above) prevents a second call
+    this.time.delayedCall(BANNER_MS, () => {
+      this.scene.pause();
+      this.scene.launch(SCENE_KEYS.VICTORY, {
+        enemiesKilled: this.enemiesKilled,
+        scrapEarned: this.waveEarned,
+        run: {
+          ...this.run,
+          wave: this.run.wave + 1,
+          level: xp.level,
+          xp: xp.xp,
+          pendingLevelUps: this.run.pendingLevelUps + xp.levelsGained,
+        },
+      });
     });
   }
 
   /**
    * Handle enemy killed
    */
-  private onEnemyKilled(
-    coinValue: number,
-    _expValue: number,
-    enemyX: number,
-    enemyY: number
-  ): void {
+  private onEnemyKilled(x: number, y: number, def: EnemyDef): void {
     this.enemiesKilled++;
 
-    // Spawn coin at enemy position
-    this.coinManager.spawnCoin(enemyX, enemyY, coinValue);
+    this.juice.deathBurst(x, y, Phaser.Display.Color.HexStringToColor(def.color ?? "#ffffff").color);
+    if (def.shakeOnKill) this.juice.shake("kill");
+
+    this.pickupManager.spawnScrap(x, y, def.scrap);
+  }
+
+  private onEnemyHit(
+    enemy: Phaser.Physics.Arcade.Sprite,
+    amount: number,
+    crit: boolean
+  ): void {
+    this.juice.damageNumber(enemy.x, enemy.y - 16, amount, crit);
+    this.juice.hitFlash(enemy);
+  }
+
+  private onPlayerHit(): void {
+    this.juice.shake("hit");
+  }
+
+  private onHealthChanged(health: number, maxHealth: number): void {
+    this.juice.lowHp(health / maxHealth);
+  }
+
+  private onScrapCollected(value: number): void {
+    this.run.scrap += value;
+    this.waveEarned += value;
+  }
+
+  /**
+   * Exploder blast: hurt the player if inside the radius
+   */
+  private onEnemyExploded(
+    x: number,
+    y: number,
+    radius: number,
+    damage: number
+  ): void {
+    const p = this.playerManager.getPosition();
+    if (Math.hypot(p.x - x, p.y - y) <= radius) {
+      this.playerManager.takeDamage(damage);
+    }
   }
 
   /**
@@ -310,6 +444,10 @@ export class GameScene extends Phaser.Scene {
    */
   private onSpeedChanged(speed: number): void {
     this.gameSpeed = speed;
+    // Arcade: lower timeScale = faster. Code-driven timers use the scaled dt.
+    this.physics.world.timeScale = 1 / speed;
+    this.time.timeScale = speed;
+    this.tweens.timeScale = speed;
     console.log(`Game speed changed to ${speed}x`);
   }
 
@@ -318,7 +456,7 @@ export class GameScene extends Phaser.Scene {
    */
   private cleanup(): void {
     this.playerManager?.destroy();
-    this.waveManager?.destroy();
+    this.enemyManager?.destroy();
     this.worldManager?.destroy();
     this.inputManager?.destroy();
     GAME_EVENTS.forEach((event) => this.events.removeAllListeners(event));
@@ -328,13 +466,19 @@ export class GameScene extends Phaser.Scene {
    * Current player stats for the HUD
    */
   getPlayerStats() {
+    // Level/XP including this wave's pickups (committed at wave end)
+    const xp = addXp(this.run, this.waveEarned);
     return {
       wave: this.run.wave,
       health: this.playerManager.getHealth(),
       maxHealth: this.playerManager.getMaxHealth(),
       speed: this.playerManager.getSpeed(),
       damage: this.weaponManager.getDamage(),
-      coins: this.coinManager.getCoinCount(),
+      scrap: this.run.scrap,
+      pending: this.run.pendingLevelUps + xp.levelsGained,
+      level: xp.level,
+      xp: xp.xp,
+      xpNeeded: xpToNext(xp.level),
     };
   }
 }

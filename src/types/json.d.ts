@@ -9,8 +9,8 @@ declare module "*.json" {
 
 // Specific type declarations for our data files
 declare module "@assets/data/enemies.json" {
-  import type { EnemyData } from "@/types";
-  const enemies: Record<string, EnemyData>;
+  import type { EnemyDef } from "@/types";
+  const enemies: Record<string, EnemyDef>;
   export default enemies;
 }
 
@@ -21,7 +21,7 @@ declare module "@assets/data/weapons.json" {
 }
 
 declare module "@assets/data/waves.json" {
-  import type { WaveData } from "@/types";
-  const data: { waves: WaveData[] };
+  import type { WaveDef } from "@/types";
+  const data: { waves: WaveDef[] };
   export default data;
 }

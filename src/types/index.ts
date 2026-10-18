@@ -24,19 +24,30 @@ export interface PlayerStats {
   damage: number;
   fireRate: number;
   moveSpeed: number;
-  coins: number;
   experience: number;
   level: number;
 }
 
-export interface EnemyData {
-  type: string;
-  health: number;
+export type EnemyBehavior =
+  | "chaser"
+  | "dasher"
+  | "tank"
+  | "shooter"
+  | "exploder";
+
+export interface EnemyDef {
+  id: string;
+  name: string;
+  hp: number;
   damage: number;
   speed: number;
-  coinValue: number;
-  experienceValue: number;
-  spriteKey: string;
+  scrap: number;
+  behavior: EnemyBehavior;
+  sprite: string;
+  radius: number;
+  color?: string; // death-burst colour, "#rrggbb"
+  shakeOnKill?: boolean; // screen shake when killed
+  params?: Record<string, number>;
 }
 
 export interface WeaponData {
@@ -48,14 +59,24 @@ export interface WeaponData {
   spriteKey: string;
 }
 
-export interface WaveData {
-  waveNumber: number;
-  duration: number;
-  enemyTypes: Array<{
-    type: string;
-    weight: number;
-    count: number;
-  }>;
+/** Spawn `count` enemies every `every` s from `start` until `end` (default: wave duration, exclusive). */
+export interface SpawnGroup {
+  enemy: string;
+  count: number;
+  every: number;
+  start: number;
+  end?: number;
+}
+
+export interface WaveDef {
+  wave: number;
+  groups: SpawnGroup[];
+}
+
+export interface SpawnEvent {
+  time: number;
+  enemy: string;
+  count: number;
 }
 
 export interface ShopItem {
@@ -78,6 +99,10 @@ export interface GameConfig {
 /** State that survives between rounds of a single run */
 export interface RunState {
   wave: number;
-  coins: number;
+  scrap: number;
+  xp: number;
+  level: number;
+  pendingLevelUps: number;
   bonus: { maxHealth: number; speed: number; damage: number };
+  seed: number;
 }

@@ -26,7 +26,7 @@ export const phaserConfig: Phaser.Types.Core.GameConfig = {
     default: "arcade",
     arcade: {
       gravity: { x: 0, y: 0 }, // Top-down game = no gravity
-      debug: import.meta.env.DEV, // Show physics debug in development
+      debug: new URLSearchParams(window.location.search).has("debug"), // ?debug in the URL
       fps: 60,
     },
   },

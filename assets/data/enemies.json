@@ -1,38 +1,78 @@
 {
-  "cigarette": {
-    "type": "cigarette",
-    "health": 20,
+  "pea": {
+    "id": "pea",
+    "name": "Pea Pod",
+    "hp": 20,
+    "damage": 4,
+    "speed": 90,
+    "scrap": 1,
+    "behavior": "chaser",
+    "sprite": "enemy_pea",
+    "radius": 14,
+    "color": "#4caf50"
+  },
+  "pepper": {
+    "id": "pepper",
+    "name": "Hot Pepper",
+    "hp": 15,
     "damage": 5,
-    "speed": 50,
-    "coinValue": 5,
-    "experienceValue": 10,
-    "spriteKey": "enemy_cigarette"
+    "speed": 70,
+    "scrap": 1,
+    "behavior": "dasher",
+    "sprite": "enemy_pepper",
+    "radius": 14,
+    "color": "#e53935",
+    "params": {
+      "dashSpeed": 320,
+      "dashEvery": 2.5,
+      "dashTime": 0.35
+    }
   },
-  "slime": {
-    "type": "slime",
-    "health": 25,
+  "potato": {
+    "id": "potato",
+    "name": "Spud Tank",
+    "hp": 80,
+    "damage": 8,
+    "speed": 45,
+    "scrap": 3,
+    "behavior": "tank",
+    "sprite": "enemy_potato",
+    "radius": 20,
+    "color": "#b07a43",
+    "shakeOnKill": true
+  },
+  "carrot": {
+    "id": "carrot",
+    "name": "Carrot Sniper",
+    "hp": 25,
     "damage": 5,
-    "speed": 50,
-    "coinValue": 5,
-    "experienceValue": 10,
-    "spriteKey": "enemy_slime"
+    "speed": 60,
+    "scrap": 2,
+    "behavior": "shooter",
+    "sprite": "enemy_carrot",
+    "radius": 14,
+    "color": "#ff7a1a",
+    "params": {
+      "range": 260,
+      "fireEvery": 2,
+      "boltSpeed": 220,
+      "keepDistance": 200
+    }
   },
-  "goblin": {
-    "type": "goblin",
-    "health": 50,
-    "damage": 10,
-    "speed": 80,
-    "coinValue": 10,
-    "experienceValue": 20,
-    "spriteKey": "enemy_goblin"
-  },
-  "orc": {
-    "type": "orc",
-    "health": 100,
-    "damage": 15,
-    "speed": 50,
-    "coinValue": 20,
-    "experienceValue": 40,
-    "spriteKey": "enemy_orc"
+  "tomato": {
+    "id": "tomato",
+    "name": "Tomato Bomb",
+    "hp": 18,
+    "damage": 0,
+    "speed": 85,
+    "scrap": 1,
+    "behavior": "exploder",
+    "sprite": "enemy_tomato",
+    "radius": 14,
+    "color": "#e53935",
+    "params": {
+      "blastRadius": 70,
+      "blastDamage": 12
+    }
   }
 }

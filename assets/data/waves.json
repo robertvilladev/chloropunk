@@ -1,50 +1,292 @@
 {
   "waves": [
     {
-      "waveNumber": 1,
-      "duration": 30,
-      "enemyTypes": [
+      "wave": 1,
+      "groups": [
         {
-          "type": "slime",
-          "weight": 1.0,
-          "count": 15
+          "enemy": "pea",
+          "count": 2,
+          "every": 1.5,
+          "start": 0
         }
       ]
     },
     {
-      "waveNumber": 2,
-      "duration": 40,
-      "enemyTypes": [
+      "wave": 2,
+      "groups": [
         {
-          "type": "slime",
-          "weight": 0.7,
-          "count": 20
+          "enemy": "pea",
+          "count": 2,
+          "every": 1.5,
+          "start": 0
         },
         {
-          "type": "goblin",
-          "weight": 0.3,
-          "count": 8
+          "enemy": "pepper",
+          "count": 1,
+          "every": 4,
+          "start": 3
         }
       ]
     },
     {
-      "waveNumber": 3,
-      "duration": 50,
-      "enemyTypes": [
+      "wave": 3,
+      "groups": [
         {
-          "type": "slime",
-          "weight": 0.5,
-          "count": 25
+          "enemy": "pea",
+          "count": 2,
+          "every": 1.2,
+          "start": 0
         },
         {
-          "type": "goblin",
-          "weight": 0.4,
-          "count": 12
+          "enemy": "pepper",
+          "count": 1,
+          "every": 3,
+          "start": 2
         },
         {
-          "type": "orc",
-          "weight": 0.1,
-          "count": 3
+          "enemy": "tomato",
+          "count": 1,
+          "every": 5,
+          "start": 4
+        }
+      ]
+    },
+    {
+      "wave": 4,
+      "groups": [
+        {
+          "enemy": "pea",
+          "count": 3,
+          "every": 1.5,
+          "start": 0
+        },
+        {
+          "enemy": "pepper",
+          "count": 1,
+          "every": 2.5,
+          "start": 2
+        },
+        {
+          "enemy": "tomato",
+          "count": 1,
+          "every": 4,
+          "start": 3
+        },
+        {
+          "enemy": "carrot",
+          "count": 1,
+          "every": 5,
+          "start": 4
+        }
+      ]
+    },
+    {
+      "wave": 5,
+      "groups": [
+        {
+          "enemy": "pea",
+          "count": 3,
+          "every": 1.5,
+          "start": 0
+        },
+        {
+          "enemy": "pepper",
+          "count": 1,
+          "every": 2.5,
+          "start": 2
+        },
+        {
+          "enemy": "tomato",
+          "count": 1,
+          "every": 3,
+          "start": 3
+        },
+        {
+          "enemy": "carrot",
+          "count": 1,
+          "every": 4,
+          "start": 4
+        },
+        {
+          "enemy": "potato",
+          "count": 1,
+          "every": 10,
+          "start": 5
+        }
+      ]
+    },
+    {
+      "wave": 6,
+      "groups": [
+        {
+          "enemy": "pea",
+          "count": 4,
+          "every": 1.5,
+          "start": 0
+        },
+        {
+          "enemy": "pepper",
+          "count": 1,
+          "every": 2,
+          "start": 2
+        },
+        {
+          "enemy": "tomato",
+          "count": 1,
+          "every": 2.5,
+          "start": 3
+        },
+        {
+          "enemy": "carrot",
+          "count": 1,
+          "every": 3,
+          "start": 4
+        },
+        {
+          "enemy": "potato",
+          "count": 1,
+          "every": 8,
+          "start": 5
+        }
+      ]
+    },
+    {
+      "wave": 7,
+      "groups": [
+        {
+          "enemy": "pea",
+          "count": 4,
+          "every": 1.2,
+          "start": 0
+        },
+        {
+          "enemy": "pepper",
+          "count": 1,
+          "every": 1.8,
+          "start": 2
+        },
+        {
+          "enemy": "tomato",
+          "count": 1,
+          "every": 2,
+          "start": 3
+        },
+        {
+          "enemy": "carrot",
+          "count": 1,
+          "every": 2.5,
+          "start": 4
+        },
+        {
+          "enemy": "potato",
+          "count": 1,
+          "every": 6,
+          "start": 5
+        }
+      ]
+    },
+    {
+      "wave": 8,
+      "groups": [
+        {
+          "enemy": "pea",
+          "count": 4,
+          "every": 1.1,
+          "start": 0
+        },
+        {
+          "enemy": "pepper",
+          "count": 2,
+          "every": 2.5,
+          "start": 2
+        },
+        {
+          "enemy": "tomato",
+          "count": 1,
+          "every": 1.8,
+          "start": 3
+        },
+        {
+          "enemy": "carrot",
+          "count": 1,
+          "every": 2.2,
+          "start": 4
+        },
+        {
+          "enemy": "potato",
+          "count": 1,
+          "every": 5.5,
+          "start": 5
+        }
+      ]
+    },
+    {
+      "wave": 9,
+      "groups": [
+        {
+          "enemy": "pea",
+          "count": 4,
+          "every": 1,
+          "start": 0
+        },
+        {
+          "enemy": "pepper",
+          "count": 2,
+          "every": 2,
+          "start": 2
+        },
+        {
+          "enemy": "tomato",
+          "count": 1,
+          "every": 1.5,
+          "start": 3
+        },
+        {
+          "enemy": "carrot",
+          "count": 1,
+          "every": 2,
+          "start": 4
+        },
+        {
+          "enemy": "potato",
+          "count": 1,
+          "every": 5,
+          "start": 5
+        }
+      ]
+    },
+    {
+      "wave": 10,
+      "groups": [
+        {
+          "enemy": "pea",
+          "count": 5,
+          "every": 1,
+          "start": 0
+        },
+        {
+          "enemy": "pepper",
+          "count": 2,
+          "every": 2,
+          "start": 2
+        },
+        {
+          "enemy": "tomato",
+          "count": 1,
+          "every": 1.2,
+          "start": 3
+        },
+        {
+          "enemy": "carrot",
+          "count": 1,
+          "every": 1.8,
+          "start": 4
+        },
+        {
+          "enemy": "potato",
+          "count": 1,
+          "every": 4,
+          "start": 5
         }
       ]
     }

@@ -1,14 +1,17 @@
 import { DEPTH, SCENE_KEYS } from "@/config/constants";
+import { THEME, THEME_CSS } from "@/config/theme";
 import type { GameScene } from "@/scenes/GameScene";
 import Phaser from "phaser";
 
 /**
  * UIScene - Persistent UI overlay (HUD)
- * Runs parallel to GameScene to display health, coins, wave info, etc.
+ * Runs parallel to GameScene to display health, scrap, xp, wave info, etc.
  */
 export class UIScene extends Phaser.Scene {
   private healthText!: Phaser.GameObjects.Text;
-  private coinsText!: Phaser.GameObjects.Text;
+  private scrapText!: Phaser.GameObjects.Text;
+  private xpBar!: Phaser.GameObjects.Rectangle;
+  private levelText!: Phaser.GameObjects.Text;
   private timerText!: Phaser.GameObjects.Text;
   private statsText!: Phaser.GameObjects.Text;
   private speedButtons: Phaser.GameObjects.Container[] = [];
@@ -32,20 +35,20 @@ export class UIScene extends Phaser.Scene {
     });
     this.healthText.setDepth(DEPTH.UI);
 
-    // Top-right: Coins
-    this.coinsText = this.add.text(
+    // Top-right: Scrap
+    this.scrapText = this.add.text(
       this.cameras.main.width - 20,
       20,
-      "💰 Coins: 0",
+      "SCRAP: 0",
       {
         fontSize: "18px",
-        color: "#ffd700",
+        color: THEME_CSS.lime,
         backgroundColor: "#000000",
         padding: { x: 8, y: 4 },
       }
     );
-    this.coinsText.setOrigin(1, 0);
-    this.coinsText.setDepth(DEPTH.UI);
+    this.scrapText.setOrigin(1, 0);
+    this.scrapText.setDepth(DEPTH.UI);
 
     // Top-center: Timer
     this.timerText = this.add.text(
@@ -66,7 +69,7 @@ export class UIScene extends Phaser.Scene {
     this.statsText = this.add.text(
       20,
       60,
-      "Health: 100/100\nSpeed: 160\nDamage: 10\nCoins: 0",
+      "Health: 100/100\nSpeed: 160\nDamage: 10\nScrap: 0",
       {
         fontSize: "16px",
         color: "#ffffff",
@@ -76,6 +79,23 @@ export class UIScene extends Phaser.Scene {
     );
     this.statsText.setDepth(DEPTH.UI);
 
+    // Bottom-left: XP bar (pink) with level
+    const barW = 300;
+    this.add
+      .rectangle(20, this.cameras.main.height - 30, barW, 12, THEME.line)
+      .setOrigin(0, 0.5)
+      .setDepth(DEPTH.UI);
+    this.xpBar = this.add
+      .rectangle(20, this.cameras.main.height - 30, barW, 12, THEME.pink)
+      .setOrigin(0, 0.5)
+      .setDepth(DEPTH.UI);
+    this.levelText = this.add
+      .text(20, this.cameras.main.height - 50, "LV 1", {
+        fontSize: "16px",
+        color: THEME_CSS.pink,
+      })
+      .setDepth(DEPTH.UI);
+
     // Top-right: Speed controls
     this.createSpeedControls();
 
@@ -84,7 +104,7 @@ export class UIScene extends Phaser.Scene {
     if (gameScene) {
       gameScene.events.on("playerHealthChanged", this.updateHealth, this);
       gameScene.events.on("timerUpdate", this.updateTimer, this);
-      gameScene.events.on("coinCollected", this.updateCoins, this);
+      gameScene.events.on("scrapCollected", this.refresh, this);
       this.refresh();
     }
   }
@@ -92,14 +112,18 @@ export class UIScene extends Phaser.Scene {
   /**
    * Pull current values from GameScene (its initial events fire before this scene exists)
    */
-  private refresh(): void {
+  private refresh = (): void => {
     const stats = (this.scene.get(SCENE_KEYS.GAME) as GameScene).getPlayerStats();
     this.updateHealth(stats.health, stats.maxHealth);
-    this.updateCoins(stats.coins);
+    this.scrapText.setText(`SCRAP: ${stats.scrap}`);
+    this.xpBar.width = 300 * (stats.xp / stats.xpNeeded);
+    this.levelText.setText(
+      `LV ${stats.level}${stats.pending > 0 ? ` (+${stats.pending})` : ""}`
+    );
     this.statsText.setText(
       `Wave: ${stats.wave}\nHealth: ${stats.health}/${stats.maxHealth}\nSpeed: ${stats.speed}\nDamage: ${stats.damage}`
     );
-  }
+  };
 
   /**
    * Create speed control buttons
@@ -197,13 +221,6 @@ export class UIScene extends Phaser.Scene {
    */
   updateHealth(current: number, max: number) {
     this.healthText.setText(`❤ Health: ${current}/${max}`);
-  }
-
-  /**
-   * Update coins display
-   */
-  updateCoins(count: number): void {
-    this.coinsText.setText(`💰 Coins: ${count}`);
   }
 
   /**

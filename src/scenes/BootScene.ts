@@ -1,4 +1,5 @@
 import { SCENE_KEYS } from "@/config/constants";
+import { THEME } from "@/config/theme";
 import Phaser from "phaser";
 
 /**
@@ -81,39 +82,7 @@ export class BootScene extends Phaser.Scene {
     graphics.fillRect(0, 0, 32, 32);
     graphics.generateTexture("player", 32, 32);
 
-    // Enemy Cigarette (white with orange filter and burn tip)
-    graphics.clear();
-    // Cigarette body (white)
-    graphics.fillStyle(0xffffff);
-    graphics.fillRoundedRect(2, 6, 28, 12, 2);
-    // Orange filter section
-    graphics.fillStyle(0xff8833);
-    graphics.fillRoundedRect(18, 6, 12, 12, 2);
-    // Black tip line
-    graphics.lineStyle(1, 0x000000);
-    graphics.lineBetween(18, 6, 18, 18);
-    // Burn mark at tip (this is the front)
-    graphics.fillStyle(0x8b4513);
-    graphics.fillCircle(3, 12, 2);
-    graphics.generateTexture("enemy_cigarette", 32, 24);
-
-    // Enemy Slime (green circle)
-    graphics.clear();
-    graphics.fillStyle(0x00ff00);
-    graphics.fillCircle(16, 16, 16);
-    graphics.generateTexture("enemy_slime", 32, 32);
-
-    // Enemy Goblin (red square)
-    graphics.clear();
-    graphics.fillStyle(0xff4444);
-    graphics.fillRect(0, 0, 32, 32);
-    graphics.generateTexture("enemy_goblin", 32, 32);
-
-    // Enemy Orc (dark red)
-    graphics.clear();
-    graphics.fillStyle(0xaa0000);
-    graphics.fillRect(0, 0, 40, 40);
-    graphics.generateTexture("enemy_orc", 40, 40);
+    this.createEnemyTextures(graphics);
 
     // Projectile (yellow circle)
     graphics.clear();
@@ -121,13 +90,13 @@ export class BootScene extends Phaser.Scene {
     graphics.fillCircle(4, 4, 4);
     graphics.generateTexture("projectile_basic", 8, 8);
 
-    // Coin (gold circle)
+    // Scrap (lime circle)
     graphics.clear();
-    graphics.fillStyle(0xffd700);
+    graphics.fillStyle(0xc6ff3d);
     graphics.fillCircle(8, 8, 8);
-    graphics.lineStyle(2, 0xffaa00);
+    graphics.lineStyle(2, 0x7fa800);
     graphics.strokeCircle(8, 8, 8);
-    graphics.generateTexture("coin", 16, 16);
+    graphics.generateTexture("scrap", 16, 16);
 
     // UI Heart (red heart shape - simplified)
     graphics.clear();
@@ -136,5 +105,39 @@ export class BootScene extends Phaser.Scene {
     graphics.generateTexture("ui_heart", 16, 16);
 
     graphics.destroy();
+  }
+
+  /** Placeholder shapes per enemy id (pixel-art sprites arrive later). */
+  private createEnemyTextures(g: Phaser.GameObjects.Graphics) {
+    const shapes: Array<[string, number, number, "rect" | "round" | "tri"]> = [
+      ["pea", 0x4caf50, 28, "round"],
+      ["pepper", 0xe53935, 28, "tri"],
+      ["potato", 0xb07a43, 40, "rect"],
+      ["carrot", 0xff7a1a, 28, "tri"],
+      ["tomato", 0xe53935, 28, "round"],
+    ];
+    for (const [id, color, size, shape] of shapes) {
+      g.clear();
+      g.fillStyle(color);
+      const r = size / 2;
+      if (shape === "round") g.fillCircle(r, r, r);
+      else if (shape === "rect") g.fillRoundedRect(0, 0, size, size, 6);
+      else g.fillTriangle(r, 0, size, size, 0, size);
+      g.generateTexture(`enemy_${id}`, size, size);
+    }
+
+    // Enemy bolt (small cyan dot)
+    g.clear();
+    g.fillStyle(THEME.tier[1]);
+    g.fillCircle(4, 4, 4);
+    g.generateTexture("enemy_bolt", 8, 8);
+
+    // Spawn telegraph (danger ring + cross)
+    g.clear();
+    g.lineStyle(3, THEME.danger);
+    g.strokeCircle(20, 20, 16);
+    g.lineBetween(10, 10, 30, 30);
+    g.lineBetween(30, 10, 10, 30);
+    g.generateTexture("spawn_telegraph", 40, 40);
   }
 }

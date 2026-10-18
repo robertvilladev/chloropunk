@@ -98,6 +98,8 @@ export class PlayerManager {
       `Player took ${amount} damage. Health: ${this.health}/${this.maxHealth}`
     );
 
+    this.scene.events.emit("playerHit");
+
     // Flash red
     this.player.setTint(0xff0000);
     this.scene.time.delayedCall(100, () => {

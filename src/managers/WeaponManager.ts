@@ -1,6 +1,10 @@
+import type { Rng } from "@/core/rng";
 import { MathUtils } from "@/utils/MathUtils";
 import weaponsDataJson from "@assets/data/weapons.json";
 import Phaser from "phaser";
+
+const CRIT_CHANCE = 0.05;
+const CRIT_MULT = 1.5;
 
 interface WeaponData {
   type: string;
@@ -29,6 +33,7 @@ export class WeaponManager {
   private equippedWeapons: EquippedWeapon[] = [];
   private maxWeapons: number = 5; // Can equip 3-5 weapons
   private bonusDamage: number = 0;
+  private rng!: Rng;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -41,7 +46,8 @@ export class WeaponManager {
   /**
    * Initialize weapon system
    */
-  create(bonusDamage: number = 0): void {
+  create(rng: Rng, bonusDamage: number = 0): void {
+    this.rng = rng;
     this.bonusDamage = bonusDamage;
     // Start with a basic pistol
     this.equipWeapon("basicGun");
@@ -174,7 +180,10 @@ export class WeaponManager {
     projectile.setRotation(angle);
 
     // Store weapon data on projectile
-    projectile.setData("damage", weaponData.damage + this.bonusDamage);
+    const crit = this.rng.next() < CRIT_CHANCE;
+    const damage = weaponData.damage + this.bonusDamage;
+    projectile.setData("damage", crit ? damage * CRIT_MULT : damage);
+    projectile.setData("crit", crit);
     projectile.setData("knockback", 50); // Default knockback
     projectile.setData("range", weaponData.range);
     projectile.setData("startX", startPos.x);

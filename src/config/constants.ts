@@ -20,9 +20,10 @@ export const GAME_CONFIG = {
   INITIAL_WEAPON_FIRE_RATE: 1, // Shots per second
   INITIAL_WEAPON_RANGE: 300,
 
-  // Progression
-  BASE_EXP_FOR_LEVEL: 100,
-  EXP_SCALE_PER_LEVEL: 1.5,
+  // Pickups
+  PICKUP_RADIUS: 80,
+  MAGNET_SPEED: 420,
+  MAX_PICKUPS: 300,
 
   // Wave scaling
   WAVE_DIFFICULTY_SCALE: 1.2,
@@ -41,18 +42,15 @@ export const SCENE_KEYS = {
 
 export const ASSET_KEYS = {
   PLAYER: "player",
-  ENEMY_SLIME: "enemy_slime",
-  ENEMY_GOBLIN: "enemy_goblin",
   PROJECTILE_BASIC: "projectile_basic",
-  COIN: "coin",
+  SCRAP: "scrap",
   UI_HEART: "ui_heart",
-  UI_COIN: "ui_coin",
 } as const;
 
 export const DEPTH = {
   BACKGROUND: 0,
   GROUND_EFFECTS: 10,
-  COINS: 20,
+  SCRAP: 20,
   PROJECTILES: 30,
   ENEMIES: 40,
   PLAYER: 50,
