@@ -274,4 +274,5 @@ Deferred:
 - **Robustness (from M1):** `rng.int` with `max<min`; `buildSpawnSchedule` hangs if `every<=0`.
 - **Dev only (from M1):** F3 isn't captured (opens browser find); `debugSpawn` draws from the spawn RNG.
 - **Feel (from M1):** no enemy-to-enemy separation.
+- **Final review (Minor):** drone hit map keyed by pooled sprites; weapon textures/starter list hardcoded in `BootScene`/`LoadoutScene`; unused pierce path; `ShopScene` keeps Tab/Space captured after it closes. Fixed in review: dodge now grants 0.5 s i-frames; Victory's exits stop the paused GameScene.
 - **M3:** shop, level-up and loadout screens are functional placeholders (`src/scenes/ui.ts`); restyle per the mockups.

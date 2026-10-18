@@ -60,6 +60,8 @@ From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) an
 - **Balance:** economy untested by a human; a standing pistol earns ~8 scrap in wave 1 vs first-shop prices 11–22. Tune in JSON after a playtest.
 - **Perf:** fps with 6 weapons measured only by frame-time proxy (≈1 ms/frame at 150 enemies); confirm with F3 in a visible window.
 - **Feel:** no enemy-to-enemy separation
+- **Weapons (M2 review):** drone hit map is keyed by pooled enemy sprites (a recycled enemy can be drone-immune ≤0.5 s); weapon textures and the starter list are hardcoded in `BootScene`/`LoadoutScene` (move colour + `starter` into `weapons.json`); the pierce path is unused (no weapon has `pierce > 0`)
+- **Input:** `ShopScene` captures Tab/Space globally and never releases them
 - **Robustness:** `rng.int` unguarded for max<min; `buildSpawnSchedule` hangs if `every<=0`
 - **Dev only:** F3 isn't captured (opens browser find); `debugSpawn` draws from the spawn RNG
 - **M3:** hardcoded colours outside `theme.ts` (Menu, Victory, GameOver, UIScene); shop / level-up / loadout are placeholder layouts; wave-1 banner can show a fallback font before Google Fonts loads; vignette is flat in Canvas mode
