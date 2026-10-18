@@ -115,6 +115,21 @@ export class BootScene extends Phaser.Scene {
     graphics.fillRect(0, 0, 40, 40);
     graphics.generateTexture("enemy_orc", 40, 40);
 
+    // Placeholder veggie textures (Task 4 replaces these)
+    const veggies: Array<[string, number, number]> = [
+      ["pea", 0x4caf50, 28],
+      ["pepper", 0xe53935, 28],
+      ["potato", 0xb07a43, 40],
+      ["carrot", 0xff7a1a, 28],
+      ["tomato", 0xe53935, 28],
+    ];
+    for (const [id, color, size] of veggies) {
+      graphics.clear();
+      graphics.fillStyle(color);
+      graphics.fillRect(0, 0, size, size);
+      graphics.generateTexture(`enemy_${id}`, size, size);
+    }
+
     // Projectile (yellow circle)
     graphics.clear();
     graphics.fillStyle(0xffff00);

@@ -29,14 +29,24 @@ export interface PlayerStats {
   level: number;
 }
 
-export interface EnemyData {
-  type: string;
-  health: number;
+export type EnemyBehavior =
+  | "chaser"
+  | "dasher"
+  | "tank"
+  | "shooter"
+  | "exploder";
+
+export interface EnemyDef {
+  id: string;
+  name: string;
+  hp: number;
   damage: number;
   speed: number;
-  coinValue: number;
-  experienceValue: number;
-  spriteKey: string;
+  scrap: number;
+  behavior: EnemyBehavior;
+  sprite: string;
+  radius: number;
+  params?: Record<string, number>;
 }
 
 export interface WeaponData {
@@ -48,14 +58,24 @@ export interface WeaponData {
   spriteKey: string;
 }
 
-export interface WaveData {
-  waveNumber: number;
-  duration: number;
-  enemyTypes: Array<{
-    type: string;
-    weight: number;
-    count: number;
-  }>;
+/** Spawn `count` enemies every `every` s from `start` until `end` (default: wave duration, exclusive). */
+export interface SpawnGroup {
+  enemy: string;
+  count: number;
+  every: number;
+  start: number;
+  end?: number;
+}
+
+export interface WaveDef {
+  wave: number;
+  groups: SpawnGroup[];
+}
+
+export interface SpawnEvent {
+  time: number;
+  enemy: string;
+  count: number;
 }
 
 export interface ShopItem {

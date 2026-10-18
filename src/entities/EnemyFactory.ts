@@ -1,5 +1,5 @@
 import { DEPTH, GAME_CONFIG } from "@/config/constants";
-import type { EnemyData } from "@/types";
+import type { EnemyDef } from "@/types";
 import { MathUtils } from "@/utils/MathUtils";
 import enemyDataJson from "@assets/data/enemies.json";
 import Phaser from "phaser";
@@ -30,7 +30,7 @@ export class EnemyFactory {
     const enemy = scene.physics.add.sprite(
       spawnPos.x,
       spawnPos.y,
-      data.spriteKey
+      data.sprite
     );
 
     // Configure physics body
@@ -39,12 +39,12 @@ export class EnemyFactory {
 
     // Store enemy data on the sprite
     enemy.setData("enemyType", type);
-    enemy.setData("health", data.health);
-    enemy.setData("maxHealth", data.health);
+    enemy.setData("health", data.hp);
+    enemy.setData("maxHealth", data.hp);
     enemy.setData("damage", data.damage);
     enemy.setData("speed", data.speed);
-    enemy.setData("coinValue", data.coinValue);
-    enemy.setData("experienceValue", data.experienceValue);
+    enemy.setData("coinValue", data.scrap);
+    enemy.setData("experienceValue", data.scrap);
 
     return enemy;
   }
@@ -63,7 +63,7 @@ export class EnemyFactory {
   /**
    * Get enemy stats by type
    */
-  static getEnemyData(type: string): EnemyData | null {
+  static getEnemyDef(type: string): EnemyDef | null {
     return enemyDataJson[type as keyof typeof enemyDataJson] || null;
   }
 

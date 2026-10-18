@@ -1,5 +1,4 @@
-import type { WaveData } from "@/types";
-import waveDataJson from "@assets/data/waves.json";
+import { waveDuration } from "@/core/waves";
 import Phaser from "phaser";
 
 /**
@@ -11,11 +10,8 @@ export class WaveManager {
   private waveTimer: number = 0;
   private waveDuration: number = 30;
   private isWaveActive: boolean = false;
-  private waveData: { waves: WaveData[] };
 
-  constructor(_scene: Phaser.Scene) {
-    this.waveData = waveDataJson as { waves: WaveData[] };
-  }
+  constructor(_scene: Phaser.Scene) {}
 
   /**
    * Initialize wave system
@@ -32,18 +28,8 @@ export class WaveManager {
     this.isWaveActive = true;
     this.waveTimer = 0;
 
-    // Get wave data
-    const wave = this.waveData.waves.find((w) => w.waveNumber === waveNumber);
-    if (wave) {
-      this.waveDuration = wave.duration;
-      console.log(`✓ Wave ${waveNumber} started - ${this.waveDuration}s`);
-
-      // TODO: Schedule enemy spawns based on wave.enemyTypes
-    } else {
-      // Generate procedural wave if no data
-      this.waveDuration = 30 + waveNumber * 10;
-      console.log(`✓ Wave ${waveNumber} (procedural) started`);
-    }
+    this.waveDuration = waveDuration(waveNumber);
+    console.log(`✓ Wave ${waveNumber} started - ${this.waveDuration}s`);
   }
 
   /**

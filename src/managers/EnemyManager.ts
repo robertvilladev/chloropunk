@@ -45,7 +45,7 @@ export class EnemyManager {
     this.spawnTimer += delta / 1000;
 
     if (this.spawnTimer >= this.spawnInterval) {
-      this.spawnEnemy("slime");
+      this.spawnEnemy("pea");
       this.spawnTimer = 0;
     }
   }
