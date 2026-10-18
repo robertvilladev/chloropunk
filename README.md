@@ -5,7 +5,7 @@ Built with **Phaser 3.90**, **TypeScript (strict)**, **Vite** and **Vitest**. De
 
 **Status:** MVP in progress. [ROADMAP.md](ROADMAP.md) tracks what's done and what's next; the [MVP spec](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md) holds the intent.
 
-Today you can play timed waves 1–10 against five vegetable types, collect scrap and XP, and visit a placeholder shop between waves. Level-up picks, a real shop, more weapons, the boss and final art are on the roadmap.
+Today you pick a starting weapon and play timed waves 1–10 against five vegetable types. Between waves you take level-up picks and shop: 4 offers with reroll, lock, sell and weapon merging. There are 6 weapon types (tiers 1–4, up to 6 slots) and 15 items. The boss, run summary and final art are on the roadmap.
 
 ## Run it
 
@@ -22,7 +22,7 @@ Dev only: `window.game` is exposed; F2 spawns 150 peas, F3 toggles an FPS readou
 
 ## Content is data
 
-Enemies, weapons and waves live in `assets/data/*.json`. Adding an enemy or wave is a JSON change plus at most one behaviour function. See [ARCHITECTURE.md](ARCHITECTURE.md).
+Enemies, weapons, items, level-up upgrades and waves live in `assets/data/*.json`. Adding an enemy, weapon, item or wave is a JSON change plus at most one behaviour function. See [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Docs
 

@@ -256,3 +256,22 @@
 - [ ] **Step 2: Run** `npm run build && npm run test:coverage` — expect PASS.
 - [ ] **Step 3: Write** the outcome section: what shipped, fps measured with 6 weapons, and the deferred list (from reviews plus the remaining M1 robustness items: `rng.int` with `max<min`, `buildSpawnSchedule` with `every<=0`, F3 capture, `debugSpawn` RNG, no enemy separation).
 - [ ] **Step 4: Commit** `docs: record m2 outcome and carry-overs`.
+
+---
+
+## M2 outcome and carry-overs
+
+Shipped on `feat/m2-build-crafting`: `computeStats` with 15 items, 6 weapon behaviours with tiers 1–4 in 6 slots, the shop (offers, reroll, lock, sell, combine, previews), level-up picks, the starting-weapon pick, and the M1 carry-overs tagged for M2 (dash lock, no drops from contact-detonated tomatoes, one RNG draw per telegraph, pooled bursts and damage numbers, cached burst colours).
+
+Checks:
+- Scripted runs with `seed=1` (pistol) and `seed=2` (blade) reach the end of wave 10 through level-up → shop → next wave with no console errors; the same seed reproduces the same first shop; tier 3–4 offers appear from wave 5 on.
+- Perf: the browser pane wasn't in view, so `requestAnimationFrame` didn't run and fps couldn't be read. Proxy: with 6 tier-2 weapons and 73–150 live enemies, `game.step` (update + render) took 0.95 ms on average, 1.7 ms at p95 and 10.8 ms at worst over 1,202 frames. Re-check the fps readout (F3) with the window visible.
+
+Deviations from this plan (rulings): reroll cost on wave 2 is 2/4/6 (the formula), not 1/3/5; keys ignore auto-repeat; ←/→ focus shows previews in shop and level-up; `WeaponManager.create` also takes `juice`; GameOver "try again" goes to the loadout pick and stops the paused game; vitest ignores `.claude/**`.
+
+Deferred:
+- **Balance (needs a playtest):** a standing pistol earned 8 scrap in wave 1, 4 in wave 3 and 2 in wave 5 (contact-detonated tomatoes drop nothing), against first-shop prices of 11–22. Tune weapon damage, enemy scrap or prices in JSON after playing.
+- **Robustness (from M1):** `rng.int` with `max<min`; `buildSpawnSchedule` hangs if `every<=0`.
+- **Dev only (from M1):** F3 isn't captured (opens browser find); `debugSpawn` draws from the spawn RNG.
+- **Feel (from M1):** no enemy-to-enemy separation.
+- **M3:** shop, level-up and loadout screens are functional placeholders (`src/scenes/ui.ts`); restyle per the mockups.
