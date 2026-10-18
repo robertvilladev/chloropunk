@@ -85,8 +85,13 @@ export class Juice {
   }
 
   hitFlash(sprite: Phaser.GameObjects.Sprite): void {
-    sprite.setTintFill(0xffffff);
-    this.scene.time.delayedCall(60, () => sprite.clearTint());
+    sprite.anims.pause();
+    sprite.setFrame("hit");
+    this.scene.time.delayedCall(80, () => {
+      if (!sprite.active || sprite.frame.name !== "hit") return;
+      sprite.anims.resume();
+      sprite.setFrame(sprite.anims.currentFrame?.textureFrame ?? "walk0");
+    });
   }
 
   shake(kind: "hit" | "kill"): void {

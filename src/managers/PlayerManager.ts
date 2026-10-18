@@ -1,9 +1,13 @@
+import { bodyOffset } from "@/art/body";
 import { GAME_CONFIG } from "@/config/constants";
+import { THEME } from "@/config/theme";
+import { facingFlip } from "@/core/depth";
 import type { Rng } from "@/core/rng";
 import { damageTaken } from "@/core/stats";
 import type { Stats } from "@/types";
 
 const DODGE_IFRAMES_MS = 500;
+const PLAYER_RADIUS = 14;
 import Phaser from "phaser";
 
 /**
@@ -47,6 +51,9 @@ export class PlayerManager {
 
     // Set player physics properties
     this.player.setCollideWorldBounds(true);
+    const off = bodyOffset("player", PLAYER_RADIUS);
+    (this.player.body as Phaser.Physics.Arcade.Body).setCircle(PLAYER_RADIUS, off.x, off.y);
+    this.player.play("player_walk");
     this.player.setDepth(50); // Above enemies
 
     console.log("✓ PlayerManager: Player created");
@@ -63,6 +70,7 @@ export class PlayerManager {
 
     // Set velocity
     body.setVelocity(velocityX * speed, velocityY * speed);
+    this.player.flipX = facingFlip(velocityX * speed, this.player.flipX);
 
     // Normalize diagonal movement
     if (velocityX !== 0 && velocityY !== 0) {
@@ -132,7 +140,7 @@ export class PlayerManager {
     this.scene.events.emit("playerHit");
 
     // Flash red
-    this.player.setTint(0xff0000);
+    this.player.setTint(THEME.danger);
     this.scene.time.delayedCall(100, () => {
       this.player.clearTint();
     });

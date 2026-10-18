@@ -1,4 +1,5 @@
 import { SCENE_KEYS } from "@/config/constants";
+import { buildActorTextures, buildPickupTextures, registerAnimations } from "@/art/textures";
 import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import { FONT_SPECS, loadFonts } from "./fonts";
 import Phaser from "phaser";
@@ -23,6 +24,9 @@ export class BootScene extends Phaser.Scene {
 
   create() {
     console.log("✓ BootScene: Assets loaded");
+    buildActorTextures(this);
+    buildPickupTextures(this);
+    registerAnimations(this);
 
     // Canvas text can't trigger webfont loads; wait (max 3s) so Bungee never falls back to Impact
     void loadFonts(document.fonts, FONT_SPECS, 3000).then(() => this.scene.start(SCENE_KEYS.MENU));
@@ -79,11 +83,6 @@ export class BootScene extends Phaser.Scene {
     // Create simple colored rectangles as temporary sprites
     const graphics = this.add.graphics();
 
-    // Player (blue square)
-    graphics.fillStyle(0x4444ff);
-    graphics.fillRect(0, 0, 32, 32);
-    graphics.generateTexture("player", 32, 32);
-
     this.createEnemyTextures(graphics);
 
     // Projectile (yellow circle)
@@ -91,14 +90,6 @@ export class BootScene extends Phaser.Scene {
     graphics.fillStyle(0xffff00);
     graphics.fillCircle(4, 4, 4);
     graphics.generateTexture("projectile_basic", 8, 8);
-
-    // Scrap (lime circle)
-    graphics.clear();
-    graphics.fillStyle(0xc6ff3d);
-    graphics.fillCircle(8, 8, 8);
-    graphics.lineStyle(2, 0x7fa800);
-    graphics.strokeCircle(8, 8, 8);
-    graphics.generateTexture("scrap", 16, 16);
 
     // UI Heart (red heart shape - simplified)
     graphics.clear();
@@ -139,25 +130,8 @@ export class BootScene extends Phaser.Scene {
     graphics.destroy();
   }
 
-  /** Placeholder shapes per enemy id (pixel-art sprites arrive later). */
+  /** Enemy bolt and spawn telegraph (enemy bodies are pixel art, see src/art/textures.ts). */
   private createEnemyTextures(g: Phaser.GameObjects.Graphics) {
-    const shapes: Array<[string, number, number, "rect" | "round" | "tri"]> = [
-      ["pea", 0x4caf50, 28, "round"],
-      ["pepper", 0xe53935, 28, "tri"],
-      ["potato", 0xb07a43, 40, "rect"],
-      ["carrot", 0xff7a1a, 28, "tri"],
-      ["tomato", 0xe53935, 28, "round"],
-    ];
-    for (const [id, color, size, shape] of shapes) {
-      g.clear();
-      g.fillStyle(color);
-      const r = size / 2;
-      if (shape === "round") g.fillCircle(r, r, r);
-      else if (shape === "rect") g.fillRoundedRect(0, 0, size, size, 6);
-      else g.fillTriangle(r, 0, size, size, 0, size);
-      g.generateTexture(`enemy_${id}`, size, size);
-    }
-
     // Enemy bolt (small cyan dot)
     g.clear();
     g.fillStyle(THEME.tier[1]);
