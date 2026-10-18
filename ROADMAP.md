@@ -42,8 +42,8 @@ Spec: [§6 look and feel, §7 screens](docs/superpowers/specs/2026-10-18-mvp-rog
 - ✅ Sprite-grid pipeline: grids in `src/art/`, baked to textures at boot (`textures.ts`); fighter, 5 enemies and scrap on screen with walk/hit frames
 - ✅ 3/4 y-sorted depth (`core/depth.ts` `actorDepth`, bands in `DEPTH`): actors in [40, 50), projectiles 60, FX 70, numbers 90
 - ✅ Soft shadows, neon glow FX (one camera-level bloom on WebGL; baked 1px halos on Canvas)
-- ⬜ "Chlorophyll" `theme.ts` applied to every screen (Shop, Victory, GameOver still hardcode colours; HUD, menu, loadout done); fonts Bungee / IBM Plex Mono / VT323
-- ⬜ (HUD ✅: no stats panel, 1/2/3 speed buttons dev-only) level-up and shop screens (menu ✅, loadout ✅) per the mockups; stat previews on hover; mouse + keyboard
+- ⬜ "Chlorophyll" `theme.ts` applied to every screen (Victory, GameOver still hardcode colours; HUD, menu, loadout done); fonts Bungee / IBM Plex Mono / VT323
+- ✅ (HUD: no stats panel, 1/2/3 speed buttons dev-only) level-up and shop screens, menu, loadout per the mockups (drag-to-combine and item/weapon icons from the shop mockup not built; (proposed) later); stat previews on hover; mouse + keyboard
 
 ## M4 — Boss & run end ⬜
 Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md)
@@ -62,10 +62,9 @@ From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) an
 - **Perf:** fps with 6 weapons measured only by frame-time proxy (≈1 ms/frame at 150 enemies); confirm with F3 in a visible window.
 - **Feel:** no enemy-to-enemy separation
 - **Weapons (M2 review):** drone hit map is keyed by pooled enemy sprites (a recycled enemy can be drone-immune ≤0.5 s); weapon textures and the starter list are hardcoded in `BootScene`/`LoadoutScene` (move colour + `starter` into `weapons.json`); the pierce path is unused (no weapon has `pierce > 0`)
-- **Input:** `ShopScene` captures Tab/Space globally and never releases them
 - **Robustness:** `rng.int` unguarded for max<min; `buildSpawnSchedule` hangs if `every<=0`
 - **Dev only:** F3 isn't captured (opens browser find); `debugSpawn` draws from the spawn RNG
-- **M3:** hardcoded colours outside `theme.ts` (Victory, GameOver); shop / level-up are placeholder layouts; wave-1 banner can show a fallback font before Google Fonts loads
+- **M3:** hardcoded colours outside `theme.ts` (Victory, GameOver); wave-1 banner can show a fallback font before Google Fonts loads
 - **M4:** Victory → GameOver "RUN COMPLETE" is a stopgap
 - **(proposed)** `vite.config.ts` still defines aliases for the non-existent `@ecs` and `@ui` folders
 - **(proposed)** `STRUCTURE.md`, `PROJECT_SUMMARY.md` and `QUICKSTART.md` describe the old prototype (ShopScene "display upgrades", 3 weapons); fold into README/ARCHITECTURE or delete

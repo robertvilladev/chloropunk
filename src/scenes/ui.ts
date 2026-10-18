@@ -73,6 +73,13 @@ export function tierChip(scene: Phaser.Scene, x: number, y: number, tier: Tier, 
   return text(scene, x, y, tierLabel(tier), 11, THEME_CSS.tier[tier - 1]).setOrigin(origin, 0);
 }
 
+/** Tier tab sitting on a card's top edge: tier-coloured plate, dark label. `short` = "T3". */
+export function tierTab(scene: Phaser.Scene, x: number, y: number, tier: Tier, short = false): Phaser.GameObjects.Container {
+  const t = text(scene, 5, 0, short ? `T${tier}` : tierLabel(tier), 10, THEME_CSS.limeInk);
+  const bg = scene.add.rectangle(0, 0, t.width + 10, t.height + 2, THEME.tier[tier - 1]).setOrigin(0);
+  return scene.add.container(x, y - Math.round(bg.height / 2), [bg, t]);
+}
+
 /** Small muted label over a VT323 value. */
 export function statTile(
   scene: Phaser.Scene,
