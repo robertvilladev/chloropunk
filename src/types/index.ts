@@ -94,6 +94,29 @@ export interface Offer {
   price: number;
 }
 
+export type WeaponBehavior =
+  | "projectile"
+  | "spread"
+  | "beam"
+  | "melee-arc"
+  | "orbital"
+  | "explosive";
+
+type DamageTag = "melee" | "ranged" | "elemental";
+
+export interface WeaponDef {
+  id: string;
+  name: string;
+  behavior: WeaponBehavior;
+  tags: DamageTag[];
+  damage: [number, number, number, number]; // per tier
+  cooldown: [number, number, number, number]; // seconds, per tier
+  range: number;
+  price: number;
+  scaling: { stat: DamageTag; ratio: number };
+  params: Record<string, number>;
+}
+
 export interface ItemDef {
   id: string;
   name: string;

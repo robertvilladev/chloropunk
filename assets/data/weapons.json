@@ -1,27 +1,188 @@
 {
-  "basicGun": {
-    "type": "basicGun",
-    "damage": 10,
-    "fireRate": 1,
-    "range": 300,
-    "projectileSpeed": 400,
-    "spriteKey": "projectile_basic"
+  "pistol": {
+    "id": "pistol",
+    "name": "Neon Pistol",
+    "behavior": "projectile",
+    "tags": [
+      "ranged"
+    ],
+    "damage": [
+      12,
+      18,
+      26,
+      38
+    ],
+    "cooldown": [
+      0.9,
+      0.8,
+      0.7,
+      0.6
+    ],
+    "range": 320,
+    "price": 15,
+    "scaling": {
+      "stat": "ranged",
+      "ratio": 1
+    },
+    "params": {
+      "speed": 520,
+      "pierce": 0,
+      "knockback": 50
+    }
   },
   "shotgun": {
-    "type": "shotgun",
-    "damage": 8,
-    "fireRate": 0.5,
-    "range": 200,
-    "projectileSpeed": 450,
-    "projectileCount": 3,
-    "spriteKey": "projectile_shotgun"
+    "id": "shotgun",
+    "name": "Scrap Shotgun",
+    "behavior": "spread",
+    "tags": [
+      "ranged"
+    ],
+    "damage": [
+      6,
+      9,
+      13,
+      18
+    ],
+    "cooldown": [
+      1.3,
+      1.2,
+      1.1,
+      1.0
+    ],
+    "range": 220,
+    "price": 20,
+    "scaling": {
+      "stat": "ranged",
+      "ratio": 0.6
+    },
+    "params": {
+      "speed": 480,
+      "pellets": 5,
+      "spread": 40,
+      "knockback": 70
+    }
   },
-  "rifle": {
-    "type": "rifle",
-    "damage": 25,
-    "fireRate": 0.3,
-    "range": 400,
-    "projectileSpeed": 600,
-    "spriteKey": "projectile_rifle"
+  "laser": {
+    "id": "laser",
+    "name": "Photon Laser",
+    "behavior": "beam",
+    "tags": [
+      "elemental"
+    ],
+    "damage": [
+      9,
+      14,
+      20,
+      30
+    ],
+    "cooldown": [
+      1.6,
+      1.5,
+      1.3,
+      1.1
+    ],
+    "range": 360,
+    "price": 25,
+    "scaling": {
+      "stat": "elemental",
+      "ratio": 1
+    },
+    "params": {
+      "width": 10,
+      "duration": 0.15,
+      "knockback": 0
+    }
+  },
+  "blade": {
+    "id": "blade",
+    "name": "Mono Blade",
+    "behavior": "melee-arc",
+    "tags": [
+      "melee"
+    ],
+    "damage": [
+      20,
+      30,
+      44,
+      64
+    ],
+    "cooldown": [
+      1.0,
+      0.9,
+      0.8,
+      0.7
+    ],
+    "range": 90,
+    "price": 15,
+    "scaling": {
+      "stat": "melee",
+      "ratio": 1.5
+    },
+    "params": {
+      "arc": 120,
+      "knockback": 120
+    }
+  },
+  "drone": {
+    "id": "drone",
+    "name": "Hover Drone",
+    "behavior": "orbital",
+    "tags": [
+      "ranged"
+    ],
+    "damage": [
+      8,
+      12,
+      17,
+      25
+    ],
+    "cooldown": [
+      0.5,
+      0.45,
+      0.4,
+      0.35
+    ],
+    "range": 70,
+    "price": 25,
+    "scaling": {
+      "stat": "ranged",
+      "ratio": 0.5
+    },
+    "params": {
+      "orbitSpeed": 3,
+      "hitRadius": 14,
+      "knockback": 30
+    }
+  },
+  "rocket": {
+    "id": "rocket",
+    "name": "Pulse Rocket",
+    "behavior": "explosive",
+    "tags": [
+      "elemental"
+    ],
+    "damage": [
+      16,
+      24,
+      35,
+      50
+    ],
+    "cooldown": [
+      1.8,
+      1.7,
+      1.5,
+      1.3
+    ],
+    "range": 380,
+    "price": 30,
+    "scaling": {
+      "stat": "elemental",
+      "ratio": 0.8
+    },
+    "params": {
+      "speed": 360,
+      "blastRadius": 60,
+      "knockback": 90
+    }
   }
 }

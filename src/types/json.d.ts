@@ -15,8 +15,8 @@ declare module "@assets/data/enemies.json" {
 }
 
 declare module "@assets/data/weapons.json" {
-  import type { WeaponData } from "@/types";
-  const weapons: Record<string, WeaponData>;
+  import type { WeaponDef } from "@/types";
+  const weapons: Record<string, WeaponDef>;
   export default weapons;
 }
 

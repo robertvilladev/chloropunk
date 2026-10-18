@@ -1,281 +1,223 @@
+import { DEPTH } from "@/config/constants";
 import type { Rng } from "@/core/rng";
-import { MathUtils } from "@/utils/MathUtils";
-import weaponsDataJson from "@assets/data/weapons.json";
+import { CRIT_MULT, weaponStats, type WeaponStats } from "@/core/weapons";
+import { nearestInRange, slotOffset, spreadAngles } from "@/entities/weaponBehaviors";
+import type { Juice } from "@/fx/Juice";
+import type { OwnedWeapon, Stats, Tier, Vector2, WeaponDef } from "@/types";
+import weaponDefs from "@assets/data/weapons.json";
 import Phaser from "phaser";
 
-const CRIT_CHANCE = 0.05;
-const CRIT_MULT = 1.5;
+type Sprite = Phaser.Physics.Arcade.Sprite;
 
-interface WeaponData {
-  type: string;
-  damage: number;
-  fireRate: number;
-  projectileSpeed: number;
-  range: number;
-  spriteKey: string;
-  projectileCount?: number;
-  spreadAngle?: number;
-}
+export type HitFn = (
+  enemy: Sprite,
+  damage: number,
+  crit: boolean,
+  angle: number,
+  knockback: number
+) => void;
 
-interface EquippedWeapon {
-  type: string;
-  data: WeaponData;
-  fireTimer: number;
+const MAX_PROJECTILES = 200;
+
+interface Equipped {
+  def: WeaponDef;
+  tier: Tier;
+  ws: WeaponStats;
+  timer: number;
+  offset: Vector2;
+  sprite: Phaser.GameObjects.Image;
 }
 
 /**
- * WeaponManager - Handles all weapon and projectile logic
- * Auto-fires at nearest enemies, manages multiple equipped weapons
+ * WeaponManager - owned weapons sit around the player; each fires at the
+ * nearest enemy in its range using its behaviour.
  */
 export class WeaponManager {
   private scene: Phaser.Scene;
   private projectiles: Phaser.Physics.Arcade.Group;
-  private equippedWeapons: EquippedWeapon[] = [];
-  private maxWeapons: number = 5; // Can equip 3-5 weapons
-  private bonusDamage: number = 0;
+  private enemyGroup!: Phaser.Physics.Arcade.Group;
+  private equipped: Equipped[] = [];
   private rng!: Rng;
+  private hit!: HitFn;
+  private juice!: Juice;
+  private angles: number[] = [];
+  private slot: Vector2 = { x: 0, y: 0 };
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
-    this.projectiles = this.scene.physics.add.group({
+    this.projectiles = scene.physics.add.group({
       defaultKey: "projectile_basic",
-      maxSize: 100,
+      maxSize: MAX_PROJECTILES,
     });
   }
 
-  /**
-   * Initialize weapon system
-   */
-  create(rng: Rng, bonusDamage: number = 0): void {
-    this.rng = rng;
-    this.bonusDamage = bonusDamage;
-    // Start with a basic pistol
-    this.equipWeapon("basicGun");
-    console.log("✓ WeaponManager: Initialized with basic gun");
+  create(o: {
+    weapons: OwnedWeapon[];
+    stats: Stats;
+    rng: Rng;
+    enemyGroup: Phaser.Physics.Arcade.Group;
+    hit: HitFn;
+    juice: Juice;
+  }): void {
+    this.rng = o.rng;
+    this.hit = o.hit;
+    this.juice = o.juice;
+    this.enemyGroup = o.enemyGroup;
+    this.equipped = o.weapons.map((w, i) => {
+      const def = (weaponDefs as Record<string, WeaponDef>)[w.id];
+      return {
+        def,
+        tier: w.tier,
+        ws: weaponStats(def, w.tier, o.stats),
+        timer: 0,
+        offset: slotOffset(i, o.weapons.length),
+        sprite: this.scene.add.image(0, 0, `weapon_${def.id}`).setDepth(DEPTH.PLAYER + 1),
+      };
+    });
+    this.scene.physics.add.overlap(this.projectiles, o.enemyGroup, (p, e) =>
+      this.onProjectileHit(p as Sprite, e as Sprite)
+    );
   }
 
-  /**
-   * Equip a weapon (up to maxWeapons)
-   */
-  equipWeapon(type: string): boolean {
-    if (this.equippedWeapons.length >= this.maxWeapons) {
-      console.warn("Cannot equip more weapons, max reached");
-      return false;
+  update(dtMs: number, player: Vector2, enemies: Sprite[]): void {
+    const dt = dtMs / 1000;
+    const slot = this.slot;
+    for (let i = 0; i < this.equipped.length; i++) {
+      const w = this.equipped[i];
+      slot.x = player.x + w.offset.x;
+      slot.y = player.y + w.offset.y;
+      w.sprite.setPosition(slot.x, slot.y);
+      w.timer += dt;
+      const target = nearestInRange(slot, w.ws.range, enemies);
+      if (!target) continue;
+      const angle = Math.atan2(target.y - slot.y, target.x - slot.x);
+      w.sprite.setRotation(angle);
+      if (w.timer < w.ws.cooldown) continue;
+      w.timer = 0;
+      this.fire(w, slot, angle);
     }
-
-    const weaponData = weaponsDataJson as Record<string, WeaponData>;
-    const weapon = weaponData[type];
-
-    if (!weapon) {
-      console.error(`Weapon type ${type} not found`);
-      return false;
-    }
-
-    this.equippedWeapons.push({
-      type,
-      data: weapon,
-      fireTimer: 0,
-    });
-
-    console.log(`Equipped ${type} weapon`);
-    return true;
-  }
-
-  /**
-   * Damage of the primary weapon, including upgrades
-   */
-  getDamage(): number {
-    return (this.equippedWeapons[0]?.data.damage ?? 0) + this.bonusDamage;
-  }
-
-  /**
-   * Update all weapons - auto-fire at nearest enemies
-   */
-  update(
-    delta: number,
-    playerPos: { x: number; y: number },
-    enemies: Phaser.Physics.Arcade.Sprite[]
-  ): void {
-    // Update each weapon's fire timer
-    this.equippedWeapons.forEach((weapon) => {
-      weapon.fireTimer += delta / 1000;
-
-      // Check if weapon is ready to fire
-      const fireInterval = 1 / weapon.data.fireRate;
-      if (weapon.fireTimer >= fireInterval) {
-        this.fireWeapon(weapon, playerPos, enemies);
-        weapon.fireTimer = 0;
-      }
-    });
-
-    // Update projectiles (remove out of range)
     this.updateProjectiles();
   }
 
-  /**
-   * Fire a weapon at the nearest enemy
-   */
-  private fireWeapon(
-    weapon: EquippedWeapon,
-    playerPos: { x: number; y: number },
-    enemies: Phaser.Physics.Arcade.Sprite[]
-  ): void {
-    // Find nearest enemy
-    const nearestEnemy = this.findNearestEnemy(playerPos, enemies);
-    if (!nearestEnemy) return;
-
-    // Calculate angle to enemy
-    const angle = MathUtils.angleBetween(
-      playerPos.x,
-      playerPos.y,
-      nearestEnemy.x,
-      nearestEnemy.y
-    );
-
-    // Handle weapons with multiple projectiles (shotgun)
-    const projectileCount = weapon.data.projectileCount || 1;
-    const spreadAngle = weapon.data.spreadAngle || 0;
-
-    for (let i = 0; i < projectileCount; i++) {
-      // Calculate spread for each projectile
-      let projectileAngle = angle;
-      if (projectileCount > 1) {
-        const spread = (spreadAngle * Math.PI) / 180;
-        const offset =
-          (i - (projectileCount - 1) / 2) * (spread / projectileCount);
-        projectileAngle += offset;
-      }
-
-      this.createProjectile(playerPos, projectileAngle, weapon.data);
-    }
+  /** Wave end: remove projectiles. */
+  clear(): void {
+    const list = this.projectiles.children.entries;
+    for (let i = 0; i < list.length; i++) this.removeProjectile(list[i] as Sprite);
   }
 
-  /**
-   * Create a projectile
-   */
-  private createProjectile(
-    startPos: { x: number; y: number },
-    angle: number,
-    weaponData: WeaponData
-  ): void {
-    // Get or create projectile from pool
-    const projectile = this.projectiles.get(
-      startPos.x,
-      startPos.y,
-      weaponData.spriteKey
-    ) as Phaser.Physics.Arcade.Sprite;
-
-    if (!projectile) return;
-
-    // Pooled sprites keep a disabled body; reset it at the spawn point
-    projectile.enableBody(true, startPos.x, startPos.y, true, true);
-
-    // Set projectile velocity
-    const velocity = {
-      x: Math.cos(angle) * weaponData.projectileSpeed,
-      y: Math.sin(angle) * weaponData.projectileSpeed,
-    };
-
-    projectile.setVelocity(velocity.x, velocity.y);
-    projectile.setRotation(angle);
-
-    // Store weapon data on projectile
-    const crit = this.rng.next() < CRIT_CHANCE;
-    const damage = weaponData.damage + this.bonusDamage;
-    projectile.setData("damage", crit ? damage * CRIT_MULT : damage);
-    projectile.setData("crit", crit);
-    projectile.setData("knockback", 50); // Default knockback
-    projectile.setData("range", weaponData.range);
-    projectile.setData("startX", startPos.x);
-    projectile.setData("startY", startPos.y);
-  }
-
-  /**
-   * Update projectiles - remove out of range
-   */
-  private updateProjectiles(): void {
-    this.projectiles.children.entries.forEach((projObj) => {
-      const projectile = projObj as Phaser.Physics.Arcade.Sprite;
-      if (!projectile.active) return;
-
-      // Check if projectile is out of range
-      const startX = projectile.getData("startX");
-      const startY = projectile.getData("startY");
-      const range = projectile.getData("range");
-
-      const distance = MathUtils.distance(
-        startX,
-        startY,
-        projectile.x,
-        projectile.y
-      );
-
-      if (distance > range) {
-        this.removeProjectile(projectile);
-      }
-    });
-  }
-
-  /**
-   * Find nearest enemy to a position
-   */
-  private findNearestEnemy(
-    pos: { x: number; y: number },
-    enemies: Phaser.Physics.Arcade.Sprite[]
-  ): Phaser.Physics.Arcade.Sprite | null {
-    if (enemies.length === 0) return null;
-
-    let nearest: Phaser.Physics.Arcade.Sprite | null = null;
-    let minDistance = Infinity;
-
-    enemies.forEach((enemy) => {
-      const dist = MathUtils.distance(pos.x, pos.y, enemy.x, enemy.y);
-      if (dist < minDistance) {
-        minDistance = dist;
-        nearest = enemy;
-      }
-    });
-
-    return nearest;
-  }
-
-  /**
-   * Remove a projectile
-   */
-  removeProjectile(projectile: Phaser.Physics.Arcade.Sprite): void {
-    // Disable the body too, or hidden projectiles keep hitting enemies
-    projectile.disableBody(true, true);
-  }
-
-  /**
-   * Get projectile group for collision detection
-   */
   getProjectileGroup(): Phaser.Physics.Arcade.Group {
     return this.projectiles;
   }
 
-  /**
-   * Get equipped weapons
-   */
-  getEquippedWeapons(): EquippedWeapon[] {
-    return this.equippedWeapons;
+  removeProjectile(projectile: Sprite): void {
+    // Disable the body too, or hidden projectiles keep hitting enemies
+    projectile.disableBody(true, true);
   }
 
-  /**
-   * Remove a weapon by index
-   */
-  removeWeapon(index: number): void {
-    if (index >= 0 && index < this.equippedWeapons.length) {
-      const weapon = this.equippedWeapons.splice(index, 1)[0];
-      console.log(`Removed ${weapon.type} weapon`);
+  /** Scene shutdown: Phaser destroys the game objects. */
+  destroy(): void {
+    this.equipped = [];
+  }
+
+  // ---- behaviours ----
+
+  private fire(w: Equipped, from: Vector2, angle: number): void {
+    const p = w.def.params;
+    switch (w.def.behavior) {
+      case "projectile":
+        this.shoot(w, from, angle, "projectile_basic");
+        break;
+      case "spread":
+        for (const a of spreadAngles(angle, p.pellets, p.spread, this.angles)) {
+          this.shoot(w, from, a, "proj_pellet");
+        }
+        break;
+      case "explosive":
+        this.shoot(w, from, angle, "proj_rocket");
+        break;
+      default:
+        break; // beam, melee-arc, orbital: Task 4
     }
   }
 
-  /**
-   * Cleanup
-   */
-  destroy(): void {
-    this.projectiles.clear(true, true);
-    this.equippedWeapons = [];
+  private rollCrit(w: Equipped): boolean {
+    return this.rng.next() < w.ws.critChance;
+  }
+
+  private shoot(w: Equipped, from: Vector2, angle: number, key: string): void {
+    const pr = this.projectiles.get(from.x, from.y, key) as Sprite | null;
+    if (!pr) return;
+    pr.setTexture(key);
+    pr.enableBody(true, from.x, from.y, true, true);
+    pr.setDepth(DEPTH.PROJECTILES);
+    const speed = w.def.params.speed;
+    pr.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
+    pr.setRotation(angle);
+    const crit = this.rollCrit(w);
+    pr.setData("w", w);
+    pr.setData("damage", crit ? w.ws.damage * CRIT_MULT : w.ws.damage);
+    pr.setData("crit", crit);
+    pr.setData("pierce", w.def.params.pierce ?? 0);
+    pr.setData("last", null);
+    pr.setData("startX", from.x);
+    pr.setData("startY", from.y);
+  }
+
+  private onProjectileHit(pr: Sprite, enemy: Sprite): void {
+    if (!pr.active || !enemy.active || pr.getData("last") === enemy) return;
+    const w = pr.getData("w") as Equipped;
+    if (w.def.behavior === "explosive") {
+      this.explode(pr, w);
+      return;
+    }
+    const body = pr.body as Phaser.Physics.Arcade.Body;
+    this.hit(
+      enemy,
+      pr.getData("damage"),
+      pr.getData("crit"),
+      Math.atan2(body.velocity.y, body.velocity.x),
+      w.def.params.knockback
+    );
+    const pierce = pr.getData("pierce") as number;
+    if (pierce <= 0) this.removeProjectile(pr);
+    else {
+      pr.setData("pierce", pierce - 1);
+      pr.setData("last", enemy);
+    }
+  }
+
+  /** Rocket blast: every enemy within blastRadius takes the hit once. */
+  private explode(pr: Sprite, w: Equipped): void {
+    const { x, y } = pr;
+    const r = w.def.params.blastRadius;
+    const damage = pr.getData("damage") as number;
+    const crit = pr.getData("crit") as boolean;
+    this.removeProjectile(pr);
+    this.juice.blast(x, y, r);
+    const list = this.enemyGroup.children.entries;
+    for (let i = 0; i < list.length; i++) {
+      const e = list[i] as Sprite;
+      if (!e.active) continue;
+      const dx = e.x - x;
+      const dy = e.y - y;
+      if (dx * dx + dy * dy <= r * r) {
+        this.hit(e, damage, crit, Math.atan2(dy, dx), w.def.params.knockback);
+      }
+    }
+  }
+
+  /** Out of range: rockets explode, everything else disappears. */
+  private updateProjectiles(): void {
+    const list = this.projectiles.children.entries;
+    for (let i = 0; i < list.length; i++) {
+      const pr = list[i] as Sprite;
+      if (!pr.active) continue;
+      const w = pr.getData("w") as Equipped;
+      const dx = pr.x - pr.getData("startX");
+      const dy = pr.y - pr.getData("startY");
+      if (dx * dx + dy * dy <= w.ws.range * w.ws.range) continue;
+      if (w.def.behavior === "explosive") this.explode(pr, w);
+      else this.removeProjectile(pr);
+    }
   }
 }

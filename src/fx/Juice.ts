@@ -7,6 +7,7 @@ const MAX_NUMBERS = 40; // per pool (normal, crit)
 const PIXEL_FONT = "VT323, monospace";
 const DISPLAY_FONT = "Bungee, Impact, sans-serif";
 const LOW_HP = 0.25;
+const MAX_BLASTS = 8;
 const SHAKES = {
   hit: { ms: 120, intensity: 0.006 },
   kill: { ms: 80, intensity: 0.003 },
@@ -22,6 +23,8 @@ export class Juice {
   private pools = { normal: [] as Phaser.GameObjects.Text[], crit: [] as Phaser.GameObjects.Text[] };
   private next = { normal: 0, crit: 0 };
   private burst: Phaser.GameObjects.Particles.ParticleEmitter;
+  private blasts: Phaser.GameObjects.Arc[] = [];
+  private nextBlast = 0;
   private vignette: Phaser.GameObjects.Graphics;
   private vignetteTween?: Phaser.Tweens.Tween;
 
@@ -97,6 +100,28 @@ export class Juice {
   deathBurst(x: number, y: number, color: number): void {
     this.burst.particleTint = color;
     this.burst.explode(8, x, y);
+  }
+
+  /** Rocket explosion ring (pooled). */
+  blast(x: number, y: number, radius: number): void {
+    let c = this.blasts[this.nextBlast];
+    if (!c) {
+      c = this.scene.add
+        .circle(0, 0, 1, THEME.danger, 0.35)
+        .setStrokeStyle(2, THEME.danger)
+        .setDepth(DEPTH.PROJECTILES);
+      this.blasts[this.nextBlast] = c;
+    }
+    this.nextBlast = (this.nextBlast + 1) % MAX_BLASTS;
+    this.scene.tweens.killTweensOf(c);
+    c.setRadius(radius).setPosition(x, y).setScale(0.3).setAlpha(1).setVisible(true);
+    this.scene.tweens.add({
+      targets: c,
+      scale: 1,
+      alpha: 0,
+      duration: 200,
+      onComplete: () => c.setVisible(false),
+    });
   }
 
   lowHp(ratio: number): void {

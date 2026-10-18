@@ -104,6 +104,30 @@ export class BootScene extends Phaser.Scene {
     graphics.fillCircle(8, 8, 6);
     graphics.generateTexture("ui_heart", 16, 16);
 
+    // Weapons (sit around the player) and their projectiles
+    const weaponColors: Record<string, number> = {
+      pistol: 0x3ad8ff,
+      shotgun: 0xffb13b,
+      laser: 0xc6ff3d,
+      blade: 0xedf2ec,
+      drone: 0xff4f9a,
+      rocket: 0xff6b3d,
+    };
+    for (const [id, color] of Object.entries(weaponColors)) {
+      graphics.clear();
+      graphics.fillStyle(color);
+      graphics.fillRect(0, 0, 12, 6);
+      graphics.generateTexture(`weapon_${id}`, 12, 6);
+    }
+    graphics.clear();
+    graphics.fillStyle(0xffb13b);
+    graphics.fillCircle(3, 3, 3);
+    graphics.generateTexture("proj_pellet", 6, 6);
+    graphics.clear();
+    graphics.fillStyle(0xff6b3d);
+    graphics.fillRect(0, 0, 10, 6);
+    graphics.generateTexture("proj_rocket", 10, 6);
+
     // White pixel for tinted particles
     graphics.clear();
     graphics.fillStyle(0xffffff);

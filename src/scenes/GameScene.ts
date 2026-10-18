@@ -116,9 +116,6 @@ export class GameScene extends Phaser.Scene {
     this.enemyManager.create();
     this.enemyManager.startWave(this.run.wave, this.rng);
 
-    // 6. Initialize weapon system
-    this.weaponManager = new WeaponManager(this);
-    this.weaponManager.create(this.combatRng, 0);
 
     // 7. Initialize pickups
     this.pickupManager = new PickupManager(this);
@@ -130,6 +127,20 @@ export class GameScene extends Phaser.Scene {
       this.burstColors.set(def.id, Phaser.Display.Color.HexStringToColor(def.color ?? "#ffffff").color);
     }
     this.juice = new Juice(this);
+
+    // 6. Weapons (after Juice: rockets use its blast)
+    this.weaponManager = new WeaponManager(this);
+    this.weaponManager.create({
+      weapons: this.run.weapons,
+      stats: this.stats,
+      rng: this.combatRng,
+      enemyGroup: this.enemyManager.getEnemyGroup(),
+      juice: this.juice,
+      hit: (enemy, damage, crit, angle, knockback) => {
+        if (knockback > 0) this.enemyManager.knockback(enemy, angle, knockback);
+        this.enemyManager.damageEnemy(enemy, damage, crit);
+      },
+    });
     this.juice.banner(`WAVE ${String(this.run.wave).padStart(2, "0")}`);
     this.events.on("enemyHit", this.onEnemyHit, this);
     this.events.on("playerHit", this.onPlayerHit, this);
@@ -240,40 +251,6 @@ export class GameScene extends Phaser.Scene {
       this
     );
 
-    // Projectile <-> Enemy collisions (enemy takes damage)
-    this.physics.add.overlap(
-      this.weaponManager.getProjectileGroup(),
-      this.enemyManager.getEnemyGroup(),
-      (projectileObj, enemyObj) => {
-        const projectile = projectileObj as Phaser.Physics.Arcade.Sprite;
-        const enemy = enemyObj as Phaser.Physics.Arcade.Sprite;
-
-        const damage = projectile.getData("damage") || 10;
-        const knockback = projectile.getData("knockback") || 0;
-
-        // Apply knockback (tanks ignore it)
-        if (knockback > 0) {
-          const angle = Math.atan2(
-            enemy.y - projectile.y,
-            enemy.x - projectile.x
-          );
-          this.enemyManager.knockback(enemy, angle, knockback);
-        }
-
-        // Damage enemy
-        this.enemyManager.damageEnemy(
-          enemy,
-          damage,
-          projectile.getData("crit") === true
-        );
-
-        // Remove projectile
-        this.weaponManager.removeProjectile(projectile);
-      },
-      undefined,
-      this
-    );
-
     // Enemy bolts -> player
     this.physics.add.overlap(
       this.playerManager.getSprite(),
@@ -369,6 +346,7 @@ export class GameScene extends Phaser.Scene {
     // Clear enemies and bolts first so nothing can hurt the player after the
     // wave is over (no drops, no blasts)
     this.enemyManager.clearAll();
+    this.weaponManager.clear();
     this.juice.banner("WAVE CLEARED");
 
     // Leftover scrap is auto-collected
@@ -466,6 +444,7 @@ export class GameScene extends Phaser.Scene {
   private cleanup(): void {
     this.playerManager?.destroy();
     this.enemyManager?.destroy();
+    this.weaponManager?.destroy();
     this.worldManager?.destroy();
     this.inputManager?.destroy();
     GAME_EVENTS.forEach((event) => this.events.removeAllListeners(event));
