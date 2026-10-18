@@ -18,11 +18,11 @@ npm run dev        # http://localhost:3000
 
 Other scripts: `npm run build` (type-check + production build), `npm test`, `npm run test:coverage`, `npm run type-check`. CI runs build + coverage on PRs.
 
-Dev only: `window.game` is exposed; F2 spawns 150 peas, F3 toggles an FPS readout.
+Dev only: `window.game` is exposed; F2 spawns 150 peas, F3 toggles an FPS readout. `?renderer=canvas` forces the Canvas renderer (fallback check), `?seed=N` fixes the run seed.
 
 ## Content is data
 
-Enemies, weapons, items, level-up upgrades and waves live in `assets/data/*.json`. Adding an enemy, weapon, item or wave is a JSON change plus at most one behaviour function. See [ARCHITECTURE.md](ARCHITECTURE.md).
+Enemies, weapons, items, level-up upgrades, the character and waves live in `assets/data/*.json`. Adding an enemy, weapon, item or wave is a JSON change plus at most one behaviour function. See [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Docs
 

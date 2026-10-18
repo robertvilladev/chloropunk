@@ -52,7 +52,7 @@ export class EnemyManager {
 
 ## Sprite grids (`src/art/`)
 
-Sprites are authored as text grids, one palette letter per pixel (`.` = transparent, at most 16x16), and rendered to textures at boot (wired up in a later M3 task). Game code refers to sprites only by texture key.
+Sprites are authored as text grids, one palette letter per pixel (`.` = transparent, at most 16x16), and rendered to textures at boot (`src/art/textures.ts`: one CanvasTexture per actor, 3x, frames `walk0`/`walk1`/`hit`, baked shadow; animations `<key>_walk`). Game code refers to sprites only by texture key.
 
 - `palette.ts` - letter -> hex (`PALETTE`); `grid.ts` - `parseGrid`, `gridBounds`, `validateActor`.
 - `actors.ts` - `ACTORS`: each actor has `walk0`, `walk1` (legs swapped, or body bobbed) and `hit` (white flash, `>_<` face, one row lower). Always draw facing right; flipping is runtime.
