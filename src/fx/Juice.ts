@@ -123,7 +123,7 @@ export class Juice {
     ];
     const texts = layers.map(([dx, color]) =>
       this.scene.add
-        .text(w / 2 + dx, h * 0.15, text, {
+        .text(w / 2 + dx, h / 3, text, {
           fontFamily: DISPLAY_FONT,
           fontSize: "64px",
           color,
@@ -134,9 +134,9 @@ export class Juice {
     this.scene.tweens.add({
       targets: texts,
       alpha: 0,
-      y: h * 0.15 - 20,
-      delay: 900,
-      duration: 500,
+      y: h / 3 - 20,
+      delay: 500,
+      duration: 400,
       onComplete: () => texts.forEach((t) => t.destroy()),
     });
   }

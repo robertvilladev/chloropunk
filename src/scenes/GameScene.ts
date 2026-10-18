@@ -13,6 +13,8 @@ import { WorldManager } from "@/managers/WorldManager";
 import type { EnemyDef, RunState } from "@/types";
 import Phaser from "phaser";
 
+const BANNER_MS = 900; // matches Juice.banner total duration
+
 // Custom events emitted on this scene; listeners are removed on shutdown
 // because Phaser keeps scene.events listeners across restarts
 const GAME_EVENTS = [
@@ -50,6 +52,8 @@ export class GameScene extends Phaser.Scene {
   private roundTimeRemaining: number = 20;
   private roundDuration: number = 20;
   private rng!: Rng;
+  // Separate stream for combat rolls (crits) so spawns stay reproducible per seed
+  private combatRng!: Rng;
 
   // Game speed control
   private gameSpeed: number = 1;
@@ -103,6 +107,7 @@ export class GameScene extends Phaser.Scene {
 
     // 4. Initialize enemy system and start this wave's spawn schedule
     this.rng = createRng(this.run.seed + this.run.wave);
+    this.combatRng = createRng(this.run.seed + this.run.wave + 7919);
     this.roundDuration = waveDuration(this.run.wave);
     this.enemyManager = new EnemyManager(this);
     this.enemyManager.create();
@@ -110,7 +115,7 @@ export class GameScene extends Phaser.Scene {
 
     // 6. Initialize weapon system
     this.weaponManager = new WeaponManager(this);
-    this.weaponManager.create(this.rng, this.run.bonus.damage);
+    this.weaponManager.create(this.combatRng, this.run.bonus.damage);
 
     // 7. Initialize pickups
     this.pickupManager = new PickupManager(this);
@@ -335,17 +340,22 @@ export class GameScene extends Phaser.Scene {
     this.waveEarned += leftover;
 
     const xp = addXp(this.run, this.waveEarned);
-    this.scene.pause();
-    this.scene.launch(SCENE_KEYS.VICTORY, {
-      enemiesKilled: this.enemiesKilled,
-      scrapEarned: this.waveEarned,
-      run: {
-        ...this.run,
-        wave: this.run.wave + 1,
-        level: xp.level,
-        xp: xp.xp,
-        pendingLevelUps: this.run.pendingLevelUps + xp.levelsGained,
-      },
+    this.playerManager.getSprite().setVelocity(0, 0);
+    // Let the banner play before handing off; the timer dies with the scene
+    // on shutdown, and isGameOver (set above) prevents a second call
+    this.time.delayedCall(BANNER_MS, () => {
+      this.scene.pause();
+      this.scene.launch(SCENE_KEYS.VICTORY, {
+        enemiesKilled: this.enemiesKilled,
+        scrapEarned: this.waveEarned,
+        run: {
+          ...this.run,
+          wave: this.run.wave + 1,
+          level: xp.level,
+          xp: xp.xp,
+          pendingLevelUps: this.run.pendingLevelUps + xp.levelsGained,
+        },
+      });
     });
   }
 
