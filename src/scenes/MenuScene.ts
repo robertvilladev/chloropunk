@@ -14,7 +14,7 @@ export class MenuScene extends Phaser.Scene {
     const height = this.cameras.main.height;
 
     // Title
-    const title = this.add.text(width / 2, height / 3, "BROTATO EXPERIMENT", {
+    const title = this.add.text(width / 2, height / 3, "VEGGIE//VENDETTA", {
       fontSize: "48px",
       color: "#ffffff",
       fontStyle: "bold",
