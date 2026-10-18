@@ -7,15 +7,15 @@ import Phaser from "phaser";
  */
 export class VictoryScene extends Phaser.Scene {
   private enemiesKilled: number = 0;
-  private coinsEarned: number = 0;
+  private scrapEarned: number = 0;
   private run?: RunState;
   constructor() {
     super({ key: SCENE_KEYS.VICTORY });
   }
-  init(data: { enemiesKilled?: number; coinsEarned?: number; run?: RunState }) {
+  init(data: { enemiesKilled?: number; scrapEarned?: number; run?: RunState }) {
     this.run = data.run;
     this.enemiesKilled = data.enemiesKilled || 0;
-    this.coinsEarned = data.coinsEarned || 0;
+    this.scrapEarned = data.scrapEarned || 0;
   }
   create() {
     const width = this.cameras.main.width;
@@ -38,7 +38,7 @@ export class VictoryScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
     this.add
-      .text(width / 2, statsY + 35, `Coins Earned: ${this.coinsEarned}`, {
+      .text(width / 2, statsY + 35, `Scrap Earned: ${this.scrapEarned}`, {
         fontSize: "24px",
         color: "#ffd700",
       })

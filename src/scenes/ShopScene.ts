@@ -27,7 +27,7 @@ export class ShopScene extends Phaser.Scene {
 
     // Initialize managers
     this.coinManager = new CoinManager(this);
-    this.coinManager.setCoinCount(this.run.coins);
+    this.coinManager.setCoinCount(this.run.scrap);
     this.shopManager = new ShopManager(this);
 
     // Title
@@ -42,7 +42,7 @@ export class ShopScene extends Phaser.Scene {
     this.coinText = this.add.text(
       width - 20,
       20,
-      `Coins: ${this.coinManager.getCoinCount()}`,
+      `Scrap: ${this.coinManager.getCoinCount()}`,
       {
         fontSize: "24px",
         color: "#ffd700",
@@ -83,7 +83,7 @@ export class ShopScene extends Phaser.Scene {
     startButton.on("pointerdown", () => {
       this.scene.stop(SCENE_KEYS.UI);
       this.scene.start(SCENE_KEYS.GAME, {
-        run: { ...this.run, coins: this.coinManager.getCoinCount() },
+        run: { ...this.run, scrap: this.coinManager.getCoinCount() },
       });
     });
 
@@ -120,7 +120,7 @@ export class ShopScene extends Phaser.Scene {
     nameText.setOrigin(0.5);
 
     // Cost and description
-    const costText = this.add.text(0, 5, `Cost: ${upgrade.cost} coins`, {
+    const costText = this.add.text(0, 5, `Cost: ${upgrade.cost} scrap`, {
       fontSize: "14px",
       color: "#ffd700",
     });
@@ -141,7 +141,7 @@ export class ShopScene extends Phaser.Scene {
       if (this.shopManager.purchaseUpgrade(upgrade.id, this.coinManager)) {
         this.run.bonus[upgrade.stat as keyof RunState["bonus"]] += upgrade.value;
         // Success - update UI
-        this.coinText.setText(`Coins: ${this.coinManager.getCoinCount()}`);
+        this.coinText.setText(`Scrap: ${this.coinManager.getCoinCount()}`);
         // Could add visual feedback here
       } else {
         // Not enough coins - could add error message

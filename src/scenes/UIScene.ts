@@ -36,7 +36,7 @@ export class UIScene extends Phaser.Scene {
     this.coinsText = this.add.text(
       this.cameras.main.width - 20,
       20,
-      "💰 Coins: 0",
+      "SCRAP: 0",
       {
         fontSize: "18px",
         color: "#ffd700",
@@ -95,7 +95,7 @@ export class UIScene extends Phaser.Scene {
   private refresh(): void {
     const stats = (this.scene.get(SCENE_KEYS.GAME) as GameScene).getPlayerStats();
     this.updateHealth(stats.health, stats.maxHealth);
-    this.updateCoins(stats.coins);
+    this.updateCoins(stats.scrap);
     this.statsText.setText(
       `Wave: ${stats.wave}\nHealth: ${stats.health}/${stats.maxHealth}\nSpeed: ${stats.speed}\nDamage: ${stats.damage}`
     );
@@ -203,7 +203,7 @@ export class UIScene extends Phaser.Scene {
    * Update coins display
    */
   updateCoins(count: number): void {
-    this.coinsText.setText(`💰 Coins: ${count}`);
+    this.coinsText.setText(`SCRAP: ${count}`);
   }
 
   /**

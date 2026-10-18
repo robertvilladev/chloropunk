@@ -98,6 +98,10 @@ export interface GameConfig {
 /** State that survives between rounds of a single run */
 export interface RunState {
   wave: number;
-  coins: number;
+  scrap: number;
+  xp: number;
+  level: number;
+  pendingLevelUps: number;
   bonus: { maxHealth: number; speed: number; damage: number };
+  seed: number;
 }

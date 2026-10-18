@@ -50,7 +50,7 @@ export class GameScene extends Phaser.Scene {
   private enemiesKilled: number = 0;
   private isGameOver: boolean = false;
 
-  // Persistent run state (wave, coins, upgrades)
+  // Persistent run state (wave, scrap, xp, upgrades)
   private run!: RunState;
 
   constructor() {
@@ -63,8 +63,12 @@ export class GameScene extends Phaser.Scene {
   init(data: { run?: RunState }) {
     this.run = data.run ?? {
       wave: 1,
-      coins: 0,
+      scrap: 0,
+      xp: 0,
+      level: 1,
+      pendingLevelUps: 0,
       bonus: { maxHealth: 0, speed: 0, damage: 0 },
+      seed: Date.now(),
     };
   }
 
@@ -103,7 +107,7 @@ export class GameScene extends Phaser.Scene {
     // 7. Initialize coin system
     this.coinManager = new CoinManager(this);
     this.coinManager.create();
-    this.coinManager.setCoinCount(this.run.coins);
+    this.coinManager.setCoinCount(this.run.scrap);
 
     // 8. Set up collision detection
     this.setupCollisions();
@@ -280,13 +284,13 @@ export class GameScene extends Phaser.Scene {
     this.isGameOver = true;
 
     console.log("Round Complete!");
-    const coins = this.coinManager.getCoinCount();
-    const coinsEarned = coins - this.run.coins;
+    const scrap = this.coinManager.getCoinCount();
+    const scrapEarned = scrap - this.run.scrap;
     this.scene.pause();
     this.scene.launch(SCENE_KEYS.VICTORY, {
       enemiesKilled: this.enemiesKilled,
-      coinsEarned,
-      run: { ...this.run, wave: this.run.wave + 1, coins },
+      scrapEarned,
+      run: { ...this.run, wave: this.run.wave + 1, scrap },
     });
   }
 
@@ -334,7 +338,7 @@ export class GameScene extends Phaser.Scene {
       maxHealth: this.playerManager.getMaxHealth(),
       speed: this.playerManager.getSpeed(),
       damage: this.weaponManager.getDamage(),
-      coins: this.coinManager.getCoinCount(),
+      scrap: this.coinManager.getCoinCount(),
     };
   }
 }
