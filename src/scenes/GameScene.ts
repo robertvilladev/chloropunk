@@ -1,10 +1,11 @@
 import { GAME_CONFIG, SCENE_KEYS } from "@/config/constants";
 import { createRng, type Rng } from "@/core/rng";
+import { addXp, xpToNext } from "@/core/progression";
 import { clampDelta } from "@/core/time";
 import { waveDuration } from "@/core/waves";
-import { CoinManager } from "@/managers/CoinManager";
 import { EnemyManager } from "@/managers/EnemyManager";
 import { InputManager } from "@/managers/InputManager";
+import { PickupManager } from "@/managers/PickupManager";
 import { PlayerManager } from "@/managers/PlayerManager";
 import { WeaponManager } from "@/managers/WeaponManager";
 import { WorldManager } from "@/managers/WorldManager";
@@ -18,7 +19,7 @@ const GAME_EVENTS = [
   "enemyKilled",
   "enemyExploded",
   "enemyHit",
-  "coinCollected",
+  "scrapCollected",
   "speedChanged",
   "playerHealthChanged",
   "timerUpdate",
@@ -40,7 +41,7 @@ export class GameScene extends Phaser.Scene {
   private worldManager!: WorldManager;
   private enemyManager!: EnemyManager;
   private weaponManager!: WeaponManager;
-  private coinManager!: CoinManager;
+  private pickupManager!: PickupManager;
 
   // Round timer
   private roundTimeRemaining: number = 20;
@@ -52,6 +53,8 @@ export class GameScene extends Phaser.Scene {
 
   // Stats tracking
   private enemiesKilled: number = 0;
+  // Scrap (= XP) picked up this wave; XP is applied at wave end
+  private waveEarned: number = 0;
   private isGameOver: boolean = false;
 
   // Persistent run state (wave, scrap, xp, upgrades)
@@ -106,10 +109,10 @@ export class GameScene extends Phaser.Scene {
     this.weaponManager = new WeaponManager(this);
     this.weaponManager.create(this.run.bonus.damage);
 
-    // 7. Initialize coin system
-    this.coinManager = new CoinManager(this);
-    this.coinManager.create();
-    this.coinManager.setCoinCount(this.run.scrap);
+    // 7. Initialize pickups
+    this.pickupManager = new PickupManager(this);
+    this.waveEarned = 0;
+    this.events.on("scrapCollected", this.onScrapCollected, this);
 
     // 8. Set up collision detection
     this.setupCollisions();
@@ -171,6 +174,9 @@ export class GameScene extends Phaser.Scene {
       this.roundDuration - this.roundTimeRemaining,
       this.playerManager.getPosition()
     );
+
+    // 3b. Pull nearby scrap toward the player
+    this.pickupManager.update(this.playerManager.getPosition());
 
     // 4. Update weapon system
     this.weaponManager.update(
@@ -250,13 +256,12 @@ export class GameScene extends Phaser.Scene {
       this
     );
 
-    // Player <-> Coin collisions (collect coins)
+    // Player <-> scrap collisions
     this.physics.add.overlap(
       this.playerManager.getSprite(),
-      this.coinManager.getCoinGroup(),
-      (_playerObj, coinObj) => {
-        const coin = coinObj as Phaser.Physics.Arcade.Sprite;
-        this.coinManager.collectCoin(coin);
+      this.pickupManager.getGroup(),
+      (_playerObj, scrapObj) => {
+        this.pickupManager.collect(scrapObj as Phaser.Physics.Arcade.Sprite);
       },
       undefined,
       this
@@ -305,13 +310,27 @@ export class GameScene extends Phaser.Scene {
     this.isGameOver = true;
 
     console.log("Round Complete!");
-    const scrap = this.coinManager.getCoinCount();
-    const scrapEarned = scrap - this.run.scrap;
+    // Clear enemies and bolts first so nothing can hurt the player after the
+    // wave is over (no drops, no blasts)
+    this.enemyManager.clearAll();
+
+    // Leftover scrap is auto-collected
+    const leftover = this.pickupManager.collectAll();
+    this.run.scrap += leftover;
+    this.waveEarned += leftover;
+
+    const xp = addXp(this.run, this.waveEarned);
     this.scene.pause();
     this.scene.launch(SCENE_KEYS.VICTORY, {
       enemiesKilled: this.enemiesKilled,
-      scrapEarned,
-      run: { ...this.run, wave: this.run.wave + 1, scrap },
+      scrapEarned: this.waveEarned,
+      run: {
+        ...this.run,
+        wave: this.run.wave + 1,
+        level: xp.level,
+        xp: xp.xp,
+        pendingLevelUps: this.run.pendingLevelUps + xp.levelsGained,
+      },
     });
   }
 
@@ -321,8 +340,12 @@ export class GameScene extends Phaser.Scene {
   private onEnemyKilled(x: number, y: number, def: EnemyDef): void {
     this.enemiesKilled++;
 
-    // Spawn coin at enemy position (Task 5 replaces CoinManager)
-    this.coinManager.spawnCoin(x, y, def.scrap);
+    this.pickupManager.spawnScrap(x, y, def.scrap);
+  }
+
+  private onScrapCollected(value: number): void {
+    this.run.scrap += value;
+    this.waveEarned += value;
   }
 
   /**
@@ -363,13 +386,19 @@ export class GameScene extends Phaser.Scene {
    * Current player stats for the HUD
    */
   getPlayerStats() {
+    // Level/XP including this wave's pickups (committed at wave end)
+    const xp = addXp(this.run, this.waveEarned);
     return {
       wave: this.run.wave,
       health: this.playerManager.getHealth(),
       maxHealth: this.playerManager.getMaxHealth(),
       speed: this.playerManager.getSpeed(),
       damage: this.weaponManager.getDamage(),
-      scrap: this.coinManager.getCoinCount(),
+      scrap: this.run.scrap,
+      pending: this.run.pendingLevelUps + xp.levelsGained,
+      level: xp.level,
+      xp: xp.xp,
+      xpNeeded: xpToNext(xp.level),
     };
   }
 }

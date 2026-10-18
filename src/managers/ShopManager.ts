@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { CoinManager } from "./CoinManager";
+import type { RunState } from "@/types";
 
 interface ShopUpgrade {
   id: string;
@@ -53,16 +53,14 @@ export class ShopManager {
   /**
    * Purchase an upgrade
    */
-  purchaseUpgrade(upgradeId: string, coinManager: CoinManager): boolean {
+  purchaseUpgrade(upgradeId: string, run: RunState): boolean {
     const upgrade = this.upgrades.find((u) => u.id === upgradeId);
     if (!upgrade) return false;
 
-    if (coinManager.spendCoins(upgrade.cost)) {
-      console.log(`Purchased ${upgrade.name}`);
-      return true;
-    }
-
-    return false;
+    if (run.scrap < upgrade.cost) return false;
+    run.scrap -= upgrade.cost;
+    console.log(`Purchased ${upgrade.name}`);
+    return true;
   }
 
   /**

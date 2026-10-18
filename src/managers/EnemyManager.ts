@@ -171,8 +171,10 @@ export class EnemyManager {
     return this.enemies.countActive(true);
   }
 
+  /** Scene shutdown: Phaser has already destroyed the groups, so only drop our own state. */
   destroy(): void {
-    this.clearAll();
+    this.pending.length = 0;
+    this.schedule = [];
   }
 
   // ---- internals ----

@@ -90,13 +90,13 @@ export class BootScene extends Phaser.Scene {
     graphics.fillCircle(4, 4, 4);
     graphics.generateTexture("projectile_basic", 8, 8);
 
-    // Coin (gold circle)
+    // Scrap (lime circle)
     graphics.clear();
-    graphics.fillStyle(0xffd700);
+    graphics.fillStyle(0xc6ff3d);
     graphics.fillCircle(8, 8, 8);
-    graphics.lineStyle(2, 0xffaa00);
+    graphics.lineStyle(2, 0x7fa800);
     graphics.strokeCircle(8, 8, 8);
-    graphics.generateTexture("coin", 16, 16);
+    graphics.generateTexture("scrap", 16, 16);
 
     // UI Heart (red heart shape - simplified)
     graphics.clear();

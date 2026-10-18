@@ -69,7 +69,7 @@ export class MenuScene extends Phaser.Scene {
     const instructions = this.add.text(
       width / 2,
       height - 100,
-      "Use WASD or Arrow Keys to move\nWeapons auto-fire at nearby enemies\nCollect coins to buy upgrades",
+      "Use WASD or Arrow Keys to move\nWeapons auto-fire at nearby enemies\nCollect scrap to buy upgrades",
       {
         fontSize: "16px",
         color: "#888888",
