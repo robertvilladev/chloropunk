@@ -39,7 +39,7 @@ Spec: [§4 steps 1, 4, 5; §5 stats/weapons/items](docs/superpowers/specs/2026-1
 ## M3 — Look ⬜
 Spec: [§6 look and feel, §7 screens](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md). Mockups approved ([copies](docs/superpowers/specs/mockups/README.md)). Owner scope: fighter + 5 enemies get 2-frame walk + hit frame, pickups get sprites, no weapon/item icons, plain graphite floor, **SFX moved to M4**.
 
-- ⬜ Sprite-grid pipeline: Claude-authored pixel data → textures at boot, sprites referenced by key only (start from `docs/superpowers/specs/sprite-grids.py`)
+- ⬜ Sprite-grid pipeline: Claude-authored pixel data → textures at boot, sprites referenced by key only (grid data + validation done in `src/art/`; texture baking pending)
 - ⬜ Replace placeholder shapes (generated in `BootScene`) with sprites; 3/4 y-sorting, soft shadows, neon glow FX
 - ⬜ "Chlorophyll" `theme.ts` applied to every screen (Menu, Shop, Victory, UIScene still hardcode colours); fonts Bungee / IBM Plex Mono / VT323
 - ⬜ HUD, level-up, shop, loadout and menu screens per the mockups; stat previews on hover; mouse + keyboard

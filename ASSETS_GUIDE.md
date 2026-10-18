@@ -1,6 +1,6 @@
 # Importing Assets Guide
 
-> Only JSON data is in use today. Sprites are generated in code by `BootScene`; real sprite/audio assets arrive in M3 (see [ROADMAP.md](ROADMAP.md)). `@ecs` and `@ui` aliases exist in `vite.config.ts` but their folders do not.
+> Only JSON data is in use today. Sprites are pixel grids in `src/art/` (data, not files; see below); audio assets are still to come (see [ROADMAP.md](ROADMAP.md)). `@ecs` and `@ui` aliases exist in `vite.config.ts` but their folders do not.
 
 ## JSON Data Files
 
@@ -50,9 +50,18 @@ export class EnemyManager {
 }
 ```
 
-## Image/Audio Assets (Future)
+## Sprite grids (`src/art/`)
 
-When you add actual sprites and sounds:
+Sprites are authored as text grids, one palette letter per pixel (`.` = transparent, at most 16x16), and rendered to textures at boot (wired up in a later M3 task). Game code refers to sprites only by texture key.
+
+- `palette.ts` - letter -> hex (`PALETTE`); `grid.ts` - `parseGrid`, `gridBounds`, `validateActor`.
+- `actors.ts` - `ACTORS`: each actor has `walk0`, `walk1` (legs swapped, or body bobbed) and `hit` (white flash, `>_<` face, one row lower). Always draw facing right; flipping is runtime.
+- `pickups.ts` - 8x8 two-frame pickups.
+- To add an actor: append an `ActorArt` to `ACTORS`; `npx vitest run src/art` validates it (width/rows, letters, bounds, hit differs from walk0).
+
+## Audio Assets (Future)
+
+When you add sounds:
 
 ```typescript
 // In BootScene.preload()
