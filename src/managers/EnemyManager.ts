@@ -1,6 +1,6 @@
 import { DEPTH, GAME_CONFIG } from "@/config/constants";
 import type { Rng } from "@/core/rng";
-import { buildSpawnSchedule, dueEvents } from "@/core/waves";
+import { buildSpawnSchedule } from "@/core/waves";
 import {
   createEnemyState,
   steer,
@@ -46,7 +46,7 @@ export class EnemyManager {
   private activeBuf: Sprite[] = [];
   private out: Steer = { vx: 0, vy: 0, fire: false };
   private wave = 1;
-  private prevElapsed = 0;
+  private cursor = 0; // next unfired index into schedule
   private rng!: Rng;
 
   constructor(scene: Phaser.Scene) {
@@ -74,7 +74,7 @@ export class EnemyManager {
     this.clearAll();
     this.wave = wave;
     this.rng = rng;
-    this.prevElapsed = 0;
+    this.cursor = 0;
     const waves = wavesData.waves;
     const def = waves.find((w) => w.wave === wave) ?? waves[waves.length - 1];
     this.schedule = buildSpawnSchedule({ ...def, wave });
@@ -84,15 +84,27 @@ export class EnemyManager {
     if (dtMs <= 0) return;
     const dt = dtMs / 1000;
 
-    // Each scheduled event fires exactly once: (prev, now]
-    for (const ev of dueEvents(this.schedule, this.prevElapsed, elapsedS)) {
-      this.telegraph(ev, player);
+    // Schedule is sorted: fire each event once when its time has passed
+    const sched = this.schedule;
+    while (this.cursor < sched.length && sched[this.cursor].time < elapsedS) {
+      this.telegraph(sched[this.cursor++], player);
     }
-    this.prevElapsed = elapsedS;
 
     this.updateTelegraphs(dt);
     this.updateEnemies(dt, player);
     this.updateBolts();
+  }
+
+  /** Dev: spawn `count` of an enemy at random arena points (silent no-op past the pool cap). */
+  debugSpawn(id: string, count: number): void {
+    const def = (enemyDefs as Record<string, EnemyDef>)[id];
+    for (let i = 0; def && i < count; i++) {
+      this.spawnEnemy(
+        def,
+        this.rng.int(EDGE_INSET, GAME_CONFIG.WIDTH - EDGE_INSET),
+        this.rng.int(EDGE_INSET, GAME_CONFIG.HEIGHT - EDGE_INSET)
+      );
+    }
   }
 
   /** Apply damage; kills (and may explode) at 0 hp. Returns true if killed. */

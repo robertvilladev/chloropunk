@@ -1,4 +1,5 @@
 import { GAME_CONFIG, SCENE_KEYS } from "@/config/constants";
+import { THEME_CSS } from "@/config/theme";
 import { createRng, type Rng } from "@/core/rng";
 import { addXp, xpToNext } from "@/core/progression";
 import { clampDelta } from "@/core/time";
@@ -294,6 +295,30 @@ export class GameScene extends Phaser.Scene {
     this.inputManager.onKeyPress("ESC", () => {
       this.scene.stop(SCENE_KEYS.UI);
       this.scene.start(SCENE_KEYS.MENU);
+    });
+    if (import.meta.env.DEV) this.setupDevKeys();
+  }
+
+  /** Dev only: F2 spawns 150 peas, F3 toggles an FPS readout. */
+  private setupDevKeys(): void {
+    const kb = this.input.keyboard!;
+    const fps = this.add
+      .text(8, 8, "", { fontFamily: "monospace", fontSize: "14px", color: THEME_CSS.lime })
+      .setDepth(1000)
+      .setScrollFactor(0)
+      .setVisible(false);
+    const spawn = () => this.enemyManager.debugSpawn("pea", 150);
+    const toggle = () => fps.setVisible(!fps.visible);
+    const tick = () => {
+      if (fps.visible) fps.setText(`${Math.round(this.game.loop.actualFps)} fps`);
+    };
+    kb.on("keydown-F2", spawn);
+    kb.on("keydown-F3", toggle);
+    this.events.on(Phaser.Scenes.Events.POST_UPDATE, tick);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      kb.off("keydown-F2", spawn);
+      kb.off("keydown-F3", toggle);
+      this.events.off(Phaser.Scenes.Events.POST_UPDATE, tick);
     });
   }
 
