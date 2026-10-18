@@ -1,9 +1,10 @@
 import { DEPTH } from "@/config/constants";
+import { THEME } from "@/config/theme";
 import type { Rng } from "@/core/rng";
 import { CRIT_MULT, weaponStats, type WeaponStats } from "@/core/weapons";
-import { nearestInRange, slotOffset, spreadAngles } from "@/entities/weaponBehaviors";
+import { inArc, nearestInRange, onBeam, slotOffset, spreadAngles } from "@/entities/weaponBehaviors";
 import type { Juice } from "@/fx/Juice";
-import type { OwnedWeapon, Stats, Tier, Vector2, WeaponDef } from "@/types";
+import type { EnemyDef, OwnedWeapon, Stats, Tier, Vector2, WeaponDef } from "@/types";
 import weaponDefs from "@assets/data/weapons.json";
 import Phaser from "phaser";
 
@@ -18,6 +19,7 @@ export type HitFn = (
 ) => void;
 
 const MAX_PROJECTILES = 200;
+const ARC_SHOW_S = 0.1;
 
 interface Equipped {
   def: WeaponDef;
@@ -26,7 +28,13 @@ interface Equipped {
   timer: number;
   offset: Vector2;
   sprite: Phaser.GameObjects.Image;
+  gfx: Phaser.GameObjects.Graphics | null; // beam / arc flash
+  fxLeft: number; // seconds the flash stays visible
+  orbit: number; // drone angle
+  hits: Map<Sprite, number>; // drone: enemy -> clock time of last hit
 }
+
+const radiusOf = (e: Sprite): number => (e.getData("def") as EnemyDef).radius;
 
 /**
  * WeaponManager - owned weapons sit around the player; each fires at the
@@ -42,6 +50,7 @@ export class WeaponManager {
   private juice!: Juice;
   private angles: number[] = [];
   private slot: Vector2 = { x: 0, y: 0 };
+  private clock = 0; // seconds since create, for drone hit cooldowns
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -72,6 +81,13 @@ export class WeaponManager {
         timer: 0,
         offset: slotOffset(i, o.weapons.length),
         sprite: this.scene.add.image(0, 0, `weapon_${def.id}`).setDepth(DEPTH.PLAYER + 1),
+        gfx:
+          def.behavior === "beam" || def.behavior === "melee-arc"
+            ? this.scene.add.graphics().setDepth(DEPTH.PROJECTILES)
+            : null,
+        fxLeft: 0,
+        orbit: (i / o.weapons.length) * Math.PI * 2,
+        hits: new Map(),
       };
     });
     this.scene.physics.add.overlap(this.projectiles, o.enemyGroup, (p, e) =>
@@ -81,20 +97,28 @@ export class WeaponManager {
 
   update(dtMs: number, player: Vector2, enemies: Sprite[]): void {
     const dt = dtMs / 1000;
+    this.clock += dt;
     const slot = this.slot;
     for (let i = 0; i < this.equipped.length; i++) {
       const w = this.equipped[i];
+      if (w.def.behavior === "orbital") {
+        this.updateDrone(w, player, enemies, dt);
+        continue;
+      }
+      this.fadeFx(w, dt);
       slot.x = player.x + w.offset.x;
       slot.y = player.y + w.offset.y;
       w.sprite.setPosition(slot.x, slot.y);
       w.timer += dt;
-      const target = nearestInRange(slot, w.ws.range, enemies);
+      // Blades reach from the player, everything else from its slot
+      const origin = w.def.behavior === "melee-arc" ? player : slot;
+      const target = nearestInRange(origin, w.ws.range, enemies);
       if (!target) continue;
-      const angle = Math.atan2(target.y - slot.y, target.x - slot.x);
+      const angle = Math.atan2(target.y - origin.y, target.x - origin.x);
       w.sprite.setRotation(angle);
       if (w.timer < w.ws.cooldown) continue;
       w.timer = 0;
-      this.fire(w, slot, angle);
+      this.fire(w, origin, angle, enemies);
     }
     this.updateProjectiles();
   }
@@ -103,6 +127,11 @@ export class WeaponManager {
   clear(): void {
     const list = this.projectiles.children.entries;
     for (let i = 0; i < list.length; i++) this.removeProjectile(list[i] as Sprite);
+    for (const w of this.equipped) {
+      w.hits.clear();
+      w.fxLeft = 0;
+      w.gfx?.clear();
+    }
   }
 
   getProjectileGroup(): Phaser.Physics.Arcade.Group {
@@ -121,7 +150,7 @@ export class WeaponManager {
 
   // ---- behaviours ----
 
-  private fire(w: Equipped, from: Vector2, angle: number): void {
+  private fire(w: Equipped, from: Vector2, angle: number, enemies: Sprite[]): void {
     const p = w.def.params;
     switch (w.def.behavior) {
       case "projectile":
@@ -135,8 +164,89 @@ export class WeaponManager {
       case "explosive":
         this.shoot(w, from, angle, "proj_rocket");
         break;
+      case "beam":
+        this.beam(w, from, angle, enemies);
+        break;
+      case "melee-arc":
+        this.swing(w, from, angle, enemies);
+        break;
       default:
-        break; // beam, melee-arc, orbital: Task 4
+        break; // orbital is driven by updateDrone
+    }
+  }
+
+  private directHit(w: Equipped, e: Sprite, angle: number): void {
+    const crit = this.rollCrit(w);
+    this.hit(e, crit ? w.ws.damage * CRIT_MULT : w.ws.damage, crit, angle, w.def.params.knockback);
+  }
+
+  /** Laser: every enemy on the line, once. */
+  private beam(w: Equipped, from: Vector2, angle: number, enemies: Sprite[]): void {
+    const half = w.def.params.width / 2;
+    for (let i = 0; i < enemies.length; i++) {
+      const e = enemies[i];
+      if (e.active && onBeam(from, angle, w.ws.range, half + radiusOf(e), e)) {
+        this.directHit(w, e, angle);
+      }
+    }
+    const g = w.gfx!;
+    g.clear();
+    g.lineStyle(w.def.params.width, THEME.tier[1]);
+    g.lineBetween(
+      from.x,
+      from.y,
+      from.x + Math.cos(angle) * w.ws.range,
+      from.y + Math.sin(angle) * w.ws.range
+    );
+    g.setAlpha(1);
+    w.fxLeft = w.def.params.duration;
+  }
+
+  /** Blade: every enemy in the front arc, once. */
+  private swing(w: Equipped, from: Vector2, angle: number, enemies: Sprite[]): void {
+    const arc = w.def.params.arc;
+    for (let i = 0; i < enemies.length; i++) {
+      const e = enemies[i];
+      if (e.active && inArc(from, angle, arc, w.ws.range + radiusOf(e), e)) {
+        this.directHit(w, e, Math.atan2(e.y - from.y, e.x - from.x));
+      }
+    }
+    const half = ((arc / 2) * Math.PI) / 180;
+    const g = w.gfx!;
+    g.clear();
+    g.fillStyle(THEME.text, 0.35);
+    g.slice(from.x, from.y, w.ws.range, angle - half, angle + half);
+    g.fillPath();
+    g.setAlpha(1);
+    w.fxLeft = ARC_SHOW_S;
+  }
+
+  private fadeFx(w: Equipped, dt: number): void {
+    if (!w.gfx || w.fxLeft <= 0) return;
+    w.fxLeft -= dt;
+    const total = w.def.behavior === "beam" ? w.def.params.duration : ARC_SHOW_S;
+    if (w.fxLeft <= 0) w.gfx.clear();
+    else w.gfx.setAlpha(w.fxLeft / total);
+  }
+
+  /** Drone: circles the player, ticks each touched enemy at most once per cooldown. */
+  private updateDrone(w: Equipped, player: Vector2, enemies: Sprite[], dt: number): void {
+    w.orbit += w.def.params.orbitSpeed * dt;
+    const x = player.x + Math.cos(w.orbit) * w.ws.range;
+    const y = player.y + Math.sin(w.orbit) * w.ws.range;
+    w.sprite.setPosition(x, y).setRotation(w.orbit);
+    const reach = w.def.params.hitRadius;
+    for (let i = 0; i < enemies.length; i++) {
+      const e = enemies[i];
+      if (!e.active) continue;
+      const dx = e.x - x;
+      const dy = e.y - y;
+      const r = reach + radiusOf(e);
+      if (dx * dx + dy * dy > r * r) continue;
+      const last = w.hits.get(e);
+      if (last !== undefined && this.clock - last < w.ws.cooldown) continue;
+      w.hits.set(e, this.clock);
+      this.directHit(w, e, Math.atan2(dy, dx));
     }
   }
 
