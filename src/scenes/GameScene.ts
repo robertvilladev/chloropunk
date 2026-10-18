@@ -2,7 +2,6 @@ import { SCENE_KEYS } from "@/config/constants";
 import { THEME_CSS } from "@/config/theme";
 import { createRng, type Rng } from "@/core/rng";
 import { addXp, xpToNext } from "@/core/progression";
-import { newRun } from "@/core/run";
 import { computeStats } from "@/core/stats";
 import { clampDelta } from "@/core/time";
 import { waveDuration } from "@/core/waves";
@@ -80,15 +79,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Receive run state from the shop; no data means a fresh run
+   * Receive run state (new from LoadoutScene, or carried from the shop)
    */
-  init(data: { run?: RunState }) {
-    const fresh = !data.run;
-    const urlSeed = Number(new URLSearchParams(window.location.search).get("seed"));
-    this.run =
-      data.run ??
-      newRun(Number.isInteger(urlSeed) && urlSeed !== 0 ? urlSeed : Date.now(), "pistol");
-    if (fresh) console.info(`Run seed: ${this.run.seed}`);
+  init(data: { run: RunState }) {
+    this.run = data.run;
   }
 
   /**

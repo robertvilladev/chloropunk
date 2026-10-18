@@ -38,6 +38,7 @@ export const SCENE_KEYS = {
   GAME_OVER: "GameOverScene",
   VICTORY: "VictoryScene",
   LEVEL_UP: "LevelUpScene",
+  LOADOUT: "LoadoutScene",
 } as const;
 
 export const ASSET_KEYS = {

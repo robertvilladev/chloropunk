@@ -2,6 +2,7 @@ import { BootScene } from "@/scenes/BootScene";
 import { GameScene } from "@/scenes/GameScene";
 import { GameOverScene } from "@/scenes/GameOverScene";
 import { LevelUpScene } from "@/scenes/LevelUpScene";
+import { LoadoutScene } from "@/scenes/LoadoutScene";
 import { MenuScene } from "@/scenes/MenuScene";
 import { ShopScene } from "@/scenes/ShopScene";
 import { UIScene } from "@/scenes/UIScene";
@@ -41,6 +42,7 @@ export const phaserConfig: Phaser.Types.Core.GameConfig = {
     GameOverScene,
     VictoryScene,
     LevelUpScene,
+    LoadoutScene,
   ],
 
   scale: {
