@@ -25,3 +25,9 @@ export const THEME = {
   }),
   tier: TIER_HEX.map(num),
 };
+
+export const FONTS = {
+  display: "Bungee, Impact, sans-serif",
+  ui: "IBM Plex Mono, monospace",
+  pixel: "VT323, monospace",
+} as const;

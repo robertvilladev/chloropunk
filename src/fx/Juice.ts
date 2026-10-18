@@ -1,11 +1,9 @@
 import { DEPTH } from "@/config/constants";
-import { THEME, THEME_CSS } from "@/config/theme";
+import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import { loadSettings } from "@/core/settings";
 import Phaser from "phaser";
 
 const MAX_NUMBERS = 40; // per pool (normal, crit)
-const PIXEL_FONT = "VT323, monospace";
-const DISPLAY_FONT = "Bungee, Impact, sans-serif";
 const LOW_HP = 0.25;
 const MAX_BLASTS = 8;
 const SHAKES = {
@@ -62,7 +60,7 @@ export class Juice {
     if (!t) {
       t = this.scene.add
         .text(0, 0, "", {
-          fontFamily: PIXEL_FONT,
+          fontFamily: FONTS.pixel,
           fontSize: crit ? "36px" : "24px",
           color: crit ? THEME_CSS.lime : THEME_CSS.text,
         })
@@ -151,7 +149,7 @@ export class Juice {
     const texts = layers.map(([dx, color]) =>
       this.scene.add
         .text(w / 2 + dx, h / 3, text, {
-          fontFamily: DISPLAY_FONT,
+          fontFamily: FONTS.display,
           fontSize: "64px",
           color,
         })

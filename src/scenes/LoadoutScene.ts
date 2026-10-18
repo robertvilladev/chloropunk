@@ -1,12 +1,12 @@
 import { SCENE_KEYS } from "@/config/constants";
-import { THEME, THEME_CSS } from "@/config/theme";
+import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import { newRun } from "@/core/run";
 import { BASE_STATS } from "@/core/stats";
 import { weaponStats } from "@/core/weapons";
 import type { WeaponDef } from "@/types";
 import weaponDefs from "@assets/data/weapons.json";
 import Phaser from "phaser";
-import { DISPLAY_FONT, onKeys, text } from "./ui";
+import { onKeys, text } from "./ui";
 
 const STARTERS = ["pistol", "shotgun", "blade"] as const;
 
@@ -19,7 +19,7 @@ export class LoadoutScene extends Phaser.Scene {
   create() {
     this.cameras.main.setBackgroundColor(THEME.bg);
     this.add
-      .text(400, 90, "PICK YOUR WEAPON", { fontFamily: DISPLAY_FONT, fontSize: "36px", color: THEME_CSS.lime })
+      .text(400, 90, "PICK YOUR WEAPON", { fontFamily: FONTS.display, fontSize: "36px", color: THEME_CSS.lime })
       .setOrigin(0.5);
 
     STARTERS.forEach((id, i) => {

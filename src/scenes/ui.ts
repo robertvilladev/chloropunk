@@ -1,9 +1,7 @@
-import { THEME_CSS } from "@/config/theme";
+import { FONTS, THEME_CSS } from "@/config/theme";
 import Phaser from "phaser";
 
 // Placeholder widgets for the M2 menus; M3 restyles them per the mockups.
-export const UI_FONT = "IBM Plex Mono, monospace";
-export const DISPLAY_FONT = "Bungee, Impact, sans-serif";
 
 export function text(
   scene: Phaser.Scene,
@@ -13,7 +11,7 @@ export function text(
   size = 14,
   color: string = THEME_CSS.text
 ): Phaser.GameObjects.Text {
-  return scene.add.text(x, y, value, { fontFamily: UI_FONT, fontSize: `${size}px`, color });
+  return scene.add.text(x, y, value, { fontFamily: FONTS.ui, fontSize: `${size}px`, color });
 }
 
 /** A clickable text button; `primary` = lime action colour. */
@@ -30,7 +28,7 @@ export function button(
   const fg = primary ? THEME_CSS.limeInk : THEME_CSS.text;
   const b = scene.add
     .text(x, y, label, {
-      fontFamily: UI_FONT,
+      fontFamily: FONTS.ui,
       fontSize: "14px",
       color: enabled ? fg : THEME_CSS.textMuted,
       backgroundColor: enabled ? bg : THEME_CSS.surface2,

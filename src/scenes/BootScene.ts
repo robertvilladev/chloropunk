@@ -1,5 +1,6 @@
 import { SCENE_KEYS } from "@/config/constants";
-import { THEME } from "@/config/theme";
+import { FONTS, THEME, THEME_CSS } from "@/config/theme";
+import { FONT_SPECS, loadFonts } from "./fonts";
 import Phaser from "phaser";
 
 /**
@@ -23,8 +24,8 @@ export class BootScene extends Phaser.Scene {
   create() {
     console.log("✓ BootScene: Assets loaded");
 
-    // Start the menu scene
-    this.scene.start(SCENE_KEYS.MENU);
+    // Canvas text can't trigger webfont loads; wait (max 3s) so Bungee never falls back to Impact
+    void loadFonts(document.fonts, FONT_SPECS, 3000).then(() => this.scene.start(SCENE_KEYS.MENU));
   }
 
   private createLoadingBar() {
@@ -37,8 +38,9 @@ export class BootScene extends Phaser.Scene {
       height / 2 - 50,
       "Loading...",
       {
+        fontFamily: FONTS.ui,
         fontSize: "32px",
-        color: "#ffffff",
+        color: THEME_CSS.text,
       }
     );
     loadingText.setOrigin(0.5);

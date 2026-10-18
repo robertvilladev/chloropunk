@@ -1,5 +1,5 @@
 import { SCENE_KEYS } from "@/config/constants";
-import { THEME, THEME_CSS } from "@/config/theme";
+import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import { combine, combinePairs, sellWeapon, weaponBuyMode } from "@/core/inventory";
 import { createRng, type Rng } from "@/core/rng";
 import {
@@ -18,7 +18,7 @@ import type { ItemDef, Offer, RunState, Stats, WeaponDef } from "@/types";
 import itemDefs from "@assets/data/items.json";
 import weaponDefs from "@assets/data/weapons.json";
 import Phaser from "phaser";
-import { DISPLAY_FONT, button, onKeys, text } from "./ui";
+import { button, onKeys, text } from "./ui";
 
 const weapons = weaponDefs as Record<string, WeaponDef>;
 const items = itemDefs as Record<string, ItemDef>;
@@ -174,7 +174,7 @@ export class ShopScene extends Phaser.Scene {
     };
     const stats = this.stats();
 
-    add(this.add.text(20, 14, `SHOP · WAVE ${this.run.wave}`, { fontFamily: DISPLAY_FONT, fontSize: "26px", color: THEME_CSS.lime }));
+    add(this.add.text(20, 14, `SHOP · WAVE ${this.run.wave}`, { fontFamily: FONTS.display, fontSize: "26px", color: THEME_CSS.lime }));
     add(text(this, 780, 20, `SCRAP ${this.run.scrap}`, 20, THEME_CSS.lime).setOrigin(1, 0));
 
     this.shop.offers.forEach((o, i) => this.renderOffer(add, o, i, stats));

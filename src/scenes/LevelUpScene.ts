@@ -1,12 +1,12 @@
 import { SCENE_KEYS } from "@/config/constants";
-import { THEME, THEME_CSS } from "@/config/theme";
+import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import { applyUpgrade, rollUpgrades, type UpgradeChoice } from "@/core/levelup";
 import { createRng, type Rng } from "@/core/rng";
 import { rerollCost } from "@/core/shop";
 import { STAT_LABELS, computeStats, statDiff } from "@/core/stats";
 import type { RunState } from "@/types";
 import Phaser from "phaser";
-import { DISPLAY_FONT, button, onKeys, text } from "./ui";
+import { button, onKeys, text } from "./ui";
 
 /**
  * LevelUpScene - one pick per pending level (1 of 4 stat upgrades, paid
@@ -90,7 +90,7 @@ export class LevelUpScene extends Phaser.Scene {
     };
     add(
       this.add
-        .text(400, 70, "LEVEL UP", { fontFamily: DISPLAY_FONT, fontSize: "48px", color: THEME_CSS.lime })
+        .text(400, 70, "LEVEL UP", { fontFamily: FONTS.display, fontSize: "48px", color: THEME_CSS.lime })
         .setOrigin(0.5)
     );
     add(text(this, 400, 118, `LV ${this.run.level} · ${this.run.pendingLevelUps} pick(s) left`, 16, THEME_CSS.pink).setOrigin(0.5));
