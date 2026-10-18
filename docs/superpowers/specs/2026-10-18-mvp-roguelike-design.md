@@ -160,7 +160,10 @@ and readable, and is revisited after the loop is fun.
 (palette, type, frames, button styles) and mockups of the key screens (HUD,
 level-up, shop, run summary, main menu, loadout pick) in Claude Design, based
 on *Sudoku 2077*. The owner reviews them; **screen/UI milestones wait for that
-review**, gameplay milestones don't. The game's UI follows the mockups. Tokens are mirrored in
+review**, gameplay milestones don't. The game's UI follows the mockups.
+
+- Design system: https://claude.ai/artifact/9DHSn6f62spjQLXLqsCQee
+- Screen mockups: https://claude.ai/artifact/273SegSV2CBPS1HX96Yr17 Tokens are mirrored in
 code as a single `theme.ts`.
 
 ## 7. Screens
