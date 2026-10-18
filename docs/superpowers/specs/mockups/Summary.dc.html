@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Run summary</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=VT323&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#c6ff3d}a:hover{color:#edf2ec}
+</style>
+</helmet>
+<div style="position: relative; width: 800px; height: 600px; overflow: hidden; background: #12151b; color: #edf2ec; font-family: 'IBM Plex Mono', ui-monospace, monospace; display: flex; align-items: center; justify-content: center">
+  <div style="position: relative; width: 560px; box-sizing: border-box; padding: 28px; background: #1c2029; border: 2px solid #ff6b3d; box-shadow: 6px 6px 0 #2c323d; display: flex; flex-direction: column; gap: 22px">
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 10px; letter-spacing: 0.18em; color: #ff6b3d">SIGNAL LOST · WAVE 07</span>
+      <h1 style="margin: 0; font-family: Bungee, sans-serif; font-weight: 400; font-size: 40px; line-height: 1; color: #ff6b3d; text-shadow: 3px 0 0 #ff4f9a, -3px 0 0 #3ad8ff">FLATLINED</h1>
+      <p style="margin: 0; font-size: 13px; color: #949ca3">Taken down by a Spud Tank. The Onion King waits on wave 10.</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; font-variant-numeric: tabular-nums">
+      <div style="display: flex; flex-direction: column; gap: 2px; padding: 10px; background: #171a21"><span style="font-size: 9px; letter-spacing: 0.14em; color: #949ca3">WAVE</span><b style="font-family: VT323, monospace; font-weight: 400; font-size: 32px; line-height: 0.9">7/10</b></div>
+      <div style="display: flex; flex-direction: column; gap: 2px; padding: 10px; background: #171a21"><span style="font-size: 9px; letter-spacing: 0.14em; color: #949ca3">SMASHED</span><b style="font-family: VT323, monospace; font-weight: 400; font-size: 32px; line-height: 0.9">412</b></div>
+      <div style="display: flex; flex-direction: column; gap: 2px; padding: 10px; background: #171a21"><span style="font-size: 9px; letter-spacing: 0.14em; color: #949ca3">DAMAGE</span><b style="font-family: VT323, monospace; font-weight: 400; font-size: 32px; line-height: 0.9">18.4k</b></div>
+      <div style="display: flex; flex-direction: column; gap: 2px; padding: 10px; background: #171a21"><span style="font-size: 9px; letter-spacing: 0.14em; color: #949ca3">LEVEL</span><b style="font-family: VT323, monospace; font-weight: 400; font-size: 32px; line-height: 0.9; color: #ff9cc6">9</b></div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 10px; letter-spacing: 0.14em; color: #949ca3">FINAL BUILD</span>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: flex-end">
+        <div style="width: 40px; height: 40px; background: #171a21; border: 2px solid #3ad8ff"></div>
+        <div style="width: 40px; height: 40px; background: #171a21; border: 2px solid #ffb13b"></div>
+        <div style="width: 40px; height: 40px; background: #171a21; border: 2px solid #a9b0b8"></div>
+        <div style="width: 40px; height: 40px; background: #171a21; border: 2px solid #ff4f9a"></div>
+        <span style="width: 12px"></span>
+        <div style="width: 28px; height: 28px; background: #171a21; border: 2px solid #a9b0b8"></div>
+        <div style="width: 28px; height: 28px; background: #171a21; border: 2px solid #3ad8ff"></div>
+        <div style="width: 28px; height: 28px; background: #171a21; border: 2px solid #3ad8ff"></div>
+        <div style="width: 28px; height: 28px; background: #171a21; border: 2px solid #ff4f9a"></div>
+        <div style="width: 28px; height: 28px; background: #171a21; border: 2px solid #ffb13b"></div>
+      </div>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 4px">
+      <button type="button" style="min-height: 44px; padding: 0 18px; border: 2px solid #2c323d; background: transparent; color: #edf2ec; font: 600 13px 'IBM Plex Mono', monospace; letter-spacing: 0.1em; cursor: pointer">MENU</button>
+      <button type="button" style="min-height: 52px; padding: 0 28px; border: 0; background: #c6ff3d; color: #12151b; font: 400 18px Bungee, sans-serif; cursor: pointer; box-shadow: 4px 4px 0 #ff4f9a">ONE MORE RUN</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":800,"height":600}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

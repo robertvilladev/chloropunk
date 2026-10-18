@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>In-game HUD</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=VT323&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#c6ff3d}a:hover{color:#edf2ec}
+</style>
+</helmet>
+<div style="position: relative; width: 800px; height: 600px; overflow: hidden; background: #12151b; color: #edf2ec; font-family: 'IBM Plex Mono', ui-monospace, monospace">
+  <div aria-hidden="true" style="position: absolute; inset: 0; background-color: #13161c; background-image: linear-gradient(#0b0d11 2px, transparent 2px), linear-gradient(90deg, #0b0d11 2px, transparent 2px); background-size: 48px 48px"></div>
+  <div aria-hidden="true" style="position: absolute; left: 96px; top: 96px; width: 46px; height: 46px; background: #181b22"></div>
+  <div aria-hidden="true" style="position: absolute; left: 576px; top: 432px; width: 46px; height: 46px; background: #181b22"></div>
+  <div aria-hidden="true" style="position: absolute; left: 672px; top: 240px; width: 46px; height: 46px; background: #181b22"></div>
+  <div aria-hidden="true" style="position: absolute; left: 240px; top: 480px; width: 140px; height: 40px; border-radius: 50%; background: rgba(255,79,154,0.08); box-shadow: inset 0 0 0 2px rgba(198,255,61,0.10)"></div>
+  <div aria-hidden="true" style="position: absolute; left: 270px; top: 494px; width: 60px; height: 3px; background: rgba(198,255,61,0.25)"></div>
+  <div aria-hidden="true" style="position: absolute; left: 520px; top: 96px; width: 44px; height: 44px; border-radius: 50%; background: #0f1116; border: 3px solid #262b34; box-shadow: inset 0 0 0 6px #0f1116, inset 0 0 0 8px #262b34"></div>
+  <div aria-hidden="true" style="position: absolute; left: 0; top: 0; bottom: 0; width: 18px; background: repeating-linear-gradient(0deg, #c6ff3d 0 12px, #0b0d11 12px 24px); opacity: 0.3"></div>
+  <div aria-hidden="true" style="position: absolute; right: 0; top: 0; bottom: 0; width: 18px; background: repeating-linear-gradient(0deg, #c6ff3d 0 12px, #0b0d11 12px 24px); opacity: 0.3"></div>
+
+  <div aria-hidden="true" style="position: absolute; left: 376px; top: 252px; width: 48px; height: 56px">
+    <div style="position: absolute; left: 6px; bottom: 0; width: 36px; height: 10px; border-radius: 50%; background: rgba(13,14,23,0.75)"></div>
+    <div style="position: absolute; left: 2px; bottom: -2px; width: 44px; height: 14px; border-radius: 50%; border: 2px solid rgba(255,79,154,0.55)"></div>
+    <img src="/_blob/acb58c979228886bd1a639a312a0ff5a" alt="" style="position: absolute; left: 0; top: 0; width: 48px; height: 48px; image-rendering: pixelated">
+  </div>
+  <div aria-hidden="true" style="position: absolute; left: 426px; top: 262px; width: 120px; height: 3px; background: linear-gradient(90deg, rgba(198,255,61,0), #c6ff3d); transform: rotate(-26deg); transform-origin: left center; box-shadow: 0 0 8px #c6ff3d"></div>
+  <div aria-hidden="true" style="position: absolute; left: 520px; top: 200px; width: 10px; height: 10px; background: #ffffff; transform: rotate(45deg); box-shadow: 0 0 12px #c6ff3d"></div>
+
+  <div aria-hidden="true" style="position: absolute; left: 520px; top: 186px; width: 48px; height: 56px">
+    <div style="position: absolute; left: 8px; bottom: 0; width: 32px; height: 8px; border-radius: 50%; background: rgba(13,14,23,0.75)"></div>
+    <img src="/_blob/d5d18a2471de1fdee265bdfeb18eb548" alt="" style="position: absolute; left: 0; top: 0; width: 48px; height: 48px; image-rendering: pixelated; filter: brightness(2.2) saturate(0)">
+  </div>
+  <span style="position: absolute; left: 558px; top: 160px; font-family: VT323, monospace; font-size: 24px; color: #edf2ec; text-shadow: 2px 2px 0 #0d0e17">12</span>
+  <div aria-hidden="true" style="position: absolute; left: 640px; top: 130px; width: 48px; height: 56px">
+    <div style="position: absolute; left: 8px; bottom: 0; width: 32px; height: 8px; border-radius: 50%; background: rgba(13,14,23,0.75)"></div>
+    <img src="/_blob/d5d18a2471de1fdee265bdfeb18eb548" alt="" style="position: absolute; left: 0; top: 0; width: 48px; height: 48px; image-rendering: pixelated; transform: scaleX(-1)">
+  </div>
+  <div aria-hidden="true" style="position: absolute; left: 610px; top: 410px; width: 48px; height: 56px">
+    <div style="position: absolute; left: 8px; bottom: 0; width: 32px; height: 8px; border-radius: 50%; background: rgba(13,14,23,0.75)"></div>
+    <img src="/_blob/d5d18a2471de1fdee265bdfeb18eb548" alt="" style="position: absolute; left: 0; top: 0; width: 48px; height: 48px; image-rendering: pixelated">
+  </div>
+
+  <div aria-hidden="true" style="position: absolute; left: 180px; top: 374px; width: 70px; height: 4px; background: linear-gradient(90deg, transparent, rgba(229,57,53,0.6))"></div>
+  <div aria-hidden="true" style="position: absolute; left: 190px; top: 392px; width: 60px; height: 3px; background: linear-gradient(90deg, transparent, rgba(255,210,63,0.6))"></div>
+  <div aria-hidden="true" style="position: absolute; left: 250px; top: 356px; width: 48px; height: 56px; transform: rotate(-20deg)">
+    <div style="position: absolute; left: 8px; bottom: 0; width: 32px; height: 8px; border-radius: 50%; background: rgba(13,14,23,0.75)"></div>
+    <img src="/_blob/a47520f1985c4e45ffb5fd6df3d7c7bd" alt="" style="position: absolute; left: 0; top: 0; width: 48px; height: 48px; image-rendering: pixelated">
+  </div>
+  <span style="position: absolute; left: 262px; top: 314px; font-family: VT323, monospace; font-size: 36px; color: #c6ff3d; text-shadow: 2px 2px 0 #0d0e17, 0 0 12px rgba(198,255,61,0.6)">31!</span>
+
+  <div aria-hidden="true" style="position: absolute; left: 164px; top: 170px; width: 72px; height: 76px">
+    <div style="position: absolute; left: 10px; bottom: 0; width: 52px; height: 12px; border-radius: 50%; background: rgba(13,14,23,0.75)"></div>
+    <img src="/_blob/f6503ace8515ee0f90aebfb7dd24c6b5" alt="" style="position: absolute; left: 0; top: 0; width: 72px; height: 72px; image-rendering: pixelated">
+  </div>
+
+  <div aria-hidden="true" style="position: absolute; left: 630px; top: 300px; width: 48px; height: 56px">
+    <div style="position: absolute; left: 8px; bottom: 0; width: 32px; height: 8px; border-radius: 50%; background: rgba(13,14,23,0.75)"></div>
+    <img src="/_blob/84b82300a4abadf4a7e0eee9491d645f" alt="" style="position: absolute; left: 0; top: 0; width: 48px; height: 48px; image-rendering: pixelated; transform: scaleX(-1)">
+  </div>
+  <div aria-hidden="true" style="position: absolute; left: 520px; top: 306px; width: 14px; height: 4px; background: #4ff0ff; box-shadow: 0 0 10px #4ff0ff"></div>
+  <div aria-hidden="true" style="position: absolute; left: 470px; top: 296px; width: 8px; height: 3px; background: rgba(79,240,255,0.5)"></div>
+
+  <div aria-hidden="true" style="position: absolute; left: 110px; top: 440px; width: 48px; height: 56px">
+    <div style="position: absolute; left: 8px; bottom: 0; width: 32px; height: 8px; border-radius: 50%; background: rgba(13,14,23,0.75)"></div>
+    <img src="/_blob/a28094db737918b9e8a47008708f66d5" alt="" style="position: absolute; left: 0; top: 0; width: 48px; height: 48px; image-rendering: pixelated">
+  </div>
+  <div aria-hidden="true" style="position: absolute; left: 456px; top: 452px; width: 48px; height: 56px">
+    <div style="position: absolute; left: 8px; bottom: 0; width: 32px; height: 8px; border-radius: 50%; background: rgba(13,14,23,0.75)"></div>
+    <img src="/_blob/a28094db737918b9e8a47008708f66d5" alt="" style="position: absolute; left: 0; top: 0; width: 48px; height: 48px; image-rendering: pixelated; transform: scaleX(-1)">
+  </div>
+
+  <div aria-hidden="true" style="position: absolute; left: 300px; top: 140px; width: 1px; height: 1px">
+    <i style="position: absolute; left: -18px; top: -10px; width: 6px; height: 6px; background: #4caf50"></i>
+    <i style="position: absolute; left: 14px; top: -16px; width: 6px; height: 6px; background: #2e7d32"></i>
+    <i style="position: absolute; left: 20px; top: 8px; width: 6px; height: 6px; background: #4caf50"></i>
+    <i style="position: absolute; left: -12px; top: 14px; width: 6px; height: 6px; background: #4ff0ff"></i>
+    <i style="position: absolute; left: 2px; top: -24px; width: 4px; height: 4px; background: #ffffff"></i>
+    <i style="position: absolute; left: -26px; top: 4px; width: 4px; height: 4px; background: #2e7d32"></i>
+  </div>
+  <div aria-hidden="true" style="position: absolute; left: 296px; top: 136px; width: 8px; height: 8px; background: #c6ff3d; transform: rotate(45deg); box-shadow: 0 0 10px rgba(198,255,61,0.7)"></div>
+  <div aria-hidden="true" style="position: absolute; left: 420px; top: 330px; width: 8px; height: 8px; background: #c6ff3d; transform: rotate(45deg); box-shadow: 0 0 10px rgba(198,255,61,0.7)"></div>
+  <div aria-hidden="true" style="position: absolute; left: 404px; top: 318px; width: 2px; height: 2px; background: rgba(198,255,61,0.6); box-shadow: 4px 4px 0 rgba(198,255,61,0.4), 8px 8px 0 rgba(198,255,61,0.2)"></div>
+
+  <div style="position: absolute; left: 30px; top: 16px; width: 220px; display: flex; flex-direction: column; gap: 6px">
+    <div style="position: relative; height: 20px; background: #171a21; border: 2px solid #2c323d">
+      <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 70%; background: #ff6b3d"></div>
+      <div style="position: absolute; inset: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 6px; font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums"><span>HP</span><span>84/120</span></div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px">
+      <div style="position: relative; flex-grow: 1; height: 6px; background: #171a21"><div style="position: absolute; left: 0; top: 0; bottom: 0; width: 45%; background: #ff4f9a"></div></div>
+      <span style="font-size: 10px; letter-spacing: 0.14em; color: #ff9cc6">LV 4</span>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 50%; top: 10px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 0">
+    <span style="font-family: Bungee, sans-serif; font-size: 12px; color: #c6ff3d; text-shadow: 1px 0 0 #ff4f9a, -1px 0 0 #3ad8ff">WAVE 07 / 10</span>
+    <span style="font-family: VT323, monospace; font-size: 40px; line-height: 0.9; font-variant-numeric: tabular-nums">0:31</span>
+  </div>
+
+  <div style="position: absolute; right: 30px; top: 16px; display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: #171a21; border: 2px solid #2c323d">
+    <span aria-hidden="true" style="width: 10px; height: 10px; background: #c6ff3d; transform: rotate(45deg)"></span>
+    <span style="font-family: VT323, monospace; font-size: 26px; line-height: 0.8; color: #c6ff3d; font-variant-numeric: tabular-nums">146</span>
+    <span style="font-size: 10px; letter-spacing: 0.14em; color: #949ca3">SCRAP</span>
+  </div>
+
+  <div style="position: absolute; left: 30px; bottom: 16px; display: flex; gap: 6px" aria-label="Equipped weapons">
+    <div style="width: 36px; height: 36px; background: #171a21; border: 2px solid #3ad8ff"></div>
+    <div style="width: 36px; height: 36px; background: #171a21; border: 2px solid #a9b0b8"></div>
+    <div style="width: 36px; height: 36px; background: #171a21; border: 2px solid #ff4f9a"></div>
+    <div style="width: 36px; height: 36px; background: #171a21; border: 2px dashed #2c323d"></div>
+    <div style="width: 36px; height: 36px; background: #171a21; border: 2px dashed #2c323d"></div>
+    <div style="width: 36px; height: 36px; background: #171a21; border: 2px dashed #2c323d"></div>
+  </div>
+  <span style="position: absolute; right: 30px; bottom: 16px; font-size: 10px; letter-spacing: 0.14em; color: #949ca3">ESC PAUSE</span>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":800,"height":600}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

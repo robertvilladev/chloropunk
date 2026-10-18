@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Main menu</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=VT323&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#c6ff3d}a:hover{color:#edf2ec}
+</style>
+</helmet>
+<div style="position: relative; width: 800px; height: 600px; overflow: hidden; background: #12151b; color: #edf2ec; font-family: 'IBM Plex Mono', ui-monospace, monospace">
+  <div aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 0; height: 22px; display: flex; align-items: flex-start">
+    <div style="width: 80px; height: 8px; background: #c6ff3d"></div>
+    <div style="width: 16px; height: 22px; background: #c6ff3d"></div>
+    <div style="width: 120px; height: 8px; background: #c6ff3d"></div>
+    <div style="width: 16px; height: 14px; background: #c6ff3d"></div>
+    <div style="width: 200px; height: 8px; background: #c6ff3d"></div>
+    <div style="width: 16px; height: 18px; background: #c6ff3d"></div>
+    <div style="flex-grow: 1; height: 8px; background: #c6ff3d"></div>
+  </div>
+  <div aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 0; height: 200px; display: flex; align-items: flex-end; gap: 4px">
+    <div style="width: 90px; height: 120px; background: #171a21"></div>
+    <div style="width: 60px; height: 180px; background: #1c2029; border-top: 4px solid #ff4f9a"></div>
+    <div style="width: 110px; height: 100px; background: #171a21"></div>
+    <div style="width: 70px; height: 150px; background: #1c2029"></div>
+    <div style="width: 130px; height: 90px; background: #171a21; border-top: 4px solid #c6ff3d"></div>
+    <div style="width: 60px; height: 170px; background: #1c2029"></div>
+    <div style="width: 100px; height: 120px; background: #171a21"></div>
+    <div style="flex-grow: 1; height: 140px; background: #1c2029; border-top: 4px solid #ff4f9a"></div>
+  </div>
+  <div aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 0; height: 40px; background: #0d0f13"></div>
+
+  <div style="position: absolute; left: 56px; top: 96px; width: 440px; display: flex; flex-direction: column; gap: 18px">
+    <span style="font-size: 10px; letter-spacing: 0.24em; color: #949ca3">NEO-HARVEST DISTRICT · 2077</span>
+    <h1 style="margin: 0; font-family: Bungee, sans-serif; font-weight: 400; font-size: 64px; line-height: 0.92; color: #c6ff3d; text-shadow: 3px 0 0 #ff4f9a, -3px 0 0 #3ad8ff">VEGGIE<br>VENDETTA</h1>
+    <p style="margin: 0; font-size: 14px; color: #949ca3">The harvest mutated. You didn't.</p>
+    <div style="display: flex; flex-direction: column; gap: 14px; width: 260px; margin-top: 10px">
+      <button type="button" style="min-height: 52px; border: 0; background: #c6ff3d; color: #12151b; font: 400 18px Bungee, sans-serif; cursor: pointer; box-shadow: 4px 4px 0 #ff4f9a">START RUN</button>
+      <button type="button" style="min-height: 44px; border: 2px solid #2c323d; background: transparent; color: #edf2ec; font: 600 13px 'IBM Plex Mono', monospace; letter-spacing: 0.1em; cursor: pointer">SETTINGS</button>
+    </div>
+    <div style="display: flex; gap: 24px; font-size: 11px; letter-spacing: 0.1em; color: #949ca3; margin-top: 4px">
+      <span>BEST <b style="color: #ff9cc6; font-variant-numeric: tabular-nums">WAVE 7</b></span>
+      <span>RUNS <b style="color: #ff9cc6; font-variant-numeric: tabular-nums">12</b></span>
+    </div>
+  </div>
+
+  <div aria-hidden="true" style="position: absolute; left: 540px; top: 236px; width: 192px; height: 208px">
+    <div style="position: absolute; left: 36px; bottom: 0; width: 120px; height: 18px; background: rgba(13,14,23,0.85); border-radius: 50%"></div>
+    <img src="/_blob/acb58c979228886bd1a639a312a0ff5a" alt="" style="position: absolute; left: 0; top: 0; width: 192px; height: 192px; image-rendering: pixelated">
+  </div>
+  <span style="position: absolute; left: 16px; bottom: 12px; font-family: VT323, monospace; font-size: 16px; color: #4a5260">v0.2.0 // MVP</span>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":800,"height":600}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

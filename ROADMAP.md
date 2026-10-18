@@ -9,7 +9,7 @@ Status: ✅ done · 🚧 in progress · ⬜ planned. "(proposed)" = inferred by 
 |---|---|---|
 | M1 Waves & feel | ✅ done — merged in PR #14 | [M1 plan](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) |
 | M2 Build-crafting | 🚧 in review — branch `feat/m2-build-crafting` | [M2 plan](docs/superpowers/plans/2026-10-18-m2-build-crafting.md) |
-| M3 Look | ⬜ planned (UI work waits for owner review of the mockups) | not written |
+| M3 Look | ⬜ planned — mockups approved 2026-10-18; plan awaiting owner review | [M3 plan](docs/superpowers/plans/2026-10-18-m3-look.md) |
 | M4 Boss & run end | ⬜ planned | not written |
 
 ## M1 — Waves & feel ✅
@@ -37,13 +37,12 @@ Spec: [§4 steps 1, 4, 5; §5 stats/weapons/items](docs/superpowers/specs/2026-1
 - ⬜ Balance pass by playtest (see carry-overs)
 
 ## M3 — Look ⬜
-Spec: [§6 look and feel, §7 screens](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md). UI tasks wait for owner review of the mockups.
+Spec: [§6 look and feel, §7 screens](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md). Mockups approved ([copies](docs/superpowers/specs/mockups/README.md)). Owner scope: fighter + 5 enemies get 2-frame walk + hit frame, pickups get sprites, no weapon/item icons, plain graphite floor, **SFX moved to M4**.
 
 - ⬜ Sprite-grid pipeline: Claude-authored pixel data → textures at boot, sprites referenced by key only (start from `docs/superpowers/specs/sprite-grids.py`)
 - ⬜ Replace placeholder shapes (generated in `BootScene`) with sprites; 3/4 y-sorting, soft shadows, neon glow FX
 - ⬜ "Chlorophyll" `theme.ts` applied to every screen (Menu, Shop, Victory, UIScene still hardcode colours); fonts Bungee / IBM Plex Mono / VT323
 - ⬜ HUD, level-up, shop, loadout and menu screens per the mockups; stat previews on hover; mouse + keyboard
-- ⬜ A few SFX (spec: "audio beyond a few SFX" is a non-goal)
 
 ## M4 — Boss & run end ⬜
 Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md)
@@ -52,6 +51,7 @@ Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-
 - ⬜ Victory / defeat run summary (wave reached, kills, damage dealt, build) with "one more run"; replaces the "RUN COMPLETE" stopgap
 - ⬜ Pause menu (resume, settings, quit run) and settings (volume, screen-shake toggle — the shake toggle exists, volume does not)
 - ⬜ Best-wave high-score record
+- ⬜ A few SFX (moved from M3 by the owner; spec: "audio beyond a few SFX" is a non-goal)
 - ⬜ Final README pass
 
 ## Carry-overs / known issues
