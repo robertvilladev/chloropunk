@@ -24,6 +24,7 @@ function paint(ctx: CanvasRenderingContext2D, g: Grid, ox: number, oy: number): 
 export function buildActorTextures(scene: Phaser.Scene): void {
   const { w, h } = ACTOR_FRAME;
   for (const a of ACTORS) {
+    if (scene.textures.exists(a.key)) continue;
     const tex = scene.textures.createCanvas(a.key, w * FRAMES.length, h);
     if (!tex) continue;
     const ctx = tex.getContext();
@@ -44,6 +45,7 @@ export function buildActorTextures(scene: Phaser.Scene): void {
 /** pickup_scrap: frames "0"/"1", 24x24, with a faint lighter halo ring around the nut. */
 export function buildPickupTextures(scene: Phaser.Scene): void {
   for (const p of PICKUPS) {
+    if (scene.textures.exists(p.key)) continue;
     const tex = scene.textures.createCanvas(p.key, PICKUP_PX * p.frames.length, PICKUP_PX);
     if (!tex) continue;
     const ctx = tex.getContext();
@@ -66,6 +68,7 @@ export function buildPickupTextures(scene: Phaser.Scene): void {
 
 /** vignette: 800x600, transparent centre, danger-coloured edge (alpha 0.7 -> 0 over 90px). Canvas-safe. */
 export function buildFxTextures(scene: Phaser.Scene): void {
+  if (scene.textures.exists("vignette")) return;
   const [w, h, edge] = [800, 600, 90];
   const rgb = `${THEME.danger >> 16},${(THEME.danger >> 8) & 255},${THEME.danger & 255}`;
   const tex = scene.textures.createCanvas("vignette", w, h);

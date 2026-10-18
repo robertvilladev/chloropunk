@@ -41,7 +41,7 @@ Spec: [§6 look and feel, §7 screens](docs/superpowers/specs/2026-10-18-mvp-rog
 
 - ✅ Sprite-grid pipeline: grids in `src/art/`, baked to textures at boot (`textures.ts`); fighter, 5 enemies and scrap on screen with walk/hit frames
 - ✅ 3/4 y-sorted depth (`core/depth.ts` `actorDepth`, bands in `DEPTH`): actors in [40, 50), projectiles 60, FX 70, numbers 90
-- ⬜ Soft shadows, neon glow FX
+- ✅ Soft shadows, neon glow FX (one camera-level bloom on WebGL; baked 1px halos on Canvas)
 - ⬜ "Chlorophyll" `theme.ts` applied to every screen (Menu, Shop, Victory, UIScene still hardcode colours); fonts Bungee / IBM Plex Mono / VT323
 - ⬜ HUD, level-up, shop, loadout and menu screens per the mockups; stat previews on hover; mouse + keyboard
 

@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 // Files still holding raw colour literals; each themed task removes its files (Task 11 asserts empty).
 const PENDING = [
   "GameOverScene.ts", "VictoryScene.ts", "MenuScene.ts", "UIScene.ts",
-  "BootScene.ts",
 ];
 const sources = import.meta.glob<string>(["/src/**/*.ts", "!/src/**/*.test.ts", "!/src/art/**", "!/src/config/theme.ts"], {
   query: "?raw",

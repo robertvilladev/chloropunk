@@ -14,6 +14,7 @@ import { WeaponManager } from "@/managers/WeaponManager";
 import { WorldManager } from "@/managers/WorldManager";
 import type { EnemyDef, RunState, Stats } from "@/types";
 import enemyDefs from "@assets/data/enemies.json";
+import { applyGlow } from "@/fx/glow";
 import Phaser from "phaser";
 
 const BANNER_MS = 900; // matches Juice.banner total duration
@@ -92,6 +93,7 @@ export class GameScene extends Phaser.Scene {
     // 1. Create world/environment
     this.worldManager = new WorldManager(this);
     this.worldManager.create();
+    applyGlow(this);
 
     // 2. Initialize input handling
     this.inputManager = new InputManager(this);
