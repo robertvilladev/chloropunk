@@ -7,7 +7,7 @@ Status: ✅ done · 🚧 in progress · ⬜ planned. "(proposed)" = inferred by 
 
 | Milestone | Status | Plan |
 |---|---|---|
-| M1 Waves & feel | ✅ done — PR #14, not merged yet | [M1 plan](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) |
+| M1 Waves & feel | ✅ done — merged in PR #14 | [M1 plan](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) |
 | M2 Build-crafting | 🚧 planning | M2 plan (being written in `docs/superpowers/plans/`) |
 | M3 Look | ⬜ planned (UI work waits for owner review of the mockups) | not written |
 | M4 Boss & run end | ⬜ planned | not written |
