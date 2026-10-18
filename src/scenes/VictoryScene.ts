@@ -1,4 +1,5 @@
 ﻿import { SCENE_KEYS } from "@/config/constants";
+import type { RunState } from "@/types";
 import Phaser from "phaser";
 /**
  * VictoryScene - Displayed when player completes the round
@@ -7,10 +8,12 @@ import Phaser from "phaser";
 export class VictoryScene extends Phaser.Scene {
   private enemiesKilled: number = 0;
   private coinsEarned: number = 0;
+  private run?: RunState;
   constructor() {
     super({ key: SCENE_KEYS.VICTORY });
   }
-  init(data: { enemiesKilled?: number; coinsEarned?: number }) {
+  init(data: { enemiesKilled?: number; coinsEarned?: number; run?: RunState }) {
+    this.run = data.run;
     this.enemiesKilled = data.enemiesKilled || 0;
     this.coinsEarned = data.coinsEarned || 0;
   }
@@ -65,7 +68,7 @@ export class VictoryScene extends Phaser.Scene {
     // Continue button click
     continueButton.on("pointerdown", () => {
       this.scene.stop(SCENE_KEYS.UI);
-      this.scene.start(SCENE_KEYS.SHOP, { coins: this.coinsEarned });
+      this.scene.start(SCENE_KEYS.SHOP, { run: this.run });
     });
     // Main menu button
     const menuButton = this.add.text(width / 2, height / 2 + 150, "MAIN MENU", {

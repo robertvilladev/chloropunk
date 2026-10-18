@@ -61,7 +61,7 @@ export class MenuScene extends Phaser.Scene {
     startButton.on("pointerdown", () => {
       this.cameras.main.fadeOut(300);
       this.time.delayedCall(300, () => {
-        this.scene.start(SCENE_KEYS.GAME);
+        this.scene.start(SCENE_KEYS.GAME, {}); // {} = fresh run (Phaser reuses old data otherwise)
       });
     });
 

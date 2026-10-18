@@ -1,4 +1,5 @@
 import { DEPTH, SCENE_KEYS } from "@/config/constants";
+import type { GameScene } from "@/scenes/GameScene";
 import Phaser from "phaser";
 
 /**
@@ -18,6 +19,10 @@ export class UIScene extends Phaser.Scene {
   }
 
   create() {
+    // Phaser reuses scene instances, so reset per-run fields
+    this.speedButtons = [];
+    this.gameSpeed = 1;
+
     // Top-left: Health
     this.healthText = this.add.text(20, 20, "❤ Health: 100/100", {
       fontSize: "18px",
@@ -80,8 +85,20 @@ export class UIScene extends Phaser.Scene {
       gameScene.events.on("playerHealthChanged", this.updateHealth, this);
       gameScene.events.on("timerUpdate", this.updateTimer, this);
       gameScene.events.on("coinCollected", this.updateCoins, this);
-      gameScene.events.on("upgradePurchased", this.updateStats, this);
+      this.refresh();
     }
+  }
+
+  /**
+   * Pull current values from GameScene (its initial events fire before this scene exists)
+   */
+  private refresh(): void {
+    const stats = (this.scene.get(SCENE_KEYS.GAME) as GameScene).getPlayerStats();
+    this.updateHealth(stats.health, stats.maxHealth);
+    this.updateCoins(stats.coins);
+    this.statsText.setText(
+      `Wave: ${stats.wave}\nHealth: ${stats.health}/${stats.maxHealth}\nSpeed: ${stats.speed}\nDamage: ${stats.damage}`
+    );
   }
 
   /**
@@ -205,23 +222,5 @@ export class UIScene extends Phaser.Scene {
     }
 
     this.timerText.setText(`Time: ${timeStr}`);
-  }
-
-  /**
-   * Update stats display
-   */
-  updateStats(upgrade: { stat: string; value: number }): void {
-    // Fetch current player stats and update the display
-    const gameScene = this.scene.get(SCENE_KEYS.GAME) as any; // Use 'any' if GameScene type is not imported
-    if (gameScene && typeof gameScene.getPlayerStats === "function") {
-      const stats = gameScene.getPlayerStats();
-      this.statsText.setText(
-        `Health: ${stats.health}/${stats.maxHealth}\nSpeed: ${stats.speed}\nDamage: ${stats.damage}\nCoins: ${stats.coins}`
-      );
-    } else {
-      // Fallback: log the upgrade and warn about missing getPlayerStats
-      console.log(`Stat upgraded: ${upgrade.stat} +${upgrade.value}`);
-      console.warn("GameScene.getPlayerStats() not implemented.");
-    }
   }
 }
