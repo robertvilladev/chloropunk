@@ -191,6 +191,9 @@ Spawn rate: 0.8 enemies/s in wave 1, 1.3 in wave 5, 2.1 in wave 9 and 2.3 in wav
 4. **Prices:** +20% per wave, then +25% for the last 3 shops (after waves 8, 9 and 10). The enemy growth knobs were re-fitted to this curve, which also fixed the earlier wave 9 miss.
 5. **Alive cap 40:** approved.
 6. **Late difficulty:** as recommended. Keep the re-fitted curve and tune by playtest with §9 data.
+7. **Aim logging** (relayed by the project-status session): log real aim once per run so the sim can be recalibrated. Done: see §10.
+
+**Conflicting relay.** The project-status session relayed "prices +25%/wave". The owner's direct ruling in this session was +20% per wave, then +25% for the last 3 shops; that is what shipped.
 
 Applied 2026-10-20 (§10).
 
@@ -281,4 +284,19 @@ Effort: small to medium, no new dependencies. This is listed in ROADMAP as **(pr
 Before this change the same wave 1 gave 8 kills, 8 scrap, 18 alive and 40 HP.
 
 After wave 1, three of the four shop offers were affordable: Lucky Chip 14, Synth Steak 12, Mono Blade 18. Only the shotgun at 24 was out of reach. Waves 4–9 haven't been playtested yet; the run log in §9 is the next step.
+
+**Aim logging.** `RunState.aim` totals projectile shots, projectiles that hit at least once, and kills. `GameScene` adds each wave's numbers and prints one line when the run ends (on death, or after the last wave clears):
+
+```
+[balance] run ended wave 4: 80 shots, 75 hit (94%), 69 kills (86% of shots)
+```
+
+Beam, blade and drone attacks are not counted as shots.
+
+**After merging main** (pause menu and 2× rendering), I replayed waves 1–3 the same way. They reproduced the table above exactly. Hit rates were 15/15, 22/23 and 35/38.
+
+**Finding:**
+- A stationary player's projectiles land 94% of the time, against the sim's `aim = 0.7`.
+- The sim still matches kills, because its `aim` also absorbs other losses: overkill, knockback, and time with no target in range.
+- Recalibrate it from logs of real, moving players, not from this one stationary number.
 

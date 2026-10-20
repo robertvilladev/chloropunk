@@ -10,7 +10,7 @@ Status: ✅ done · 🚧 in progress · ⬜ planned. "(proposed)" = inferred by 
 | M1 Waves & feel | ✅ done — merged in PR #14 | [M1 plan](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) |
 | M2 Build-crafting | ✅ done — merged in PR #16 | [M2 plan](docs/superpowers/plans/2026-10-18-m2-build-crafting.md) |
 | M3 Look | ✅ done — merged in PR #17 | [M3 plan](docs/superpowers/plans/2026-10-18-m3-look.md) |
-| Balance & progression | ✅ applied on branch `claude/balance-4dadcd` (waves 1–3 playtested; 4–9 by sim only) | [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) |
+| Balance & progression | ✅ applied on branch `claude/balance-4dadcd`, merged with main (waves 1–3 playtested; 4–9 by sim only) | [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) |
 | M4 Boss & run end | ⬜ planned | not written |
 
 ## M1 — Waves & feel ✅
@@ -61,7 +61,8 @@ Spec: [§4, §5 waves, §9 numbers](docs/superpowers/specs/2026-10-18-mvp-roguel
 - ✅ Target metrics per wave band as `checkTargets()` assertions (`sim.targets.ts`, `sim.test.ts`)
 - ✅ Owner decisions (design §8): threat-budget waves, enemy growth, prices +20%/wave then +25% for the last 3 shops, starter tuning (9 HP peas/peppers, pistol 0.7 s + pierce 1), alive cap 40
 - ✅ Approved numbers applied: threat-budget `waves.json` + `scaling`, 9 HP peas/peppers, pistol 0.7 s + pierce 1, price curve in `weapons.ts`, `MAX_ALIVE` 40; browser playtest waves 1–3 ([design §10](docs/superpowers/specs/2026-10-20-balance-design.md#10-applied-2026-10-20))
-- ⬜ Playtest waves 4–9 (moving player) and recalibrate the sim's `aim`/`contactRate`
+- ✅ Real aim logged once per run (`[balance] run ended …` console line; `RunState.aim`); stationary playtest: 94% of projectiles hit
+- ⬜ Playtest waves 4–9 (moving player) and recalibrate the sim's `aim`/`contactRate` from the aim log
 - ⬜ (proposed) Run log for measuring real games: local per-run/per-wave records, export, report vs sim ([design §9](docs/superpowers/specs/2026-10-20-balance-design.md#9-measuring-real-games-proposed))
 
 ## M4 — Boss & run end ⬜

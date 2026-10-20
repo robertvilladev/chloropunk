@@ -1,6 +1,7 @@
 import { SCENE_KEYS } from "@/config/constants";
 import { THEME_CSS } from "@/config/theme";
 import { createRng, type Rng } from "@/core/rng";
+import { aimReport } from "@/core/run";
 import { addXp, xpToNext } from "@/core/progression";
 import { computeStats } from "@/core/stats";
 import { clampDelta } from "@/core/time";
@@ -14,6 +15,7 @@ import { WeaponManager } from "@/managers/WeaponManager";
 import { WorldManager } from "@/managers/WorldManager";
 import type { EnemyDef, RunState, Stats } from "@/types";
 import enemyDefs from "@assets/data/enemies.json";
+import wavesData from "@assets/data/waves.json";
 import { applyGlow } from "@/fx/glow";
 import { onKeys } from "@/scenes/ui";
 import Phaser from "phaser";
@@ -340,6 +342,13 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  /** Add this wave's shots, hits and kills to the run totals. */
+  private bankAim(): void {
+    const a = this.run.aim;
+    const t = this.weaponManager.tally;
+    this.run.aim = { shots: a.shots + t.shots, hits: a.hits + t.hits, kills: a.kills + this.enemiesKilled };
+  }
+
   /**
    * Handle player death
    */
@@ -348,6 +357,8 @@ export class GameScene extends Phaser.Scene {
     this.isGameOver = true;
 
     console.log("Game Over!");
+    this.bankAim();
+    console.info(aimReport(this.run.aim, this.run.wave));
     this.scene.pause();
     this.scene.launch(SCENE_KEYS.GAME_OVER);
   }
@@ -360,6 +371,8 @@ export class GameScene extends Phaser.Scene {
     this.isGameOver = true;
 
     console.log("Round Complete!");
+    this.bankAim();
+    if (this.run.wave >= wavesData.waves.length) console.info(aimReport(this.run.aim, this.run.wave));
     // Clear enemies and bolts first so nothing can hurt the player after the
     // wave is over (no drops, no blasts)
     this.enemyManager.clearAll();

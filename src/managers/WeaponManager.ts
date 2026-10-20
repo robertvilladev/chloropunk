@@ -52,6 +52,8 @@ export class WeaponManager {
   private angles: number[] = [];
   private slot: Vector2 = { x: 0, y: 0 };
   private clock = 0; // seconds since create, for drone hit cooldowns
+  /** Projectiles fired and projectiles that hit at least once, this wave. */
+  readonly tally = { shots: 0, hits: 0 };
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -70,6 +72,8 @@ export class WeaponManager {
     juice: Juice;
   }): void {
     this.rng = o.rng;
+    this.tally.shots = 0;
+    this.tally.hits = 0;
     this.hit = o.hit;
     this.juice = o.juice;
     this.enemyGroup = o.enemyGroup;
@@ -260,6 +264,7 @@ export class WeaponManager {
   private shoot(w: Equipped, from: Vector2, angle: number, key: string): void {
     const pr = this.projectiles.get(from.x, from.y, key) as Sprite | null;
     if (!pr) return;
+    this.tally.shots++;
     pr.setTexture(key);
     pr.enableBody(true, from.x, from.y, true, true);
     pr.setSize(...HIT_SIZE[key as keyof typeof HIT_SIZE]);
@@ -279,6 +284,7 @@ export class WeaponManager {
 
   private onProjectileHit(pr: Sprite, enemy: Sprite): void {
     if (!pr.active || !enemy.active || pr.getData("last") === enemy) return;
+    if (pr.getData("last") === null) this.tally.hits++; // first enemy this projectile touched
     const w = pr.getData("w") as Equipped;
     if (w.def.behavior === "explosive") {
       this.explode(pr, w);

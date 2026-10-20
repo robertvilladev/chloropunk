@@ -25,7 +25,7 @@ assets/data/            enemies.json, waves.json, weapons.json, character.json, 
 - **Pure first.** Anything testable without Phaser goes in `src/core/` (`*.test.ts` beside it).
 - **Data-driven.** No content hardcoded in scenes. New enemy = JSON entry + (at most) one behaviour in `enemyBehaviors.ts`; new weapon = JSON entry using one of the 6 behaviours in `WeaponManager`; new item or wave = JSON.
 - **Stats.** `computeStats(run)` (base + items + level-up mods, clamped) is the only place player stats are derived; HUD, shop and level-up previews call it.
-- **Run state.** `RunState` (wave, scrap, XP/level, pending level-ups, seed, weapons, items, level-up mods, locked offers) is handed between scenes; `newRun()` makes a fresh one. Phaser reuses scene instances, so reset per-run fields in `create()`.
+- **Run state.** `RunState` (wave, scrap, XP/level, pending level-ups, seed, aim tally, weapons, items, level-up mods, locked offers) is handed between scenes; `newRun()` makes a fresh one. Phaser reuses scene instances, so reset per-run fields in `create()`.
 - **Pooling.** Enemies, projectiles and pickups are pooled (`disableBody`/`enableBody`); no per-frame allocation in hot loops. Target: 60 fps with ~150 enemies.
 - **Cleanup.** Remove scene event listeners on shutdown.
 - **Seeded RNG** (`createRng`) for spawn, shop and level-up rolls.
