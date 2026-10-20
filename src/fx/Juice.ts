@@ -1,4 +1,4 @@
-import { DEPTH } from "@/config/constants";
+import { DEPTH, GAME_CONFIG } from "@/config/constants";
 import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import { loadSettings } from "@/core/settings";
 import Phaser from "phaser";
@@ -16,7 +16,7 @@ const SHAKES = {
  */
 export class Juice {
   private scene: Phaser.Scene;
-  private reducedShake: boolean;
+  private reducedShake = false;
   // Two pre-styled pools so a hit only calls setText (each style change re-renders)
   private pools = { normal: [] as Phaser.GameObjects.Text[], crit: [] as Phaser.GameObjects.Text[] };
   private next = { normal: 0, crit: 0 };
@@ -28,11 +28,11 @@ export class Juice {
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
-    this.reducedShake = loadSettings().reducedShake; // read once
+    this.refreshSettings();
     this.vignette = scene.add
       .image(0, 0, "vignette")
       .setOrigin(0)
-      .setDisplaySize(scene.scale.width, scene.scale.height)
+      .setDisplaySize(GAME_CONFIG.WIDTH, GAME_CONFIG.HEIGHT)
       .setDepth(DEPTH.UI - 1)
       .setAlpha(0);
     this.burst = scene.add
@@ -43,6 +43,11 @@ export class Juice {
         alpha: { start: 1, end: 0 },
       })
       .setDepth(DEPTH.FX);
+  }
+
+  /** Re-read persisted settings (after the pause menu may have changed them). */
+  refreshSettings(): void {
+    this.reducedShake = loadSettings().reducedShake;
   }
 
   damageNumber(x: number, y: number, amount: number, crit: boolean): void {

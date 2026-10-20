@@ -1,4 +1,4 @@
-import { SCENE_KEYS } from "@/config/constants";
+import { SCENE_KEYS, GAME_CONFIG } from "@/config/constants";
 import { buildActorTextures, buildFxTextures, buildPickupTextures, registerAnimations } from "@/art/textures";
 import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import { FONT_SPECS, loadFonts } from "./fonts";
@@ -32,8 +32,8 @@ export class BootScene extends Phaser.Scene {
   }
 
   private createLoadingBar() {
-    const width = this.cameras.main.width;
-    const height = this.cameras.main.height;
+    const width = GAME_CONFIG.WIDTH;
+    const height = GAME_CONFIG.HEIGHT;
 
     // Loading text
     const loadingText = this.add.text(

@@ -1,4 +1,4 @@
-import { DEPTH, SCENE_KEYS } from "@/config/constants";
+import { DEPTH, SCENE_KEYS, GAME_CONFIG } from "@/config/constants";
 import wavesData from "@assets/data/waves.json";
 import { THEME, THEME_CSS } from "@/config/theme";
 import { formatClock } from "@/core/labels";
@@ -38,8 +38,8 @@ export class UIScene extends Phaser.Scene {
     this.speedButtons = [];
     this.gameSpeed = 1;
     this.hpFlash = undefined;
-    const w = this.cameras.main.width;
-    const h = this.cameras.main.height;
+    const w = GAME_CONFIG.WIDTH;
+    const h = GAME_CONFIG.HEIGHT;
 
     // Top-left: HP bar, then XP bar + level
     panel(this, 30, 16, 220, 24, { fill: THEME.surface2 }).setStrokeStyle(2, THEME.line).setDepth(DEPTH.UI);
@@ -113,7 +113,7 @@ export class UIScene extends Phaser.Scene {
 
   /** Right-align label, value and gem inside a box sized to the text. */
   private layoutScrap(): void {
-    const right = this.cameras.main.width - 30;
+    const right = GAME_CONFIG.WIDTH - 30;
     this.scrapLabel.setX(right - 10);
     this.scrapValue.setX(this.scrapLabel.x - this.scrapLabel.width - 8);
     this.scrapGem.setX(this.scrapValue.x - this.scrapValue.width - 8 - 5);
@@ -125,7 +125,7 @@ export class UIScene extends Phaser.Scene {
    */
   private createSpeedControls(h: number): void {
     const speeds = [1, 2, 3];
-    const startX = this.cameras.main.width - 120;
+    const startX = GAME_CONFIG.WIDTH - 120;
     speeds.forEach((speed, index) => {
       this.speedButtons.push(this.createSpeedButton(startX + index * 35, h - 30, speed));
     });

@@ -1,5 +1,5 @@
 import wavesData from "@assets/data/waves.json";
-import { SCENE_KEYS } from "@/config/constants";
+import { SCENE_KEYS, GAME_CONFIG } from "@/config/constants";
 import type { RunState } from "@/types";
 import { THEME, THEME_CSS } from "@/config/theme";
 import { button, panel, scanlines, statTile, text } from "./ui";
@@ -21,7 +21,7 @@ export class VictoryScene extends Phaser.Scene {
     this.scrapEarned = data.scrapEarned || 0;
   }
   create() {
-    const { width, height } = this.cameras.main;
+    const { WIDTH: width, HEIGHT: height } = GAME_CONFIG;
     const cx = width / 2;
     this.cameras.main.setBackgroundColor(THEME.bg);
     scanlines(this);
