@@ -5,12 +5,12 @@ Phaser scenes orchestrate; one manager per domain does the work; rules that don'
 ```
 src/
   main.ts, config/      Phaser config, constants (GAME_CONFIG, SCENE_KEYS, DEPTH), theme.ts tokens
-  scenes/               Boot, Menu, Loadout, Game (+ UIScene HUD), Victory, LevelUp, Shop, GameOver; ui.ts themed widget kit (button, panel, tierChip, statTile, scanlines), fonts.ts font-load gate
+  scenes/               Boot, Menu, Loadout, Game (+ UIScene HUD, PauseScene overlay), Victory, LevelUp, Shop, GameOver; ui.ts themed widget kit (button, panel, tierChip, statTile, scanlines), fonts.ts font-load gate
   managers/             Player, Input, World, Weapon, Enemy, Pickup
   entities/             enemyBehaviors.ts, weaponBehaviors.ts (pure movement/targeting geometry)
   core/                 pure logic: rng, waves (spawn schedule), progression (XP/levels), run (newRun),
                         stats (computeStats), weapons (tier stats, prices), inventory (slots, merge, sell),
-                        shop (offers, reroll, lock), levelup (picks), time, settings, depth (y-sort, facing), labels (tier names, clock, truncate)
+                        shop (offers, reroll, lock), levelup (picks), time, settings, menuNav (keyboard selection), depth (y-sort, facing), labels (tier names, clock, truncate)
   fx/glow.ts            isWebGL() guard + applyGlow() (single camera bloom, WebGL only); renderer picked via ?renderer=canvas|webgl (config/renderer.ts)
   fx/Juice.ts           all hit/kill feedback (numbers, flash, shake, bursts, vignette, banners)
   art/                  sprite grids (actors, pickups, palette), body.ts (pure hitbox offset), textures.ts bakes CanvasTextures + walk anims at boot
@@ -30,6 +30,6 @@ assets/data/            enemies.json, waves.json, weapons.json, character.json, 
 
 ## Run flow
 
-`MenuScene` → `LoadoutScene` (pick 1 of 3 weapons) → `GameScene` runs wave *n* (spawns from the `waves.json` schedule via `EnemyManager`, drops via `PickupManager`, feedback via `Juice`) → wave ends, scrap auto-collected → `VictoryScene` (wave cleared) → `LevelUpScene` once per level gained → `ShopScene` → next wave. HP 0 → `GameOverScene` (try again → loadout). After wave 10 the run ends in a stopgap "RUN COMPLETE"; the boss and run summary are M4.
+`MenuScene` → `LoadoutScene` (pick 1 of 3 weapons) → `GameScene` runs wave *n* (spawns from the `waves.json` schedule via `EnemyManager`, drops via `PickupManager`, feedback via `Juice`) → wave ends, scrap auto-collected → `VictoryScene` (wave cleared) → `LevelUpScene` once per level gained → `ShopScene` → next wave. HP 0 → `GameOverScene` (try again → loadout). Esc/P or the window losing focus during a wave calls `GameScene.openPause`: it pauses GameScene and UIScene (physics, timers and tweens freeze and continue where they stopped) and launches `PauseScene` (resume / reduced-shake toggle via `core/settings` / quit run with confirmation → stops UI and Game, back to the menu). Not opened once the wave is over (`isGameOver`). After wave 10 the run ends in a stopgap "RUN COMPLETE"; the boss and run summary are M4.
 
 What's planned next (look, boss, run summary) lives in [ROADMAP.md](ROADMAP.md); don't duplicate it here.

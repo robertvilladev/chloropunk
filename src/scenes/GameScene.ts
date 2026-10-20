@@ -15,6 +15,7 @@ import { WorldManager } from "@/managers/WorldManager";
 import type { EnemyDef, RunState, Stats } from "@/types";
 import enemyDefs from "@assets/data/enemies.json";
 import { applyGlow } from "@/fx/glow";
+import { onKeys } from "@/scenes/ui";
 import Phaser from "phaser";
 
 const BANNER_MS = 900; // matches Juice.banner total duration
@@ -274,14 +275,35 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Set up scene-level controls (ESC to menu, etc.)
+   * Set up scene-level controls (Esc/P and losing focus open the pause menu)
    */
   private setupSceneControls(): void {
-    this.inputManager.onKeyPress("ESC", () => {
-      this.scene.stop(SCENE_KEYS.UI);
-      this.scene.start(SCENE_KEYS.MENU);
+    onKeys(this, (e) => {
+      if (e.code === "Escape" || e.code === "KeyP") this.openPause();
+    });
+    const ev = this.game.events;
+    ev.on(Phaser.Core.Events.BLUR, this.openPause, this);
+    ev.on(Phaser.Core.Events.HIDDEN, this.openPause, this);
+    const onResume = () => this.juice.refreshSettings();
+    this.events.on(Phaser.Scenes.Events.RESUME, onResume);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      ev.off(Phaser.Core.Events.BLUR, this.openPause, this);
+      ev.off(Phaser.Core.Events.HIDDEN, this.openPause, this);
+      this.events.off(Phaser.Scenes.Events.RESUME, onResume);
     });
     if (import.meta.env.DEV) this.setupDevKeys();
+  }
+
+  /**
+   * Freeze the wave (scene pause halts physics, timers and tweens, so the
+   * banner and timers continue where they stopped) and show PauseScene.
+   * Not while paused already or once the wave is over (banner hand-off, game over).
+   */
+  private openPause(): void {
+    if (this.isGameOver || !this.scene.isActive()) return;
+    this.scene.pause();
+    this.scene.pause(SCENE_KEYS.UI);
+    this.scene.launch(SCENE_KEYS.PAUSE);
   }
 
   /** Dev only: F2 spawns 150 peas, F3 toggles an FPS readout. */
