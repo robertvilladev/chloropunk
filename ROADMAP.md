@@ -57,7 +57,7 @@ Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-
 
 - ⬜ Wave 10 boss: no timer, 2–3 attack patterns, reduced-rate regular spawns as support
 - ⬜ Victory / defeat run summary (wave reached, kills, damage dealt, build) with "one more run"; replaces the "RUN COMPLETE" stopgap
-- ⬜ Pause menu (resume, settings, quit run) and settings (volume, screen-shake toggle — the shake toggle exists, volume does not)
+- ✅ Pause menu (resume, settings, quit run) — moved forward from M4 by the owner: Esc/P or window blur opens `PauseScene`; settings has the reduced-shake toggle; quit asks for confirmation. Volume setting still ⬜ (no audio yet)
 - ⬜ Best-wave high-score record
 - ➡️ SFX/music: parked as an idea (see the parking lot), no longer in M4
 - ⬜ Final README pass

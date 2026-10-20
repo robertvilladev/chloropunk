@@ -39,6 +39,7 @@ export const SCENE_KEYS = {
   VICTORY: "VictoryScene",
   LEVEL_UP: "LevelUpScene",
   LOADOUT: "LoadoutScene",
+  PAUSE: "PauseScene",
 } as const;
 
 export const DEPTH = {
