@@ -312,7 +312,6 @@ export class GameScene extends Phaser.Scene {
     const fps = this.add
       .text(8, 8, "", { fontFamily: "monospace", fontSize: "14px", color: THEME_CSS.lime })
       .setDepth(1000)
-      .setScrollFactor(0)
       .setVisible(false);
     const spawn = () => this.enemyManager.debugSpawn("pea", 150);
     const toggle = () => fps.setVisible(!fps.visible);

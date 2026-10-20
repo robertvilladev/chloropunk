@@ -1,4 +1,4 @@
-import { SCENE_KEYS } from "@/config/constants";
+import { SCENE_KEYS, GAME_CONFIG } from "@/config/constants";
 import { THEME, THEME_CSS } from "@/config/theme";
 import { button, panel, scanlines, text } from "./ui";
 import Phaser from "phaser";
@@ -19,7 +19,7 @@ export class GameOverScene extends Phaser.Scene {
   }
 
   create() {
-    const { width, height } = this.cameras.main;
+    const { WIDTH: width, HEIGHT: height } = GAME_CONFIG;
     const cx = width / 2;
     const accent = this.complete ? THEME.lime : THEME.danger;
     this.cameras.main.setBackgroundColor(THEME.bg);

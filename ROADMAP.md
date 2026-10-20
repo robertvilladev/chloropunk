@@ -45,6 +45,13 @@ Spec: [§6 look and feel, §7 screens](docs/superpowers/specs/2026-10-18-mvp-rog
 - ✅ "Chlorophyll" `theme.ts` applied to every screen; fonts Bungee / IBM Plex Mono / VT323
 - ✅ (HUD: no stats panel, 1/2/3 speed buttons dev-only) level-up and shop screens, menu, loadout per the mockups (drag-to-combine and item/weapon icons from the shop mockup not built; (proposed) later); stat previews on hover; mouse + keyboard
 
+## M3.1 — Readability ✅
+Owner playtest: text was jaggy. Cause: an 800×600 canvas upscaled with nearest-neighbour.
+
+- ✅ Canvas now 1600×1200 (2×); every scene keeps its 800×600 coordinates via a camera zoom of 2 centred on the design space (`src/config/view.ts`, applied on each scene start). Arena, physics bounds and spawn edges are unchanged; all `Text` is rasterised at resolution 2. Layouts stay 4:3
+- ✅ Locked shop offers: pink border, pink-tinted face, pink "LOCKED" tab, padlock icon, button reads UNLOCK
+- Rule since then: use `GAME_CONFIG.WIDTH/HEIGHT`, never `cameras.main.width/height` or `scale.width`; no `setScrollFactor(0)` (the zoomed camera is scrolled)
+
 ## M4 — Boss & run end ⬜
 Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md)
 
@@ -52,7 +59,7 @@ Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-
 - ⬜ Victory / defeat run summary (wave reached, kills, damage dealt, build) with "one more run"; replaces the "RUN COMPLETE" stopgap
 - ✅ Pause menu (resume, settings, quit run) — moved forward from M4 by the owner: Esc/P or window blur opens `PauseScene`; settings has the reduced-shake toggle; quit asks for confirmation. Volume setting still ⬜ (no audio yet)
 - ⬜ Best-wave high-score record
-- ⬜ A few SFX (moved from M3 by the owner; spec: "audio beyond a few SFX" is a non-goal)
+- ➡️ SFX/music: parked as an idea (see the parking lot), no longer in M4
 - ⬜ Final README pass
 
 ## Carry-overs / known issues
@@ -79,6 +86,10 @@ Named by the spec as non-goals / later:
 - Meta-progression and unlocks; save files beyond a high score
 - Mobile/touch controls, gamepad, localization
 - Audio beyond a few SFX
+- **SFX / music** (moved out of M4 by the owner; owner leans towards ZzFX SFX plus one CC0 music loop). Options:
+  - ZzFX procedural SFX: ~1 KB, no files
+  - CC0 packs from Kenney.nl or OpenGameArt for SFX and a synthwave loop
+  - AI tools (ElevenLabs SFX, Suno/Udio music); check their licences first
 - Online features: leaderboards, accounts
 - Endless mode, difficulty tiers
 - Swapping Claude-authored sprites for sheets from a pixel-art generator (PixelLab, Retro Diffusion) or an artist — no code change needed, sprites are used by key

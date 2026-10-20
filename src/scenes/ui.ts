@@ -120,3 +120,19 @@ export function onKeys(scene: Phaser.Scene, handler: (e: KeyboardEvent) => void)
   kb.on("keydown", h);
   scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => kb.off("keydown", h));
 }
+
+/** Pink "LOCKED" tab on a card's top edge, same plate style as tierTab; `right` is its right edge. */
+export function lockedTab(scene: Phaser.Scene, right: number, y: number): Phaser.GameObjects.Container {
+  const t = text(scene, 5, 0, "LOCKED", 10, THEME_CSS.limeInk);
+  const bg = scene.add.rectangle(0, 0, t.width + 10, t.height + 2, THEME.pink).setOrigin(0);
+  return scene.add.container(right - bg.width, y - Math.round(bg.height / 2), [bg, t]);
+}
+
+/** 10px padlock (shackle closed when `locked`), centred on (x, 0) of its parent. */
+export function lockIcon(scene: Phaser.Scene, x: number, locked: boolean): Phaser.GameObjects.Graphics {
+  const g = scene.add.graphics({ x, y: 0 });
+  g.lineStyle(1.5, locked ? THEME.pink : THEME.textMuted);
+  g.strokeRect(-4, -1, 8, 6);
+  g.beginPath().moveTo(-2.5, -1).lineTo(-2.5, -3).lineTo(2.5, -3).lineTo(2.5, locked ? -1 : -2).strokePath();
+  return g;
+}

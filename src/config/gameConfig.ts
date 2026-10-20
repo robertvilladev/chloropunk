@@ -9,11 +9,13 @@ import { ShopScene } from "@/scenes/ShopScene";
 import { UIScene } from "@/scenes/UIScene";
 import { VictoryScene } from "@/scenes/VictoryScene";
 import Phaser from "phaser";
-import { GAME_CONFIG } from "./constants";
 import { rendererFromSearch } from "./renderer";
 import { THEME_CSS } from "./theme";
+import { CANVAS_SIZE, applyView, installCrispText } from "./view";
 
 export { rendererFromSearch };
+
+installCrispText(Phaser);
 
 const RENDERER = { auto: Phaser.AUTO, canvas: Phaser.CANVAS, webgl: Phaser.WEBGL };
 
@@ -22,8 +24,8 @@ const RENDERER = { auto: Phaser.AUTO, canvas: Phaser.CANVAS, webgl: Phaser.WEBGL
  */
 export const phaserConfig: Phaser.Types.Core.GameConfig = {
   type: RENDERER[rendererFromSearch(window.location.search)],
-  width: GAME_CONFIG.WIDTH,
-  height: GAME_CONFIG.HEIGHT,
+  width: CANVAS_SIZE.width,
+  height: CANVAS_SIZE.height,
   canvasStyle: "margin: 0 auto;",
   parent: "game-container",
   backgroundColor: THEME_CSS.bg,
@@ -38,6 +40,12 @@ export const phaserConfig: Phaser.Types.Core.GameConfig = {
       debug: new URLSearchParams(window.location.search).has("debug"), // ?debug in the URL
       fps: 60,
     },
+  },
+
+  callbacks: {
+    // every scene (re)start gets a fresh main camera: zoom it onto the 800x600 design space
+    postBoot: (game) =>
+      game.scene.scenes.forEach((s) => s.events.on(Phaser.Scenes.Events.START, () => applyView(s.cameras.main))),
   },
 
   scene: [
