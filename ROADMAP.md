@@ -9,7 +9,8 @@ Status: ✅ done · 🚧 in progress · ⬜ planned. "(proposed)" = inferred by 
 |---|---|---|
 | M1 Waves & feel | ✅ done — merged in PR #14 | [M1 plan](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) |
 | M2 Build-crafting | ✅ done — merged in PR #16 | [M2 plan](docs/superpowers/plans/2026-10-18-m2-build-crafting.md) |
-| M3 Look | ✅ done on branch `claude/m3-look-399102` (awaiting owner review/merge) | [M3 plan](docs/superpowers/plans/2026-10-18-m3-look.md) |
+| M3 Look | ✅ done — merged in PR #17 | [M3 plan](docs/superpowers/plans/2026-10-18-m3-look.md) |
+| Balance & progression | 🚧 design awaiting owner approval (no game data changed yet) | [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) |
 | M4 Boss & run end | ⬜ planned | not written |
 
 ## M1 — Waves & feel ✅
@@ -34,7 +35,7 @@ Spec: [§4 steps 1, 4, 5; §5 stats/weapons/items](docs/superpowers/specs/2026-1
 - ✅ Loadout pick: 1 of 3 starting weapons
 - ✅ Unit tests for stats, shop rolls, rerolls, merging, weapon damage
 - ✅ M1 perf/feel/seed carry-overs (dash lock, tomato farming, fixed spawn draws, pooled bursts)
-- ⬜ Balance pass by playtest (see carry-overs)
+- 🚧 Balance pass — see [Balance & progression](#balance--progression-)
 
 ## M3 — Look ✅
 Spec: [§6 look and feel, §7 screens](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md). Mockups approved ([copies](docs/superpowers/specs/mockups/README.md)). Owner scope: fighter + 5 enemies get 2-frame walk + hit frame, pickups get sprites, no weapon/item icons, plain graphite floor, **SFX moved to M4**.
@@ -44,6 +45,15 @@ Spec: [§6 look and feel, §7 screens](docs/superpowers/specs/2026-10-18-mvp-rog
 - ✅ Soft shadows, neon glow FX (one camera-level bloom on WebGL; baked 1px halos on Canvas)
 - ✅ "Chlorophyll" `theme.ts` applied to every screen; fonts Bungee / IBM Plex Mono / VT323
 - ✅ (HUD: no stats panel, 1/2/3 speed buttons dev-only) level-up and shop screens, menu, loadout per the mockups (drag-to-combine and item/weapon icons from the shop mockup not built; (proposed) later); stat previews on hover; mouse + keyboard
+
+## Balance & progression 🚧
+Spec: [§4, §5 waves, §9 numbers](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md). Design: [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) — **awaiting owner approval**.
+
+- ✅ Diagnosis: wave 1 brings 28 enemy HP/s against ~10 HP/s from the starting pistol (load ≈ 2.8); 7–8 kills, scrap starved (leftovers were already banked)
+- ✅ Headless simulator `src/core/sim.ts` + `npm run sim` report, calibrated to a playtest (wave 1: 8 kills, 40 HP left)
+- ✅ Target metrics per wave band as `checkTargets()` assertions (`sim.proposal.ts`, `sim.test.ts`)
+- ⬜ Owner decisions (design §8): threat-budget waves, enemy growth, price growth 25%/wave, starter tuning, alive cap 40
+- ⬜ Apply approved numbers to `assets/data/` + `waves.ts`/`weapons.ts`, then playtest waves 1–9 and recalibrate the sim
 
 ## M4 — Boss & run end ⬜
 Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md)
@@ -58,7 +68,7 @@ Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-
 ## Carry-overs / known issues
 From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) and the [M2 outcome](docs/superpowers/plans/2026-10-18-m2-build-crafting.md):
 
-- **Balance:** economy untested by a human; a standing pistol earns ~8 scrap in wave 1 vs first-shop prices 11–22. Tune in JSON after a playtest.
+- **Balance:** see [Balance & progression](#balance--progression-); wave 10 (boss) targets come with M4
 - **Perf:** measured in M3 (visible pane, 6 tier-2 weapons, 90–150 peas): 72 fps (the display's refresh) on WebGL with and without bloom and on Canvas, steady 13.9 ms frames; not measured on a slower machine.
 - **Canvas renderer (pre-M3):** death bursts use `particleTint` and the player hit flash uses `setTint`, which Phaser's Canvas renderer doesn't draw (bursts white, no hit tint) — unverified in a browser.
 - **Feel:** no enemy-to-enemy separation
