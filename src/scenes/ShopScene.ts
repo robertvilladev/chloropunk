@@ -19,7 +19,7 @@ import itemDefs from "@assets/data/items.json";
 import weaponDefs from "@assets/data/weapons.json";
 import Phaser from "phaser";
 import { truncate } from "@/core/labels";
-import { button, onKeys, panel, text, tierTab } from "./ui";
+import { button, lockIcon, lockedTab, onKeys, panel, text, tierTab } from "./ui";
 
 const weapons = weaponDefs as Record<string, WeaponDef>;
 const items = itemDefs as Record<string, ItemDef>;
@@ -264,11 +264,13 @@ export class ShopScene extends Phaser.Scene {
     const locked = this.shop.locked[i];
     const focused = i === this.offerFocus;
     const tc = o ? THEME.tier[o.tier - 1] : THEME.line;
-    if (locked) add(this.add.rectangle(x + 4, y + 4, w, h, THEME.pink).setOrigin(0));
+    const border = locked && o ? THEME.pink : tc;
+    if (locked && o) add(this.add.rectangle(x + 4, y + 4, w, h, THEME.pink).setOrigin(0));
     else if (o?.tier === 4) add(this.add.rectangle(x - 4, y - 4, w + 8, h + 8, tc, 0.18).setOrigin(0));
     const card = add(
-      this.add.rectangle(x, y, w, h, THEME.surface).setOrigin(0).setStrokeStyle(focused ? 3 : 2, focused ? THEME.lime : tc)
+      this.add.rectangle(x, y, w, h, THEME.surface).setOrigin(0).setStrokeStyle(focused ? 3 : 2, focused ? THEME.lime : border)
     );
+    if (locked && o) add(this.add.rectangle(x, y, w, h, THEME.pink, 0.08).setOrigin(0));
     if (!o) {
       add(text(this, x + w / 2, y + h / 2, "SOLD", 16, THEME_CSS.textMuted).setOrigin(0.5));
       return;
@@ -276,6 +278,7 @@ export class ShopScene extends Phaser.Scene {
     const status = offerStatus(this.shop, this.run, i);
     const def = o.kind === "weapon" ? weapons[o.id] : items[o.id];
     add(tierTab(this, x + 10, y, o.tier));
+    if (locked) add(lockedTab(this, x + w - 10, y));
     add(text(this, x + 12, y + 12, `[${i + 1}]`, 10, THEME_CSS.textMuted));
     add(
       this.add
@@ -305,7 +308,9 @@ export class ShopScene extends Phaser.Scene {
     add(
       text(this, x + w / 2, y + h - 24, status === "blocked" ? "NO SLOT" : `◆ ${o.price}`, 14, status === "ok" ? THEME_CSS.lime : THEME_CSS.danger).setOrigin(0.5)
     );
-    add(button(this, x + w - 36, y + 14, locked ? "LOCKED" : "LOCK", () => this.lock(i), false, true, { w: locked ? 56 : 40, h: 18, size: 9 }));
+    const bw = locked ? 68 : 56;
+    const lockBtn = add(button(this, x + w - bw / 2 - 8, y + 14, locked ? "UNLOCK" : "LOCK", () => this.lock(i), false, true, { w: bw, h: 18, size: 9 }));
+    lockBtn.add(lockIcon(this, 10 - bw / 2, locked));
 
     card.setInteractive({ useHandCursor: true });
     card.on("pointerover", () => this.preview(i));

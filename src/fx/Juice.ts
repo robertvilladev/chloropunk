@@ -1,4 +1,4 @@
-import { DEPTH } from "@/config/constants";
+import { DEPTH, GAME_CONFIG } from "@/config/constants";
 import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import { loadSettings } from "@/core/settings";
 import Phaser from "phaser";
@@ -32,7 +32,7 @@ export class Juice {
     this.vignette = scene.add
       .image(0, 0, "vignette")
       .setOrigin(0)
-      .setDisplaySize(scene.scale.width, scene.scale.height)
+      .setDisplaySize(GAME_CONFIG.WIDTH, GAME_CONFIG.HEIGHT)
       .setDepth(DEPTH.UI - 1)
       .setAlpha(0);
     this.burst = scene.add
