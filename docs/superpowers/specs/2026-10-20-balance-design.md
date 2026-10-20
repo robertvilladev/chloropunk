@@ -1,6 +1,6 @@
 # Veggie Vendetta — Balance & progression design
 
-Date: 2026-10-20 · Status: **approved by the owner 2026-10-20, not yet applied to game data**. The decisions are in §8. Every number comes from the headless simulator (`npm run sim`).
+Date: 2026-10-20 · Status: **approved by the owner and applied to the game, 2026-10-20**. The decisions are in §8; the applied changes and the playtest are in §10. Every number comes from the headless simulator (`npm run sim`).
 Binding intent: [MVP spec](2026-10-18-mvp-roguelike-design.md) §4 (run loop), §5 (waves, stats), §9 ("start from Brotato-like ratios and tune by play").
 Horizon: the MVP has 10 waves. The model is meant to scale to 20 waves and then an endless mode ([ROADMAP](../../../ROADMAP.md) parking lot).
 
@@ -94,7 +94,7 @@ Brotato is the reference:
 - about one meaningful shop buy per wave;
 - a real but survivable threat by wave 8.
 
-These targets are implemented as `checkTargets()` in `src/core/sim.proposal.ts` and asserted by `sim.test.ts`, so later content can't silently break them.
+These targets are implemented as `checkTargets()` in `src/core/sim.targets.ts` and asserted by `sim.test.ts`, so later content can't silently break them.
 
 | band | waves | feel | typical shopper: kill % | typical: HP left |
 |---|---|---|---|---|
@@ -118,7 +118,7 @@ The **reference builds** live in `REFERENCE_BUILDS`:
 
 ## 5. The model (approved)
 
-`KNOBS` in `src/core/sim.proposal.ts` holds every number. `npm run sim` prints the live and proposed tables side by side.
+The numbers now live in the game data: `waves.json` (`scaling` and the generated waves), `enemies.json`, `weapons.json`, the price constants in `core/weapons.ts` and `MAX_ALIVE` in `core/waves.ts`. `THREAT` and `budgetWave` in `src/core/sim.targets.ts` re-author waves. `npm run sim` prints the tables for the live data.
 
 | # | change | live | approved | kind |
 |---|---|---|---|---|
@@ -192,12 +192,7 @@ Spawn rate: 0.8 enemies/s in wave 1, 1.3 in wave 5, 2.1 in wave 9 and 2.3 in wav
 5. **Alive cap 40:** approved.
 6. **Late difficulty:** as recommended. Keep the re-fitted curve and tune by playtest with §9 data.
 
-**Applying it** (next step, its own change):
-- Move the `KNOBS` numbers into `assets/data/` and `waves.ts`/`weapons.ts`.
-- Paste the `budgetWave` output into `waves.json`.
-- Add the alive cap.
-- Collapse `PROPOSED` to `LIVE_DATA` and make `sim.test.ts` assert `checkTargets(LIVE_DATA)`.
-- Playtest waves 1–9.
+Applied 2026-10-20 (§10).
 
 ## 9. Measuring real games (proposed)
 
@@ -258,3 +253,32 @@ One `RunLog` per run, in memory while playing, then saved. These are compact per
 4. Report script, and `checkTargets` over real data.
 
 Effort: small to medium, no new dependencies. This is listed in ROADMAP as **(proposed)**.
+
+## 10. Applied (2026-10-20)
+
+**Data:**
+- `waves.json`: generated from `budgetWave(n, T(n))`, plus a `scaling` block (hp 0.3, hpQuad 0.07, damage 0.15).
+- `enemies.json`: pea and pepper at 9 HP.
+- `weapons.json`: pistol cooldown 0.7/0.63/0.56/0.5, pierce 1.
+
+**Code:**
+- `scaleEnemy` reads `waves.json.scaling`.
+- `waveScale` is +20% per wave, then +25% per wave after wave 8.
+- `EnemyManager` skips spawns while `MAX_ALIVE` (40) enemies are alive. The spawn RNG draws happen first, so seeds stay reproducible. The F2 debug spawn is not capped.
+
+**Sim:**
+- `LIVE_DATA` is the game.
+- `sim.test.ts` asserts `checkTargets()` on it (known miss: wave 8 a little easy) and pins the new playtest.
+
+**Browser playtest** (seed 1, pistol, standing still, so a worst case):
+
+| wave | build | game: kills / scrap / peak alive / HP | sim (same wave) |
+|---|---|---|---|
+| 1 | pistol | 15 / 15 / 2 / 100 of 100 | 15 / 15 / 1 / 100 |
+| 2 | + Synth Steak (12 of 15 scrap) | 23 / 23 / 3 / 108 of 108 | 24 / 24 / 2 / 100 |
+| 3 | + Mono Blade (21 of 26 scrap), HP regen pick | 30 / 29 / 6 / 88 of 108 | 32 / 32 / 3 / 100 (2-pistol shopper) |
+
+Before this change the same wave 1 gave 8 kills, 8 scrap, 18 alive and 40 HP.
+
+After wave 1, three of the four shop offers were affordable: Lucky Chip 14, Synth Steak 12, Mono Blade 18. Only the shotgun at 24 was out of reach. Waves 4–9 haven't been playtested yet; the run log in §9 is the next step.
+

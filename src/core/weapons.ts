@@ -25,9 +25,17 @@ export function weaponStats(def: WeaponDef, tier: Tier, stats: Stats): WeaponSta
   };
 }
 
-/** Shop prices grow 10% per wave. */
+export const PRICE_GROWTH = 0.2;
+export const LATE_PRICE_GROWTH = 0.25;
+export const LATE_PRICES_FROM = 8;
+
+/** Shop prices grow 20% per wave, then 25% per wave after wave 8 (the last 3 shops of a 10-wave run). */
 export function waveScale(wave: number): number {
-  return 1 + 0.1 * (wave - 1);
+  return (
+    1 +
+    PRICE_GROWTH * (Math.min(wave, LATE_PRICES_FROM) - 1) +
+    LATE_PRICE_GROWTH * Math.max(0, wave - LATE_PRICES_FROM)
+  );
 }
 
 export function weaponPrice(def: WeaponDef, tier: Tier, wave: number): number {

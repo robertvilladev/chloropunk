@@ -16,7 +16,7 @@ describe("createEnemyState", () => {
   });
 
   it("scales by wave", () => {
-    expect(createEnemyState(enemies.pea, 5).hp).toBe(40);
+    expect(createEnemyState(enemies.pea, 5).hp).toBe(30); // 9 × (1 + 0.3·4 + 0.07·16)
   });
 });
 

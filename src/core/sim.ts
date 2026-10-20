@@ -19,7 +19,7 @@ import { addWeapon } from "./inventory";
 import { addXp } from "./progression";
 import { rerollCost } from "./shop";
 import { computeStats, damageTaken } from "./stats";
-import { buildSpawnSchedule, scaleEnemy, waveDuration } from "./waves";
+import { MAX_ALIVE, buildSpawnSchedule, scaleEnemy, waveDuration } from "./waves";
 import { CRIT_MULT, waveScale, weaponStats } from "./weapons";
 
 export interface SimData {
@@ -42,7 +42,7 @@ export const LIVE_DATA: SimData = {
   items: itemDefs as Record<string, ItemDef>,
   scale: scaleEnemy,
   duration: waveDuration,
-  maxAlive: Infinity,
+  maxAlive: MAX_ALIVE,
   price: (base, wave) => Math.round(base * waveScale(wave)),
 };
 

@@ -1,10 +1,10 @@
 /**
  * `npm run sim`: prints per-wave tables for the reference builds (skipped by
- * plain `npm test`). Edit PROPOSED in sim.proposal.ts to try new curves.
+ * plain `npm test`). To try a curve, edit assets/data and rerun.
  */
 import { it } from "vitest";
 import { LIVE_DATA, simulateRun, type RunWave, type SimData } from "./sim";
-import { checkTargets, PROPOSED, REFERENCE_BUILDS } from "./sim.proposal";
+import { checkTargets, REFERENCE_BUILDS } from "./sim.targets";
 
 const pad = (v: string | number, n: number) => String(v).padStart(n);
 
@@ -39,7 +39,7 @@ function report(label: string, data: SimData): string {
 }
 
 const waves = (data: SimData) =>
-  "\n## PROPOSED waves (count×enemy/every s)\n" +
+  "\n## waves (count×enemy/every s)\n" +
   data.waves
     .map((w) => `${pad(w.wave, 2)}: ` + w.groups.map((g) => `${g.count}×${g.enemy}/${g.every}s`).join("  "))
     .join("\n");
@@ -53,10 +53,8 @@ it.runIf(import.meta.env.npm_lifecycle_event === "sim")("balance report", () => 
   console.log(
     [
       report("LIVE", LIVE_DATA),
+      waves(LIVE_DATA),
       targets("LIVE", LIVE_DATA),
-      report("PROPOSED", PROPOSED),
-      waves(PROPOSED),
-      targets("PROPOSED", PROPOSED),
     ].join("\n")
   );
 });

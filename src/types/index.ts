@@ -54,6 +54,13 @@ export interface WaveDef {
   groups: SpawnGroup[];
 }
 
+/** Per-wave enemy growth coefficients (waves.json "scaling"). */
+export interface WaveScaling {
+  hp: number;
+  hpQuad: number;
+  damage: number;
+}
+
 export interface SpawnEvent {
   time: number;
   enemy: string;

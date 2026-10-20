@@ -2,7 +2,7 @@ import { bodyOffset } from "@/art/body";
 import { DEPTH, GAME_CONFIG, HIT_SIZE } from "@/config/constants";
 import type { Rng } from "@/core/rng";
 import { actorDepth, facingFlip } from "@/core/depth";
-import { advanceCursor, buildSpawnSchedule, edgePoint } from "@/core/waves";
+import { MAX_ALIVE, advanceCursor, buildSpawnSchedule, edgePoint } from "@/core/waves";
 import {
   createEnemyState,
   steer,
@@ -236,11 +236,10 @@ export class EnemyManager {
         continue;
       }
       for (let n = 0; n < p.count; n++) {
-        this.spawnEnemy(
-          p.def,
-          p.x + this.rng.int(-24, 24),
-          p.y + this.rng.int(-24, 24)
-        );
+        // draw first so the spawn RNG stream doesn't depend on the cap
+        const x = p.x + this.rng.int(-24, 24);
+        const y = p.y + this.rng.int(-24, 24);
+        if (this.enemies.countActive(true) < MAX_ALIVE) this.spawnEnemy(p.def, x, y);
       }
       this.markers.killAndHide(p.marker);
       this.pending[i] = this.pending[this.pending.length - 1];

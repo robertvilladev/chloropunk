@@ -10,7 +10,7 @@ Status: ✅ done · 🚧 in progress · ⬜ planned. "(proposed)" = inferred by 
 | M1 Waves & feel | ✅ done — merged in PR #14 | [M1 plan](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) |
 | M2 Build-crafting | ✅ done — merged in PR #16 | [M2 plan](docs/superpowers/plans/2026-10-18-m2-build-crafting.md) |
 | M3 Look | ✅ done — merged in PR #17 | [M3 plan](docs/superpowers/plans/2026-10-18-m3-look.md) |
-| Balance & progression | 🚧 design approved 2026-10-20; not yet applied to game data | [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) |
+| Balance & progression | ✅ applied on branch `claude/balance-4dadcd` (waves 1–3 playtested; 4–9 by sim only) | [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) |
 | M4 Boss & run end | ⬜ planned | not written |
 
 ## M1 — Waves & feel ✅
@@ -51,9 +51,10 @@ Spec: [§4, §5 waves, §9 numbers](docs/superpowers/specs/2026-10-18-mvp-roguel
 
 - ✅ Diagnosis: wave 1 brings 28 enemy HP/s against ~10 HP/s from the starting pistol (load ≈ 2.8); 7–8 kills, scrap starved (leftovers were already banked)
 - ✅ Headless simulator `src/core/sim.ts` + `npm run sim` report, calibrated to a playtest (wave 1: 8 kills, 40 HP left)
-- ✅ Target metrics per wave band as `checkTargets()` assertions (`sim.proposal.ts`, `sim.test.ts`)
+- ✅ Target metrics per wave band as `checkTargets()` assertions (`sim.targets.ts`, `sim.test.ts`)
 - ✅ Owner decisions (design §8): threat-budget waves, enemy growth, prices +20%/wave then +25% for the last 3 shops, starter tuning (9 HP peas/peppers, pistol 0.7 s + pierce 1), alive cap 40
-- ⬜ Apply approved numbers to `assets/data/` + `waves.ts`/`weapons.ts` + alive cap in `EnemyManager`, then playtest waves 1–9 and recalibrate the sim
+- ✅ Approved numbers applied: threat-budget `waves.json` + `scaling`, 9 HP peas/peppers, pistol 0.7 s + pierce 1, price curve in `weapons.ts`, `MAX_ALIVE` 40; browser playtest waves 1–3 ([design §10](docs/superpowers/specs/2026-10-20-balance-design.md#10-applied-2026-10-20))
+- ⬜ Playtest waves 4–9 (moving player) and recalibrate the sim's `aim`/`contactRate`
 - ⬜ (proposed) Run log for measuring real games: local per-run/per-wave records, export, report vs sim ([design §9](docs/superpowers/specs/2026-10-20-balance-design.md#9-measuring-real-games-proposed))
 
 ## M4 — Boss & run end ⬜
@@ -81,6 +82,7 @@ From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) an
 - **(proposed)** `STRUCTURE.md`, `PROJECT_SUMMARY.md` and `QUICKSTART.md` describe the old prototype (ShopScene "display upgrades", 3 weapons); fold into README/ARCHITECTURE or delete
 
 - **M3 polish carry-overs:** weapon-slot row on the HUD is 36 px at stride 42 (mockup 40 px at 46); menu/loadout fighter has no shadow ellipse; loadout tag lines come from `behavior` (mockup says SINGLE TARGET / CONE); shop `OWNED ×n` is text not a chip, items list cut at 3 lines without ellipsis; level-up focus ring uses the tier colour; HUD XP bar is 140 px (mockup ~180); `theme.guard` only scans 6-digit hex; a recycled enemy's stale hit-frame timer can end a new hit frame early; `bodyOffset` rescans grids per spawn (memoise)
+- **UI:** the shop header says "WAVE 02 CLEARED" after wave 1 (it shows the next wave's number)
 - **Dev only:** after editing `assets/data/*.json` with a page open, Vite HMR logs one "Failed to load module script … application/json" console error; a fresh load is clean
 
 ## Ideas parking lot (post-MVP)
