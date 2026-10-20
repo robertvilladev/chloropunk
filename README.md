@@ -1,7 +1,7 @@
 # Veggie Vendetta
 
 A Brotato-style arena roguelike: a cyberpunk fighter smashes mutant vegetables in a neon city.
-Built with **Phaser 3.90**, **TypeScript (strict)**, **Vite** and **Vitest**. Desktop browser, WASD/arrows; weapons auto-fire.
+Built with **Phaser 3.90**, **TypeScript (strict)**, **Vite** and **Vitest**. Desktop browser, WASD/arrows; weapons auto-fire; Esc or P pauses (also when the window loses focus).
 
 **Status:** MVP in progress. [ROADMAP.md](ROADMAP.md) tracks what's done and what's next; the [MVP spec](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md) holds the intent.
 
