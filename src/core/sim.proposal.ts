@@ -56,8 +56,8 @@ export interface Knobs {
   threat: { first: number; linear: number; quad: number };
   /** Enemy HP/damage multiplier 1 + k·(n−1) + kq·(n−1)² (live: hp 0.25, damage 0.15). Sets difficulty. */
   growth: { hp: number; hpQuad: number; damage: number };
-  /** Shop prices × (1 + priceGrowth·(n−1)) (live: 0.1). */
-  priceGrowth: number;
+  /** Shop prices grow `early` per wave up to wave `lateFrom`, then `late` per wave (live: 0.1 flat). */
+  priceGrowth: { early: number; late: number; lateFrom: number };
   /** Max enemies alive; spawns past it are skipped. */
   maxAlive: number;
   enemyEdits: Record<string, Partial<EnemyDef>>;
@@ -65,9 +65,9 @@ export interface Knobs {
 }
 
 export const KNOBS: Knobs = {
-  threat: { first: 7, linear: 0.4, quad: 0 },
-  growth: { hp: 0.25, hpQuad: 0.06, damage: 0.12 },
-  priceGrowth: 0.25,
+  threat: { first: 7, linear: 0.35, quad: 0 },
+  growth: { hp: 0.3, hpQuad: 0.07, damage: 0.15 },
+  priceGrowth: { early: 0.2, late: 0.25, lateFrom: 8 }, // owner 2026-10-20: 20%/wave, 25% for the shops after waves 8–10
   maxAlive: 40,
   enemyEdits: { pea: { hp: 9 }, pepper: { hp: 9 } },
   weaponEdits: {
@@ -118,11 +118,15 @@ export function proposal(k: Knobs): SimData {
       };
     },
     maxAlive: k.maxAlive,
-    price: (base, wave) => Math.round(base * (1 + k.priceGrowth * (wave - 1))),
+    price: (base, wave) => Math.round(base * priceScale(k.priceGrowth, wave)),
   };
 }
 
 export const PROPOSED = proposal(KNOBS);
+
+export function priceScale(g: Knobs["priceGrowth"], wave: number): number {
+  return 1 + g.early * (Math.min(wave, g.lateFrom) - 1) + g.late * Math.max(0, wave - g.lateFrom);
+}
 
 // ---- targets (design doc §4) ----
 

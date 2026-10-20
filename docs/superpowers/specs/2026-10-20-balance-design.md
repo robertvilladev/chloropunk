@@ -1,23 +1,25 @@
 # Veggie Vendetta — Balance & progression design
 
-Date: 2026-10-20 · Status: **awaiting owner approval**. No game data has been changed. Every number below comes from the headless simulator (`npm run sim`).
+Date: 2026-10-20 · Status: **approved by the owner 2026-10-20, not yet applied to game data**. The decisions are in §8. Every number comes from the headless simulator (`npm run sim`).
 Binding intent: [MVP spec](2026-10-18-mvp-roguelike-design.md) §4 (run loop), §5 (waves, stats), §9 ("start from Brotato-like ratios and tune by play").
+Horizon: the MVP has 10 waves. The model is meant to scale to 20 waves and then an endless mode ([ROADMAP](../../../ROADMAP.md) parking lot).
 
 ## 1. TL;DR
 
 - **The loop breaks on throughput, not on scrap collection.** Wave 1 brings 28 HP of enemies per second. The starting pistol removes about 10 HP/s (14 paper DPS × ~70% of shots landing). That is a load of ρ ≈ 2.8, so the backlog grows from second one: 26 spawned, 7–8 killed, 18–20 alive at the end. Every leftover scrap is already auto-collected at wave end (`GameScene.onRoundComplete`), so "8 kills, 8 scrap" means *all* the scrap. The economy is starved because almost nothing dies.
-- **The game is a queue.** While ρ (enemy HP arriving per second ÷ the build's effective kill rate) stays under about 0.9, waves clear and scrap flows. Above 1 the backlog grows without bound and the wave collapses within seconds. Live data sits at ρ 2–4 from wave 1. Balance therefore means keeping ρ in a target band per wave, which is what the proposed model does.
-- **Proposal:**
+- **The game is a queue.** While ρ (enemy HP arriving per second ÷ the build's effective kill rate) stays under about 0.9, waves clear and scrap flows. Above 1 the backlog grows without bound and the wave collapses within seconds. Live data sits at ρ 2–4 from wave 1. Balance therefore means keeping ρ in a target band per wave.
+- **Model (approved):**
   - Author waves from a **threat budget** (base enemy HP per second) instead of hand-picked counts.
   - Separate the two growth knobs: **density** (threat budget) sets income; **enemy HP/damage growth** sets difficulty.
-  - Raise **shop price growth** from 10% to 25% per wave so buys stay at about one per wave as income grows.
+  - Raise **shop prices** 20% per wave, then 25% per wave for the last 3 shops.
   - Tune the starter: peas and peppers drop to 9 HP so the pistol one-shots them, and the pistol fires faster and pierces 1.
-  - Add an **alive cap of 40** as a safety net.
+  - Add an **alive cap of 40**.
 - **Result (typical shopper, sim):**
   - Wave 1 goes from 27% kills / 7 scrap to 94% kills / 15 scrap.
   - About one buy per wave.
-  - Real damage taken from wave 6.
-  - One known miss: wave 9 is lethal for a pistol-stacking build (§7).
+  - Real damage taken by wave 9 (43% HP left).
+  - Wave 10 (the M4 boss wave) is lethal without a boss design.
+- **Next:** §9 adds measurement, a local run log, so later tuning comes from real games and not only from the sim.
 
 ## 2. Diagnosis (live data)
 
@@ -46,7 +48,7 @@ What the owner felt as "scrap stranded under enemies" is real on screen. Economi
 
 ## 3. The simulator
 
-`src/core/sim.ts` (pure, no Phaser, ~2 ms a run) reuses the live rules: `buildSpawnSchedule`, `computeStats`, `weaponStats`, `damageTaken`, `addXp` and `addWeapon`.
+`src/core/sim.ts` (pure, no Phaser, a few ms per run) reuses the live rules: `buildSpawnSchedule`, `computeStats`, `weaponStats`, `damageTaken`, `addXp` and `addWeapon`.
 
 **Model**, stepped at 30 Hz:
 
@@ -82,7 +84,7 @@ The wave 1 game row matches the owner's report exactly. `sim.test.ts` pins this 
 - **Contact damage is a stand-in.** Shooters, dashers and exploders are modelled as plain contact.
 - **AoE target counts are guesses**, marked `ponytail:` in the code.
 - **The shopper is optimistic:** the wanted offer always rolls.
-- **Cliffs.** Near ρ ≈ 1 the queue tips over, so small knob changes can flip a wave from "fine" to "dead". The proposal was picked to hold across aim 0.6–0.8 and contact rate 0.15–0.35 (§7). Treat it as a starting point for playtests, not a final answer.
+- **Cliffs.** Near ρ ≈ 1 the queue tips over, so small knob changes can flip a wave from "fine" to "dead". The knobs were picked to hold across aim 0.6–0.8 and contact rate 0.15–0.35 (§7). The run log (§9) replaces these guesses with measured values.
 
 ## 4. Intended feel and target metrics
 
@@ -114,44 +116,52 @@ The **reference builds** live in `REFERENCE_BUILDS`:
 - each starter, never shopping;
 - a typical pistol shopper: grip → pistol → hoodie → shotgun → visor → pistol → scope → rocket → overclock → …, with ranged level-up picks.
 
-## 5. Proposed model
+## 5. The model (approved)
 
 `KNOBS` in `src/core/sim.proposal.ts` holds every number. `npm run sim` prints the live and proposed tables side by side.
 
-| # | change | live | proposed | kind |
+| # | change | live | approved | kind |
 |---|---|---|---|---|
-| 1 | **Threat budget.** Wave *n* brings `T(n) = 7 · (1 + 0.4·(n−1))` base enemy HP per second, split across the enemies unlocked by then (`MIX`). `budgetWave()` turns that into spawn groups. Density then sets income, independent of how tough enemies are. | hand-tuned counts | generated once, committed to `waves.json` | data (+ authoring helper) |
-| 2 | **Enemy growth** `scaleEnemy`. HP × `1 + 0.25·(n−1) + 0.06·(n−1)²`, damage × `1 + 0.12·(n−1)`. Difficulty comes from tougher enemies, not more of them. Proposed: move the coefficients into `waves.json` (spec §5 already says waves.json holds "scaling multipliers"). | HP 0.25 linear, damage 0.15 | as stated | code + data |
-| 3 | **Price curve** `waveScale`: 1 + 0.25·(n−1) (sell price follows). Income grows about 7× from wave 1 to 9, so prices must grow too or the shop stops being a decision. | 0.1 | 0.25 | code (one constant) |
+| 1 | **Threat budget.** Wave *n* brings `T(n) = 7 · (1 + 0.35·(n−1))` base enemy HP per second, split across the enemies unlocked by then (`MIX`). `budgetWave()` turns that into spawn groups. Density sets income, independent of how tough enemies are. | hand-tuned counts | generated once, committed to `waves.json` | data (+ authoring helper) |
+| 2 | **Enemy growth** `scaleEnemy`. HP × `1 + 0.3·(n−1) + 0.07·(n−1)²`, damage × `1 + 0.15·(n−1)` (as today). Difficulty comes from tougher enemies, not more of them. The coefficients move into `waves.json`, which spec §5 says holds "scaling multipliers". | HP 0.25 linear, damage 0.15 | as stated | code + data |
+| 3 | **Price curve** `waveScale`: +20% per wave through wave 8, then +25% per wave, so the last 3 shops of a 10-wave run are dearer. Sell price follows. Multiplier at wave n+1: 1.2 (shop after wave 1), 2.4 (after wave 7), 2.65 (after wave 8), 3.15 (after wave 10). Income grows about 7× from wave 1 to 9, so prices must grow too or the shop stops being a decision. | 0.1 flat | 0.2 / 0.25 from wave 8 | code |
 | 4 | **Starter tuning.** Pea and pepper base HP 9, so the pistol's 12 damage one-shots them through wave 2. The pistol's T1–T4 cooldown becomes 0.7/0.63/0.56/0.5 with pierce 1; the pierce path exists but no weapon uses it. Shotgun and blade unchanged. | pea 20, pepper 15; pistol 0.9/0.8/0.7/0.6, pierce 0 | as stated | data |
-| 5 | **Alive cap 40.** Skip spawns while 40 enemies are alive. A safety net for perf and readability: it never binds on the proposed curve (peak ≤ 27) and only matters when a player is already losing. | pool max 250 | 40 | code (`EnemyManager`) |
-| 6 | **End-of-wave scrap.** Already Brotato-style: every leftover is banked at wave end. Keep it. Live pickup with the 80 px magnet only matters for feel. With the board mostly clear (peak alive ≤ 13 through wave 8), most scrap is picked up live. | auto-collect | unchanged | — |
-| 7 | **XP curve** `(level+3)²`. Unchanged. The typical shopper reaches level 9 by wave 9. | | unchanged | — |
+| 5 | **Alive cap 40.** Skip spawns while 40 enemies are alive. A safety net for perf and readability: it never binds on this curve (peak ≤ 14) and only matters when a player is already losing. | pool max 250 | 40 | code (`EnemyManager`) |
+| 6 | **End-of-wave scrap.** Already Brotato-style: every leftover is banked at wave end. Keep it. | auto-collect | unchanged | — |
+| 7 | **XP curve** `(level+3)²`. Unchanged. The typical shopper reaches level 10 by wave 10. | | unchanged | — |
 
-How it scales: new content gets a `MIX` share (enemies) or joins a reference build (weapons and items), and `checkTargets` says whether the curve still holds. Waves 11+, or an endless mode, are just `T(n)` and growth for a larger *n*.
+**Scaling past wave 10.**
+- `T(n)`, the growth formula and the price curve are defined for any *n*. Wave length is already capped at 60 s from wave 11.
+- **20 waves:**
+  - extend `REFERENCE_BUILDS` with longer shopping plans;
+  - add bands for waves 11–20 to `checkTargets`;
+  - re-fit the knobs with the sim and the measured data from §9.
+- **Endless mode:** waves come from `budgetWave(n)` at runtime instead of `waves.json`, which needs a code path. Both stay in the parking lot until the MVP ships.
 
 **Spec deviations: none.**
 - Waves stay authored JSON (spec §5). The generator only writes the first draft, which can then be hand-edited.
 - All numbers are the builder's call per §9.
 - Wave 10 keeps its boss role (M4).
+- The 20-wave run and endless mode are post-MVP (proposed).
 
 ## 6. Before and after (sim)
 
 Typical pistol shopper:
 
-| wave | live kill % | live peak alive | live scrap | live HP left | proposed kill % | proposed peak | proposed scrap | proposed HP left | proposed buys |
+| wave | live kill % | live peak alive | live scrap | live HP left | approved kill % | approved peak | approved scrap | approved HP left | approved buys |
 |---|---|---|---|---|---|---|---|---|---|
 | 1 | 27 | 20 | 7 | 43 | 94 | 1 | 15 | 100 | grip |
-| 2 | 13 | 33 | 5 | 7 | 96 | 2 | 25 | 100 | pistol |
-| 3 | 13 | 53 | 8 | **dead** | 94 | 3 | 34 | 100 | hoodie |
-| 4 | — | | | | 98 | 4 | 47 | 100 | shotgun |
-| 5 | | | | | 92 | 7 | 54 | 100 | visor |
-| 6 | | | | | 88 | 10 | 64 | 53 | pistol |
-| 7 | | | | | 94 | 8 | 83 | 100 | scope |
-| 8 | | | | | 93 | 13 | 103 | 85 | rocket |
-| 9 | | | | | 81 | 27 | 106 | **dead** | overclock, pistol |
+| 2 | 13 | 33 | 5 | 7 | 96 | 2 | 24 | 100 | pistol |
+| 3 | 13 | 53 | 8 | **dead** | 97 | 3 | 32 | 100 | hoodie |
+| 4 | — | | | | 98 | 4 | 44 | 100 | shotgun |
+| 5 | | | | | 91 | 7 | 47 | 100 | visor, pistol |
+| 6 | | | | | 95 | 5 | 65 | 100 | scope |
+| 7 | | | | | 97 | 5 | 80 | 100 | rocket |
+| 8 | | | | | 94 | 9 | 95 | 100 | overclock |
+| 9 | | | | | 93 | 13 | 110 | 43 | pistol |
+| 10 (boss, M4) | | | | | 89 | 14 | 124 | dead | glass |
 
-Starters that never shop, under the proposal:
+Starters that never shop:
 
 | starter | wave 1 kill % | waves survived (standing still) |
 |---|---|---|
@@ -159,34 +169,92 @@ Starters that never shop, under the proposal:
 | shotgun | 88 | 3 (live: 2) |
 | blade | 81 | 3 (live: 2) |
 
-Proposed spawn rate: 0.8 enemies/s in wave 1, 1.5 in wave 5, 2.3 in wave 9 and 2.5 in wave 10. Live goes 1.4 → 7.5 enemies/s, at 2–4× more HP per enemy.
+Spawn rate: 0.8 enemies/s in wave 1, 1.3 in wave 5, 2.1 in wave 9 and 2.3 in wave 10. Live goes 1.4 → 7.5 enemies/s, at 2–4× more HP per enemy.
 
 ## 7. Known misses and risks
 
-- **Wave 9 is lethal for the typical pistol shopper** in the sim (ρ ≈ 1.9, peak alive 27). At aim 0.7 this is the only failed target.
-  - Possible fixes: lower the quadratic HP term to 0.05, or give the typical build a more AoE-heavy plan.
-  - Better to decide this from a playtest, because the sim's player stands still.
-- **Sensitivity.** Across aim 0.6–0.8 × contact rate 0.15–0.35, the proposal misses 1–3 targets per corner:
-  - aim 0.6 dies at wave 6;
-  - aim 0.8 makes wave 8 too easy.
+- **Wave 8 is a little easy** (100% HP left). It is the only failed target at the calibrated centre. Leave it for the playtest.
+- **Wave 10 kills the typical build** without a boss. Its targets are written with the M4 boss.
+- **Sensitivity.** Across aim 0.6–0.8 × contact rate 0.15–0.35, the knobs miss 1–4 targets per corner:
+  - low aim is harder mid-run;
+  - high aim is easier late.
 
-  Measure real aim in the first playtest (kills ÷ shots, logged once) and recalibrate `DEFAULT_PARAMS`.
-- **Density vs. robustness trade-off** (the owner's call):
-  - A sparser curve (≤ 1.5 enemies/s late) met every target at the centre point, but it reads as "too few enemies", the problem the spec set out to fix.
-  - A Brotato-like 4–7 enemies/s needs more AoE and power growth than the current content gives.
-- **Pistol identity.** Pierce and a faster cooldown make it less "steady single target". The alternative is to keep the pistol and drop pea HP further.
+  The run log (§9) measures aim directly.
+- **Pistol identity.** Pierce and a faster cooldown make it less of a "steady single target" weapon. Accepted.
+- **Density ceiling.** About 2 enemies/s is what the current content can support. A Brotato-like 4–7 enemies/s needs more AoE and scaling content. Revisit for 20 waves.
 
-## 8. Decisions for the owner
+## 8. Owner decisions (2026-10-20)
 
-1. **Approve the model:** threat budget + separate HP growth + price curve, with the §4 targets as test assertions.
-2. **Density:** about 2.3 enemies/s by wave 9 (proposed), or sparser but safer, or denser later once there's more AoE content.
-3. **Starter tuning:** 9 HP peas/peppers and the faster, piercing pistol — yes, or an alternative.
-4. **Prices:** 25% per wave (from 10%).
-5. **Alive cap of 40** (code): yes or no.
-6. **Wave 9:** accept and tune by playtest, or soften now (HP quadratic term 0.05).
+1. **Model and targets:** approved. Goal: reach 10 waves first, then scale to 20, then endless (parking lot).
+2. **Density:** about 2 enemies/s by wave 9, as proposed.
+3. **Starter tuning:** as proposed (9 HP peas/peppers, pistol 0.7 s cooldown with pierce 1).
+4. **Prices:** +20% per wave, then +25% for the last 3 shops (after waves 8, 9 and 10). The enemy growth knobs were re-fitted to this curve, which also fixed the earlier wave 9 miss.
+5. **Alive cap 40:** approved.
+6. **Late difficulty:** as recommended. Keep the re-fitted curve and tune by playtest with §9 data.
 
-**After approval:**
+**Applying it** (next step, its own change):
 - Move the `KNOBS` numbers into `assets/data/` and `waves.ts`/`weapons.ts`.
 - Paste the `budgetWave` output into `waves.json`.
+- Add the alive cap.
 - Collapse `PROPOSED` to `LIVE_DATA` and make `sim.test.ts` assert `checkTargets(LIVE_DATA)`.
-- Playtest waves 1–9 and recalibrate `aim`/`contactRate`.
+- Playtest waves 1–9.
+
+## 9. Measuring real games (proposed)
+
+The sim is only as good as its guesses (aim, contact rate, the shopper). The owner wants real games to answer questions like:
+- How many enemies per wave are right?
+- What is the average scrap per wave?
+- Can each starting weapon clear wave 1 and still afford an item?
+
+**Spec note:** "online anything" is a non-goal (§2). So collection is **local-first**: the game records a log of each run on the player's machine, and the owner gathers logs by export. A server is a separate, later decision.
+
+### 9.1 What to record
+
+One `RunLog` per run, in memory while playing, then saved. These are compact per-wave summaries, not a per-frame event stream.
+
+| record | fields | answers |
+|---|---|---|
+| `run` | id, date, build version, data hash of `assets/data`, seed, starter, result (wave reached, died/won), total time | which versions and starters were played, and how far they got |
+| `wave` (one per wave) | wave, duration, spawned, killed, peak alive, alive at end, scrap dropped, collected live, banked at wave end, harvesting, shots fired, shots hit, damage dealt, damage taken by source (contact, bolt, blast), hits dodged, HP at end, time with an enemy in contact, death time if died | enemies per wave, kill rate, **aim** (hits ÷ shots), live-collect %, where damage comes from |
+| `shop` (one per visit) | wave, scrap before/after, offers seen (id, tier, price), bought, sold, combined, rerolls and their cost, locks | buys per wave, prices players can't afford, items nobody buys |
+| `levelup` | wave, choices offered, pick | which stats players value |
+| `build` (at wave end) | weapons and tiers, items, `computeStats` block | power growth per wave, for comparison with the sim |
+
+**Dropped on purpose:**
+- Positions and inputs: big and not needed for balance.
+- Personal data: none collected. The run id is random.
+
+### 9.2 Where it goes
+
+1. **Local store.** Keep the last 50 runs in `localStorage` (about 5 KB per run), using the same guarded storage helper as `core/settings.ts`. It never blocks the game and drops the oldest first.
+2. **Export.** A dev-only key (like F2/F3) and later a settings button download `runs.json`. Playtesters send the file, and the owner drops files into a folder.
+3. **Report.** `npm run sim -- --runs <folder>` (or a sibling `npm run runs`) reads the logs and prints the same per-wave table as the sim, with measured and predicted values side by side, grouped by data hash so old balance versions don't mix with new ones.
+4. **Later, optional:** an opt-in upload to a small endpoint once there are external players. That is a spec change, so it needs the owner's call.
+
+### 9.3 How the data closes the loop
+
+- **Calibrate the sim.**
+  - Fit `aim` from shots hit ÷ shots fired.
+  - Fit `contactRate` from damage taken ÷ time in contact.
+  - Fit `spawnDist` from time to first hit.
+
+  Then the sim's predictions match real players, not a player standing still.
+- **Check the targets on real games.** `checkTargets` takes per-wave rows, so it can run on aggregated logs as well as on sim output, using medians across runs per starter. Examples:
+  - "wave 1: ≥ 80% of runs kill ≥ 80% of spawns and can afford an item";
+  - "median buys per wave 0.8–2";
+  - "death wave distribution centred on 8–10 for first-time players".
+- **Tune by data, not feel.**
+  - Enemies per wave: from kill % and peak alive per band.
+  - Average scrap per wave vs `priceScale`: does the median run make about one buy per wave?
+  - Starter fairness: wave 1 kill % and survival per starter.
+  - Dead content: offers seen but never bought.
+- **Guard rails.** Every balance PR attaches the before/after sim table plus, once logs exist, the measured medians for the waves it touches.
+
+### 9.4 Build steps (when scheduled)
+
+1. `src/core/runlog.ts`: pure types, a `WaveStats` accumulator fed by game events, and `summarise(logs)` producing per-wave rows. Unit-tested.
+2. Hooks: `GameScene`, `ShopScene` and `LevelUpScene` already emit the needed events (kills, hits, scrap, damage). Add shot and hit counters in `WeaponManager`. No gameplay change.
+3. Storage and export (dev key first).
+4. Report script, and `checkTargets` over real data.
+
+Effort: small to medium, no new dependencies. This is listed in ROADMAP as **(proposed)**.

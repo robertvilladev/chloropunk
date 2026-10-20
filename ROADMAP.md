@@ -10,7 +10,7 @@ Status: ✅ done · 🚧 in progress · ⬜ planned. "(proposed)" = inferred by 
 | M1 Waves & feel | ✅ done — merged in PR #14 | [M1 plan](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) |
 | M2 Build-crafting | ✅ done — merged in PR #16 | [M2 plan](docs/superpowers/plans/2026-10-18-m2-build-crafting.md) |
 | M3 Look | ✅ done — merged in PR #17 | [M3 plan](docs/superpowers/plans/2026-10-18-m3-look.md) |
-| Balance & progression | 🚧 design awaiting owner approval (no game data changed yet) | [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) |
+| Balance & progression | 🚧 design approved 2026-10-20; not yet applied to game data | [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) |
 | M4 Boss & run end | ⬜ planned | not written |
 
 ## M1 — Waves & feel ✅
@@ -47,13 +47,14 @@ Spec: [§6 look and feel, §7 screens](docs/superpowers/specs/2026-10-18-mvp-rog
 - ✅ (HUD: no stats panel, 1/2/3 speed buttons dev-only) level-up and shop screens, menu, loadout per the mockups (drag-to-combine and item/weapon icons from the shop mockup not built; (proposed) later); stat previews on hover; mouse + keyboard
 
 ## Balance & progression 🚧
-Spec: [§4, §5 waves, §9 numbers](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md). Design: [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) — **awaiting owner approval**.
+Spec: [§4, §5 waves, §9 numbers](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md). Design: [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) — **approved by the owner 2026-10-20** (decisions in §8). Goal: 10 waves first, then 20, then endless.
 
 - ✅ Diagnosis: wave 1 brings 28 enemy HP/s against ~10 HP/s from the starting pistol (load ≈ 2.8); 7–8 kills, scrap starved (leftovers were already banked)
 - ✅ Headless simulator `src/core/sim.ts` + `npm run sim` report, calibrated to a playtest (wave 1: 8 kills, 40 HP left)
 - ✅ Target metrics per wave band as `checkTargets()` assertions (`sim.proposal.ts`, `sim.test.ts`)
-- ⬜ Owner decisions (design §8): threat-budget waves, enemy growth, price growth 25%/wave, starter tuning, alive cap 40
-- ⬜ Apply approved numbers to `assets/data/` + `waves.ts`/`weapons.ts`, then playtest waves 1–9 and recalibrate the sim
+- ✅ Owner decisions (design §8): threat-budget waves, enemy growth, prices +20%/wave then +25% for the last 3 shops, starter tuning (9 HP peas/peppers, pistol 0.7 s + pierce 1), alive cap 40
+- ⬜ Apply approved numbers to `assets/data/` + `waves.ts`/`weapons.ts` + alive cap in `EnemyManager`, then playtest waves 1–9 and recalibrate the sim
+- ⬜ (proposed) Run log for measuring real games: local per-run/per-wave records, export, report vs sim ([design §9](docs/superpowers/specs/2026-10-20-balance-design.md#9-measuring-real-games-proposed))
 
 ## M4 — Boss & run end ⬜
 Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md)
@@ -90,5 +91,7 @@ Named by the spec as non-goals / later:
 - Mobile/touch controls, gamepad, localization
 - Audio beyond a few SFX
 - Online features: leaderboards, accounts
-- Endless mode, difficulty tiers
+- (proposed) 20-wave run: extend the balance model (bands for waves 11–20, longer reference builds, more AoE content for density) — [balance design §5](docs/superpowers/specs/2026-10-20-balance-design.md#5-the-model-approved)
+- Endless mode (waves generated at runtime from the threat budget), difficulty tiers
+- (proposed) Opt-in online upload of run logs (spec lists online features as a non-goal; owner decision)
 - Swapping Claude-authored sprites for sheets from a pixel-art generator (PixelLab, Retro Diffusion) or an artist — no code change needed, sprites are used by key

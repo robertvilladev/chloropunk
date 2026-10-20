@@ -17,8 +17,8 @@ describe("sim", () => {
     expect(checkTargets(LIVE_DATA).some((v) => v.includes("onboarding"))).toBe(true);
   });
 
-  it("the proposed balance meets its targets (known miss: wave 9, design doc §6)", () => {
-    expect(checkTargets(PROPOSED).filter((v) => !v.startsWith("w9 pressure"))).toEqual([]);
+  it("the proposed balance meets its targets (known miss: wave 8 a little easy, design doc §7)", () => {
+    expect(checkTargets(PROPOSED).filter((v) => !v.startsWith("w8 pressure"))).toEqual([]);
   });
 
   it("budgetWave spends the threat budget", () => {
