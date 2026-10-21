@@ -50,6 +50,8 @@ export class EnemyManager {
   private wave = 1;
   private cursor = 0; // next unfired index into schedule
   private rng!: Rng;
+  /** Scheduled enemies spawned this wave (run log); dev spawns and capped drops excluded. */
+  spawned = 0;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -77,6 +79,7 @@ export class EnemyManager {
     this.wave = wave;
     this.rng = rng;
     this.cursor = 0;
+    this.spawned = 0;
     const waves = wavesData.waves;
     const def = waves.find((w) => w.wave === wave);
     if (!def) throw new Error(`No wave ${wave} defined`);
@@ -239,7 +242,10 @@ export class EnemyManager {
         // draw first so the spawn RNG stream doesn't depend on the cap
         const x = p.x + this.rng.int(-24, 24);
         const y = p.y + this.rng.int(-24, 24);
-        if (this.enemies.countActive(true) < MAX_ALIVE) this.spawnEnemy(p.def, x, y);
+        if (this.enemies.countActive(true) < MAX_ALIVE) {
+          this.spawnEnemy(p.def, x, y);
+          this.spawned++;
+        }
       }
       this.markers.killAndHide(p.marker);
       this.pending[i] = this.pending[this.pending.length - 1];

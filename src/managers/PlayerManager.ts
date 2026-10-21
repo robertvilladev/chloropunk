@@ -118,17 +118,17 @@ export class PlayerManager {
   }
 
   /**
-   * Take damage
+   * Take damage; returns the HP lost (0 when invulnerable or dodged)
    */
-  takeDamage(raw: number): void {
+  takeDamage(raw: number): number {
     // Don't take damage if invulnerable
-    if (this.invulnerableTimer > 0) return;
+    if (this.invulnerableTimer > 0) return 0;
     // A dodge also grants short i-frames: contact overlaps fire every physics
     // step, so without them the next frame would simply re-roll
     if (this.stats.dodge > 0 && this.rng.next() < this.stats.dodge / 100) {
       this.invulnerableTimer = DODGE_IFRAMES_MS;
       this.scene.events.emit("playerDodged");
-      return;
+      return 0;
     }
     const amount = damageTaken(raw, this.stats.armor);
 
@@ -155,6 +155,7 @@ export class PlayerManager {
 
     // Emit event for UI update
     this.scene.events.emit("playerHealthChanged", this.health, this.maxHealth);
+    return amount;
   }
 
   /**
