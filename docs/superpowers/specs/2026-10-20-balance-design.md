@@ -320,7 +320,7 @@ This is a spec change, because online features are a spec non-goal (§2). It nee
 
 Before this change the same wave 1 gave 8 kills, 8 scrap, 18 alive and 40 HP.
 
-After wave 1, three of the four shop offers were affordable: Lucky Chip 14, Synth Steak 12, Mono Blade 18. Only the shotgun at 24 was out of reach. Waves 4–9 haven't been playtested yet; the run log in §9 is the next step.
+After wave 1, three of the four shop offers were affordable: Lucky Chip 14, Synth Steak 12, Mono Blade 18. Only the shotgun at 24 was out of reach. Waves 4–9 haven't been playtested yet; the run log in §9 is the next step. `npm run playtest` (2026-10-21) produces such logs headless on autopilot (no shopping); seed 1 died at wave 8–9.
 
 **Aim logging.** `RunState.aim` totals projectile shots, projectiles that hit at least once, and kills. `GameScene` adds each wave's numbers and prints one line when the run ends (on death, or after the last wave clears):
 
