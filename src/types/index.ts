@@ -54,6 +54,13 @@ export interface WaveDef {
   groups: SpawnGroup[];
 }
 
+/** Per-wave enemy growth coefficients (waves.json "scaling"). */
+export interface WaveScaling {
+  hp: number;
+  hpQuad: number;
+  damage: number;
+}
+
 export interface SpawnEvent {
   time: number;
   enemy: string;
@@ -131,6 +138,13 @@ export interface ItemDef {
   mods: Mods;
 }
 
+/** Run totals for balance calibration (projectile weapons only count shots/hits). */
+export interface AimTally {
+  shots: number;
+  hits: number;
+  kills: number;
+}
+
 /** State that survives between rounds of a single run */
 export interface RunState {
   wave: number;
@@ -139,6 +153,7 @@ export interface RunState {
   level: number;
   pendingLevelUps: number;
   seed: number;
+  aim: AimTally;
   weapons: OwnedWeapon[];
   items: string[]; // item ids, repeats allowed
   levelMods: Mods; // summed level-up picks

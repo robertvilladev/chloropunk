@@ -1,12 +1,17 @@
 {
+  "scaling": {
+    "hp": 0.3,
+    "hpQuad": 0.07,
+    "damage": 0.15
+  },
   "waves": [
     {
       "wave": 1,
       "groups": [
         {
           "enemy": "pea",
-          "count": 2,
-          "every": 1.5,
+          "count": 1,
+          "every": 1.29,
           "start": 0
         }
       ]
@@ -16,15 +21,15 @@
       "groups": [
         {
           "enemy": "pea",
-          "count": 2,
-          "every": 1.5,
+          "count": 1,
+          "every": 1.29,
           "start": 0
         },
         {
           "enemy": "pepper",
           "count": 1,
-          "every": 4,
-          "start": 3
+          "every": 3.67,
+          "start": 2
         }
       ]
     },
@@ -33,21 +38,21 @@
       "groups": [
         {
           "enemy": "pea",
-          "count": 2,
-          "every": 1.2,
+          "count": 1,
+          "every": 1.25,
           "start": 0
         },
         {
           "enemy": "pepper",
           "count": 1,
-          "every": 3,
+          "every": 3.57,
           "start": 2
         },
         {
           "enemy": "tomato",
           "count": 1,
-          "every": 5,
-          "start": 4
+          "every": 8.32,
+          "start": 3
         }
       ]
     },
@@ -56,26 +61,26 @@
       "groups": [
         {
           "enemy": "pea",
-          "count": 3,
-          "every": 1.5,
+          "count": 1,
+          "every": 1.16,
           "start": 0
         },
         {
           "enemy": "pepper",
           "count": 1,
-          "every": 2.5,
+          "every": 3.32,
           "start": 2
         },
         {
           "enemy": "tomato",
           "count": 1,
-          "every": 4,
+          "every": 7.74,
           "start": 3
         },
         {
           "enemy": "carrot",
           "count": 1,
-          "every": 5,
+          "every": 16.11,
           "start": 4
         }
       ]
@@ -85,32 +90,32 @@
       "groups": [
         {
           "enemy": "pea",
-          "count": 3,
-          "every": 1.5,
+          "count": 1,
+          "every": 1.23,
           "start": 0
         },
         {
           "enemy": "pepper",
           "count": 1,
-          "every": 2.5,
+          "every": 3.52,
           "start": 2
         },
         {
           "enemy": "tomato",
           "count": 1,
-          "every": 3,
+          "every": 8.21,
           "start": 3
         },
         {
           "enemy": "carrot",
           "count": 1,
-          "every": 4,
+          "every": 17.11,
           "start": 4
         },
         {
           "enemy": "potato",
           "count": 1,
-          "every": 10,
+          "every": 24.34,
           "start": 5
         }
       ]
@@ -120,32 +125,32 @@
       "groups": [
         {
           "enemy": "pea",
-          "count": 4,
-          "every": 1.5,
+          "count": 1,
+          "every": 1.08,
           "start": 0
         },
         {
           "enemy": "pepper",
           "count": 1,
-          "every": 2,
+          "every": 3.07,
           "start": 2
         },
         {
           "enemy": "tomato",
           "count": 1,
-          "every": 2.5,
+          "every": 7.17,
           "start": 3
         },
         {
           "enemy": "carrot",
           "count": 1,
-          "every": 3,
+          "every": 14.94,
           "start": 4
         },
         {
           "enemy": "potato",
           "count": 1,
-          "every": 8,
+          "every": 21.24,
           "start": 5
         }
       ]
@@ -155,32 +160,32 @@
       "groups": [
         {
           "enemy": "pea",
-          "count": 4,
-          "every": 1.2,
+          "count": 2,
+          "every": 1.91,
           "start": 0
         },
         {
           "enemy": "pepper",
           "count": 1,
-          "every": 1.8,
+          "every": 2.73,
           "start": 2
         },
         {
           "enemy": "tomato",
           "count": 1,
-          "every": 2,
+          "every": 6.36,
           "start": 3
         },
         {
           "enemy": "carrot",
           "count": 1,
-          "every": 2.5,
+          "every": 13.25,
           "start": 4
         },
         {
           "enemy": "potato",
           "count": 1,
-          "every": 6,
+          "every": 18.84,
           "start": 5
         }
       ]
@@ -190,32 +195,32 @@
       "groups": [
         {
           "enemy": "pea",
-          "count": 4,
-          "every": 1.1,
+          "count": 2,
+          "every": 1.71,
           "start": 0
         },
         {
           "enemy": "pepper",
-          "count": 2,
-          "every": 2.5,
+          "count": 1,
+          "every": 2.45,
           "start": 2
         },
         {
           "enemy": "tomato",
           "count": 1,
-          "every": 1.8,
+          "every": 5.71,
           "start": 3
         },
         {
           "enemy": "carrot",
           "count": 1,
-          "every": 2.2,
+          "every": 11.9,
           "start": 4
         },
         {
           "enemy": "potato",
           "count": 1,
-          "every": 5.5,
+          "every": 16.93,
           "start": 5
         }
       ]
@@ -225,32 +230,32 @@
       "groups": [
         {
           "enemy": "pea",
-          "count": 4,
-          "every": 1,
+          "count": 2,
+          "every": 1.56,
           "start": 0
         },
         {
           "enemy": "pepper",
-          "count": 2,
-          "every": 2,
+          "count": 1,
+          "every": 2.22,
           "start": 2
         },
         {
           "enemy": "tomato",
           "count": 1,
-          "every": 1.5,
+          "every": 5.19,
           "start": 3
         },
         {
           "enemy": "carrot",
           "count": 1,
-          "every": 2,
+          "every": 10.81,
           "start": 4
         },
         {
           "enemy": "potato",
           "count": 1,
-          "every": 5,
+          "every": 15.37,
           "start": 5
         }
       ]
@@ -260,32 +265,32 @@
       "groups": [
         {
           "enemy": "pea",
-          "count": 5,
-          "every": 1,
+          "count": 2,
+          "every": 1.43,
           "start": 0
         },
         {
           "enemy": "pepper",
-          "count": 2,
-          "every": 2,
+          "count": 1,
+          "every": 2.04,
           "start": 2
         },
         {
           "enemy": "tomato",
           "count": 1,
-          "every": 1.2,
+          "every": 4.75,
           "start": 3
         },
         {
           "enemy": "carrot",
           "count": 1,
-          "every": 1.8,
+          "every": 9.9,
           "start": 4
         },
         {
           "enemy": "potato",
           "count": 1,
-          "every": 4,
+          "every": 14.08,
           "start": 5
         }
       ]

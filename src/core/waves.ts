@@ -1,4 +1,5 @@
-import type { SpawnEvent, Vector2, WaveDef } from "@/types";
+import type { SpawnEvent, Vector2, WaveDef, WaveScaling } from "@/types";
+import wavesData from "@assets/data/waves.json";
 
 export function waveDuration(wave: number): number {
   return Math.min(20 + 4 * (wave - 1), 60);
@@ -30,13 +31,19 @@ export function advanceCursor(
   return cursor;
 }
 
+/** Spawns are skipped while this many enemies are alive (balance design §5). */
+export const MAX_ALIVE = 40;
+
+/** Enemy HP × (1 + hp·w + hpQuad·w²) and damage × (1 + damage·w), w = wave − 1, rounded. */
 export function scaleEnemy(
   base: { hp: number; damage: number },
-  wave: number
+  wave: number,
+  k: WaveScaling = wavesData.scaling
 ): { hp: number; damage: number } {
+  const w = wave - 1;
   return {
-    hp: Math.round(base.hp * (1 + 0.25 * (wave - 1))),
-    damage: Math.round(base.damage * (1 + 0.15 * (wave - 1))),
+    hp: Math.round(base.hp * (1 + k.hp * w + k.hpQuad * w * w)),
+    damage: Math.round(base.damage * (1 + k.damage * w)),
   };
 }
 

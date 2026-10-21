@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "sim": "vitest run src/core/sim.report.test.ts"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.0.14",

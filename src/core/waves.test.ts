@@ -73,9 +73,11 @@ describe("advanceCursor", () => {
 });
 
 describe("scaleEnemy", () => {
-  it("scales hp 25% and damage 15% per wave, rounded", () => {
-    expect(scaleEnemy({ hp: 20, damage: 4 }, 1)).toEqual({ hp: 20, damage: 4 });
-    expect(scaleEnemy({ hp: 20, damage: 4 }, 5)).toEqual({ hp: 40, damage: 6 });
+  it("scales hp quadratically and damage linearly per wave, rounded", () => {
+    const k = { hp: 0.3, hpQuad: 0.07, damage: 0.15 };
+    expect(scaleEnemy({ hp: 20, damage: 4 }, 1, k)).toEqual({ hp: 20, damage: 4 });
+    expect(scaleEnemy({ hp: 20, damage: 4 }, 5, k)).toEqual({ hp: 66, damage: 6 });
+    expect(scaleEnemy({ hp: 20, damage: 4 }, 5)).toEqual(scaleEnemy({ hp: 20, damage: 4 }, 5, wavesJson.scaling));
   });
 });
 

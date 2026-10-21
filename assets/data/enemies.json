@@ -2,7 +2,7 @@
   "pea": {
     "id": "pea",
     "name": "Pea Pod",
-    "hp": 20,
+    "hp": 9,
     "damage": 4,
     "speed": 90,
     "scrap": 1,
@@ -14,7 +14,7 @@
   "pepper": {
     "id": "pepper",
     "name": "Hot Pepper",
-    "hp": 15,
+    "hp": 9,
     "damage": 5,
     "speed": 70,
     "scrap": 1,

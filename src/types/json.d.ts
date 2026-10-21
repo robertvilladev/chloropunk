@@ -27,8 +27,8 @@ declare module "@assets/data/character.json" {
 }
 
 declare module "@assets/data/waves.json" {
-  import type { WaveDef } from "@/types";
-  const data: { waves: WaveDef[] };
+  import type { WaveDef, WaveScaling } from "@/types";
+  const data: { scaling: WaveScaling; waves: WaveDef[] };
   export default data;
 }
 

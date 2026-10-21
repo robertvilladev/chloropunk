@@ -10,7 +10,8 @@ src/
   entities/             enemyBehaviors.ts, weaponBehaviors.ts (pure movement/targeting geometry)
   core/                 pure logic: rng, waves (spawn schedule), progression (XP/levels), run (newRun),
                         stats (computeStats), weapons (tier stats, prices), inventory (slots, merge, sell),
-                        shop (offers, reroll, lock), levelup (picks), time, settings, menuNav (keyboard selection), depth (y-sort, facing), labels (tier names, clock, truncate)
+                        shop (offers, reroll, lock), levelup (picks), time, settings, menuNav (keyboard selection), depth (y-sort, facing), labels (tier names, clock, truncate),
+                        sim (headless balance simulator; sim.targets = reference builds, balance targets, threat-budget wave authoring)
   config/view.ts       RENDER_SCALE = 2: canvas is 1600×1200, each scene's main camera is zoomed 2× onto the 800×600 design space (applyView, wired in gameConfig postBoot); installCrispText renders all Text at 2×. Scenes keep 800×600 coordinates, so use GAME_CONFIG.WIDTH/HEIGHT (not camera/scale size) and no setScrollFactor(0)
   fx/glow.ts            isWebGL() guard + applyGlow() (single camera bloom, WebGL only); renderer picked via ?renderer=canvas|webgl (config/renderer.ts)
   fx/Juice.ts           all hit/kill feedback (numbers, flash, shake, bursts, vignette, banners)
@@ -24,7 +25,7 @@ assets/data/            enemies.json, waves.json, weapons.json, character.json, 
 - **Pure first.** Anything testable without Phaser goes in `src/core/` (`*.test.ts` beside it).
 - **Data-driven.** No content hardcoded in scenes. New enemy = JSON entry + (at most) one behaviour in `enemyBehaviors.ts`; new weapon = JSON entry using one of the 6 behaviours in `WeaponManager`; new item or wave = JSON.
 - **Stats.** `computeStats(run)` (base + items + level-up mods, clamped) is the only place player stats are derived; HUD, shop and level-up previews call it.
-- **Run state.** `RunState` (wave, scrap, XP/level, pending level-ups, seed, weapons, items, level-up mods, locked offers) is handed between scenes; `newRun()` makes a fresh one. Phaser reuses scene instances, so reset per-run fields in `create()`.
+- **Run state.** `RunState` (wave, scrap, XP/level, pending level-ups, seed, aim tally, weapons, items, level-up mods, locked offers) is handed between scenes; `newRun()` makes a fresh one. Phaser reuses scene instances, so reset per-run fields in `create()`.
 - **Pooling.** Enemies, projectiles and pickups are pooled (`disableBody`/`enableBody`); no per-frame allocation in hot loops. Target: 60 fps with ~150 enemies.
 - **Cleanup.** Remove scene event listeners on shutdown.
 - **Seeded RNG** (`createRng`) for spawn, shop and level-up rolls.

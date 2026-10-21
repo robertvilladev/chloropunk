@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import weapons from "@assets/data/weapons.json";
 import { BASE_STATS } from "./stats";
-import { sellPrice, weaponPrice, weaponStats } from "./weapons";
+import { sellPrice, waveScale, weaponPrice, weaponStats } from "./weapons";
 
 const stats = (mods = {}) => ({ ...BASE_STATS, ...mods });
 
@@ -9,7 +9,7 @@ describe("weaponStats", () => {
   it("tier 1 pistol with base stats", () => {
     expect(weaponStats(weapons.pistol, 1, stats())).toEqual({
       damage: 12,
-      cooldown: 0.9,
+      cooldown: 0.7,
       range: 320,
       critChance: 0.05,
     });
@@ -28,7 +28,14 @@ describe("weaponStats", () => {
 describe("prices", () => {
   it("weaponPrice scales by tier and wave", () => {
     expect(weaponPrice(weapons.pistol, 1, 1)).toBe(15);
-    expect(weaponPrice(weapons.pistol, 3, 6)).toBe(90);
+    expect(weaponPrice(weapons.pistol, 3, 6)).toBe(120); // 15 × 4 × 2.0
+  });
+
+  it("waveScale: +20% per wave, +25% per wave after wave 8", () => {
+    expect(waveScale(1)).toBe(1);
+    expect(waveScale(8)).toBeCloseTo(2.4);
+    expect(waveScale(9)).toBeCloseTo(2.65);
+    expect(waveScale(11)).toBeCloseTo(3.15);
   });
 
   it("sellPrice is half, rounded down", () => {
