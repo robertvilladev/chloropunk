@@ -11,7 +11,9 @@ src/
   core/                 pure logic: rng, waves (spawn schedule), progression (XP/levels), run (newRun),
                         stats (computeStats), weapons (tier stats, prices), inventory (slots, merge, sell),
                         shop (offers, reroll, lock), levelup (picks), time, settings, menuNav (keyboard selection), depth (y-sort, facing), labels (tier names, clock, truncate),
-                        sim (headless balance simulator; sim.targets = reference builds, balance targets, threat-budget wave authoring)
+                        sim (headless balance simulator; sim.targets = reference builds, balance targets, threat-budget wave authoring, dev `runAtWave`), autopilot (dev kiting input),
+                        runlog (versioned per-run log: wave/shop/level-up records, localStorage store of the last 50, summarise + fitParams for `npm run runs`)
+scripts/runs.mjs        `npm run runs -- <file|folder>` wrapper: runs src/core/runlog.report.test.ts under Vitest with RUNS_PATH set
   config/view.ts       RENDER_SCALE = 2: canvas is 1600×1200, each scene's main camera is zoomed 2× onto the 800×600 design space (applyView, wired in gameConfig postBoot); installCrispText renders all Text at 2×. Scenes keep 800×600 coordinates, so use GAME_CONFIG.WIDTH/HEIGHT (not camera/scale size) and no setScrollFactor(0)
   fx/glow.ts            isWebGL() guard + applyGlow() (single camera bloom, WebGL only); renderer picked via ?renderer=canvas|webgl (config/renderer.ts)
   fx/Juice.ts           all hit/kill feedback (numbers, flash, shake, bursts, vignette, banners)
@@ -33,5 +35,7 @@ assets/data/            enemies.json, waves.json, weapons.json, character.json, 
 ## Run flow
 
 `MenuScene` → `LoadoutScene` (pick 1 of 3 weapons) → `GameScene` runs wave *n* (spawns from the `waves.json` schedule via `EnemyManager`, drops via `PickupManager`, feedback via `Juice`) → wave ends, scrap auto-collected → `VictoryScene` (wave cleared) → `LevelUpScene` once per level gained → `ShopScene` → next wave. HP 0 → `GameOverScene` (try again → loadout). Esc/P or the window losing focus during a wave calls `GameScene.openPause`: it pauses GameScene and UIScene (physics, timers and tweens freeze and continue where they stopped) and launches `PauseScene` (resume / reduced-shake toggle via `core/settings` / quit run with confirmation → stops UI and Game, back to the menu). Not opened once the wave is over (`isGameOver`). After wave 10 the run ends in a stopgap "RUN COMPLETE"; the boss and run summary are M4.
+
+**Run log** ([balance design §9](docs/superpowers/specs/2026-10-20-balance-design.md#9-measuring-real-games-proposed)): `newRun` creates `RunState.log`, which rides along with the run. `GameScene` opens a wave record at `create` and fills it from its own events (kills, `enemyHit`, `scrapCollected`, `playerDodged`, damage by source via `hurt()`, `WeaponManager.tally` shots/hits, `EnemyManager.spawned`); `ShopScene` and `LevelUpScene` push a record when they close. The log is saved to localStorage when the run ends: death, last wave cleared, quit from the pause menu, or Main Menu on the Victory screen. Dev F4 downloads `runs.json`.
 
 What's planned next (look, boss, run summary) lives in [ROADMAP.md](ROADMAP.md); don't duplicate it here.

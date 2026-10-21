@@ -17,6 +17,7 @@ export class LevelUpScene extends Phaser.Scene {
   private run!: RunState;
   private rng!: Rng;
   private choices: UpgradeChoice[] = [];
+  private offered: UpgradeChoice[] = []; // every card seen this pick, for the run log
   private rerolls = 0;
   private focus = -1; // card focused with arrow keys (shows its preview)
   private ui!: Phaser.GameObjects.Container;
@@ -35,6 +36,7 @@ export class LevelUpScene extends Phaser.Scene {
     this.focus = -1;
     this.rng = createRng(this.run.seed + this.run.wave * 1013 + this.run.pendingLevelUps);
     this.choices = this.roll();
+    this.offered = [...this.choices];
     this.cameras.main.setBackgroundColor(THEME.bg);
     onKeys(this, (e) => {
       const digit = /^Digit([1-4])$/.exec(e.code);
@@ -57,6 +59,7 @@ export class LevelUpScene extends Phaser.Scene {
   private pick(i: number): void {
     const c = this.choices[i];
     if (!c) return;
+    this.run.log.levelups.push({ afterWave: this.run.wave - 1, offered: this.offered, pick: c, rerolls: this.rerolls });
     applyUpgrade(this.run, c);
     if (this.run.pendingLevelUps > 0) this.scene.restart({ run: this.run, total: this.total });
     else this.scene.start(SCENE_KEYS.SHOP, { run: this.run });
@@ -72,6 +75,7 @@ export class LevelUpScene extends Phaser.Scene {
     this.run.scrap -= cost;
     this.rerolls++;
     this.choices = this.roll();
+    this.offered.push(...this.choices);
     this.render();
   }
 

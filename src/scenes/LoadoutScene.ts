@@ -1,6 +1,7 @@
 import { GAME_CONFIG, SCENE_KEYS } from "@/config/constants";
 import { THEME, THEME_CSS } from "@/config/theme";
 import { newRun } from "@/core/run";
+import { runAtWave } from "@/core/sim.targets";
 import { BASE_STATS } from "@/core/stats";
 import { weaponStats } from "@/core/weapons";
 import type { WeaponDef } from "@/types";
@@ -102,9 +103,14 @@ export class LoadoutScene extends Phaser.Scene {
   }
 
   private start(weaponId: string): void {
-    const urlSeed = Number(new URLSearchParams(window.location.search).get("seed"));
+    const params = new URLSearchParams(window.location.search);
+    const urlSeed = Number(params.get("seed"));
     const seed = Number.isInteger(urlSeed) && urlSeed !== 0 ? urlSeed : Date.now();
     console.info(`Run seed: ${seed}`);
-    this.scene.start(SCENE_KEYS.GAME, { run: newRun(seed, weaponId) });
+    // Dev: ?wave=N&build=<reference build> jumps in with the sim shopper's build
+    const wave = Number(params.get("wave"));
+    const dev = import.meta.env.DEV && wave > 1 ? runAtWave(params.get("build") ?? "typical", wave, seed) : undefined;
+    if (dev) console.info(`[dev] wave ${wave}:`, dev.weapons.map((w) => `${w.id} T${w.tier}`).join(", "), "|", dev.items.join(", "));
+    this.scene.start(SCENE_KEYS.GAME, { run: dev ?? newRun(seed, weaponId) });
   }
 }

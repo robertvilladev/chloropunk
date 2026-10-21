@@ -203,8 +203,10 @@ export interface RunWave extends WaveResult {
   earned: number; // scrap + harvesting
   bank: number; // scrap after the shop
   level: number;
+  xp: number;
   bought: string[];
   stats: Stats;
+  build: Build; // after the shop: what the next wave starts with
 }
 
 /**
@@ -263,7 +265,7 @@ export function simulateRun(
       queue.shift();
       if (queue.length === 0 && loopFrom < plan.length) queue.push(...plan.slice(loopFrom));
     }
-    out.push({ ...r, earned, bank, level: prog.level, bought, stats });
+    out.push({ ...r, earned, bank, level: prog.level, xp: prog.xp, bought, stats, build: structuredClone(build) });
     if (r.hpLeft <= 0) break;
   }
   return out;

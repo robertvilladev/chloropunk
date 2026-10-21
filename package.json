@@ -11,7 +11,8 @@
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
     "type-check": "tsc --noEmit",
-    "sim": "vitest run src/core/sim.report.test.ts"
+    "sim": "vitest run src/core/sim.report.test.ts",
+    "runs": "node scripts/runs.mjs"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.0.14",
