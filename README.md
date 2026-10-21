@@ -18,11 +18,11 @@ npm run dev        # http://localhost:3000
 
 Other scripts: `npm run build` (type-check + production build), `npm test`, `npm run test:coverage`, `npm run type-check`, `npm run sim` (per-wave balance tables, see the [balance design](docs/superpowers/specs/2026-10-20-balance-design.md)). CI runs build + coverage on PRs.
 
-Dev only: `window.game` is exposed; F2 spawns 150 peas, F3 toggles an FPS readout, F4 toggles the autopilot. `?renderer=canvas` forces the Canvas renderer (fallback check), `?seed=N` fixes the run seed.
+Dev only: `window.game` is exposed; F2 spawns 150 peas, F3 toggles an FPS readout, F8 toggles the autopilot. `?renderer=canvas` forces the Canvas renderer (fallback check), `?seed=N` fixes the run seed.
 
 Playtesting a late wave (dev only, combine freely):
 - `?wave=N&build=<name>` starts the run at wave N with the build the sim's shopper owns by then (weapons, items, level picks, scrap). `<name>` is any part of a `REFERENCE_BUILDS` name in `src/core/sim.targets.ts`: `typical` (default), `never` (pistol, no shopping), `shotgun`, `blade`. The loadout pick is ignored.
-- `?autopilot` (or F4 in a wave) kites for you: circle-strafes away from nearby enemies, stays off walls, grabs scrap when safe. It drives `InputManager`, so game rules are unchanged. Use it for reproducible "moving player" runs to calibrate the sim.
+- `?autopilot` (or F8 in a wave) kites for you: circle-strafes away from nearby enemies, stays off walls, grabs scrap when safe. It drives `InputManager`, so game rules are unchanged. Use it for reproducible "moving player" runs to calibrate the sim.
 - Full run by hand: open `/?seed=1&autopilot`, press 3 for 3× speed, click through the shop/level-ups; the `[balance] run ended …` console line (and the run log, once it lands) holds the result. There's no headless `npm run playtest`: Playwright isn't a dependency.
 
 ## Content is data
