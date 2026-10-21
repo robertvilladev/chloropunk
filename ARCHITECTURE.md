@@ -14,6 +14,7 @@ src/
                         sim (headless balance simulator; sim.targets = reference builds, balance targets, threat-budget wave authoring, dev `runAtWave`), autopilot (dev kiting input),
                         runlog (versioned per-run log: wave/shop/level-up records, localStorage store of the last 50, summarise + fitParams for `npm run runs`)
 scripts/runs.mjs        `npm run runs -- <file|folder>` wrapper: runs src/core/runlog.report.test.ts under Vitest with RUNS_PATH set
+scripts/playtest.mjs    `npm run playtest`: Vite + Playwright Chromium autopilot run, saves localStorage `vv.runs` to runs/playtest-<seed>.json
   config/view.ts       RENDER_SCALE = 2: canvas is 1600×1200, each scene's main camera is zoomed 2× onto the 800×600 design space (applyView, wired in gameConfig postBoot); installCrispText renders all Text at 2×. Scenes keep 800×600 coordinates, so use GAME_CONFIG.WIDTH/HEIGHT (not camera/scale size) and no setScrollFactor(0)
   fx/glow.ts            isWebGL() guard + applyGlow() (single camera bloom, WebGL only); renderer picked via ?renderer=canvas|webgl (config/renderer.ts)
   fx/Juice.ts           all hit/kill feedback (numbers, flash, shake, bursts, vignette, banners)

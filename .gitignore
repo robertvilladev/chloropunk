@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 coverage
+
+# npm run playtest output
+runs/
