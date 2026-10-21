@@ -1,4 +1,4 @@
-import { SCENE_KEYS } from "@/config/constants";
+import { GAME_CONFIG, SCENE_KEYS } from "@/config/constants";
 import { THEME, THEME_CSS } from "@/config/theme";
 import { stepIndex } from "@/core/menuNav";
 import { loadSettings, saveSettings } from "@/core/settings";
@@ -29,7 +29,7 @@ export class PauseScene extends Phaser.Scene {
   }
 
   create() {
-    const { width, height } = this.cameras.main;
+    const { WIDTH: width, HEIGHT: height } = GAME_CONFIG;
     this.view = "main";
     this.scene.bringToTop();
     // Dim the frozen arena; also swallows clicks so nothing underneath reacts
@@ -51,7 +51,7 @@ export class PauseScene extends Phaser.Scene {
   private show(view: View): void {
     this.view = view;
     this.body?.destroy();
-    const { width, height } = this.cameras.main;
+    const { WIDTH: width, HEIGHT: height } = GAME_CONFIG;
     const cx = width / 2;
     const top = height / 2 - 165;
     const parts: Phaser.GameObjects.GameObject[] = [];
@@ -124,6 +124,7 @@ export class PauseScene extends Phaser.Scene {
   }
 
   private quit(): void {
+    this.scene.get(SCENE_KEYS.GAME).events.emit("runQuit"); // saves the run log
     this.scene.stop(SCENE_KEYS.UI);
     this.scene.stop(SCENE_KEYS.GAME); // paused underneath; stopping runs its cleanup
     this.scene.start(SCENE_KEYS.MENU); // also stops this scene

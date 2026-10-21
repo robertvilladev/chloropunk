@@ -14,6 +14,7 @@ import {
 } from "@/core/shop";
 import { STAT_KEYS, STAT_LABELS, computeStats, statDiff } from "@/core/stats";
 import { sellPrice, weaponStats } from "@/core/weapons";
+import type { ShopLog } from "@/core/runlog";
 import type { ItemDef, Offer, RunState, StatKey, Stats, WeaponDef } from "@/types";
 import itemDefs from "@assets/data/items.json";
 import weaponDefs from "@assets/data/weapons.json";
@@ -32,6 +33,7 @@ const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
 export class ShopScene extends Phaser.Scene {
   private run!: RunState;
   private shop!: ShopState;
+  private log!: ShopLog; // run log (balance design §9), pushed when the shop closes
   private rng!: Rng;
   private ui!: Phaser.GameObjects.Container;
   private previewUp!: Phaser.GameObjects.Text;
@@ -50,6 +52,18 @@ export class ShopScene extends Phaser.Scene {
     this.offerFocus = -1;
     this.rng = createRng(this.run.seed + this.run.wave * 1009);
     this.shop = openShop(this.run, this.rng, computeStats(this.run).luck);
+    this.log = {
+      afterWave: this.run.wave - 1,
+      scrapBefore: this.run.scrap,
+      scrapAfter: 0,
+      offers: this.seen(),
+      bought: [],
+      sold: [],
+      combined: [],
+      rerolls: 0,
+      rerollSpent: 0,
+      locked: [],
+    };
     this.cameras.main.setBackgroundColor(THEME.bg);
     this.input.keyboard!.addCapture("TAB,SPACE");
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard!.removeCapture("TAB,SPACE"));
@@ -64,8 +78,17 @@ export class ShopScene extends Phaser.Scene {
 
   // ---- actions ----
 
+  /** Copies of the current offers (only the unlocked ones after a reroll), for the log. */
+  private seen(rerolled = false): Offer[] {
+    return this.shop.offers
+      .filter((o, i): o is Offer => o !== null && !(rerolled && this.shop.locked[i]))
+      .map((o) => ({ ...o }));
+  }
+
   private buy(i: number): void {
+    const o = this.shop.offers[i];
     const r = buy(this.shop, this.run, i);
+    if (o && (r === "add" || r === "merge" || r === "item")) this.log.bought.push({ ...o });
     if (r === "poor") this.say("Not enough scrap");
     else if (r === "blocked") this.say("No free slot and no matching weapon to merge");
     else if (r !== "empty") this.render();
@@ -77,12 +100,21 @@ export class ShopScene extends Phaser.Scene {
   }
 
   private reroll(): void {
-    if (reroll(this.shop, this.run, this.rng, this.stats().luck)) this.render();
+    const cost = rerollCost(this.run.wave, this.shop.rerolls);
+    if (reroll(this.shop, this.run, this.rng, this.stats().luck)) {
+      this.log.rerolls++;
+      this.log.rerollSpent += cost;
+      this.log.offers.push(...this.seen(true));
+      this.render();
+    }
     else this.say("Not enough scrap to reroll");
   }
 
   private sell(i: number): void {
-    if (sellWeapon(this.run, i) === 0) this.say("Can't sell your last weapon");
+    const w = this.run.weapons[i];
+    const price = sellWeapon(this.run, i);
+    if (price === 0) this.say("Can't sell your last weapon");
+    else this.log.sold.push({ ...w, price });
     this.focus = Math.min(this.focus, this.run.weapons.length - 1);
     this.render();
   }
@@ -93,13 +125,17 @@ export class ShopScene extends Phaser.Scene {
       this.say("Needs a matching weapon of the same tier");
       return;
     }
-    combine(this.run.weapons, pair[0], pair[1]);
+    const w = this.run.weapons[pair[0]];
+    if (combine(this.run.weapons, pair[0], pair[1])) this.log.combined.push({ ...w });
     this.focus = Math.min(this.focus, this.run.weapons.length - 1);
     this.render();
   }
 
   private next(): void {
     closeShop(this.shop, this.run);
+    this.log.scrapAfter = this.run.scrap;
+    this.log.locked = this.run.lockedOffers.map((o) => ({ ...o }));
+    this.run.log.shops.push(this.log);
     this.scene.start(SCENE_KEYS.GAME, { run: this.run });
   }
 

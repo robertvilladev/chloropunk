@@ -3,6 +3,7 @@ import { THEME_CSS } from "@/config/theme";
 import { createRng, type Rng } from "@/core/rng";
 import { autopilot } from "@/core/autopilot";
 import { aimReport } from "@/core/run";
+import { endRun, saveRun, startWave, type DamageSource, type Outcome, type WaveLog } from "@/core/runlog";
 import { addXp, xpToNext } from "@/core/progression";
 import { computeStats } from "@/core/stats";
 import { clampDelta } from "@/core/time";
@@ -39,6 +40,7 @@ const GAME_EVENTS = [
   "playerHit",
   "playerDodged",
   "timerUpdate",
+  "runQuit",
 ];
 
 /**
@@ -81,6 +83,9 @@ export class GameScene extends Phaser.Scene {
   // Persistent run state (wave, scrap, xp, build)
   private run!: RunState;
   private stats!: Stats;
+  // This wave's run-log record (balance design §9); `touching` is set by the contact overlap each step
+  private waveLog!: WaveLog;
+  private touching = false;
 
   constructor() {
     super({ key: SCENE_KEYS.GAME });
@@ -108,6 +113,8 @@ export class GameScene extends Phaser.Scene {
 
     // 3. Create player
     this.stats = computeStats(this.run);
+    this.waveLog = startWave(this.run.log, this.run, this.stats);
+    this.touching = false;
     this.rng = createRng(this.run.seed + this.run.wave);
     this.combatRng = createRng(this.run.seed + this.run.wave + 7919);
     this.playerManager = new PlayerManager(this);
@@ -148,6 +155,7 @@ export class GameScene extends Phaser.Scene {
     this.events.on("enemyHit", this.onEnemyHit, this);
     this.events.on("playerHit", this.onPlayerHit, this);
     this.events.on("playerHealthChanged", this.onHealthChanged, this);
+    this.events.on("playerDodged", () => this.waveLog.dodged++);
 
     // 8. Set up collision detection
     this.setupCollisions();
@@ -176,6 +184,13 @@ export class GameScene extends Phaser.Scene {
 
     // Listen for speed changes
     this.events.on("speedChanged", this.onSpeedChanged, this);
+
+    // Quit from the pause menu: keep the partial run in the log
+    this.events.on("runQuit", () => {
+      if (this.isGameOver) return;
+      this.bankAim();
+      this.saveLog("quit");
+    });
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.cleanup, this);
 
@@ -226,7 +241,13 @@ export class GameScene extends Phaser.Scene {
       this.enemyManager.getEnemies()
     );
 
-    // 5. Update UI (via events)
+    // 5. Run log: peak alive and time in contact
+    const w = this.waveLog;
+    w.peakAlive = Math.max(w.peakAlive, this.enemyManager.getEnemyCount());
+    if (this.touching) w.contactTime += dt / 1000;
+    this.touching = false;
+
+    // 6. Update UI (via events)
     this.updateUI();
   }
 
@@ -248,7 +269,8 @@ export class GameScene extends Phaser.Scene {
           this.enemyManager.killEnemy(enemy, false);
           return;
         }
-        this.playerManager.takeDamage(enemy.getData("state").damage);
+        this.touching = true;
+        this.hurt(enemy.getData("state").damage, "contact");
       },
       undefined,
       this
@@ -261,7 +283,7 @@ export class GameScene extends Phaser.Scene {
       (_playerObj, boltObj) => {
         const bolt = boltObj as Phaser.Physics.Arcade.Sprite;
         if (!bolt.active) return;
-        this.playerManager.takeDamage(bolt.getData("damage"));
+        this.hurt(bolt.getData("damage"), "bolt");
         this.enemyManager.removeBolt(bolt);
       },
       undefined,
@@ -368,11 +390,34 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  /** Add this wave's shots, hits and kills to the run totals. */
+  /** Damage the player and log it by source. */
+  private hurt(raw: number, source: DamageSource): void {
+    const lost = this.playerManager.takeDamage(raw);
+    this.waveLog.taken[source] += lost;
+    if (source === "contact" && lost > 0) this.waveLog.contactHits++;
+  }
+
+  /** Add this wave's shots, hits and kills to the run totals and close the wave's log record. */
   private bankAim(): void {
     const a = this.run.aim;
     const t = this.weaponManager.tally;
     this.run.aim = { shots: a.shots + t.shots, hits: a.hits + t.hits, kills: a.kills + this.enemiesKilled };
+    Object.assign(this.waveLog, {
+      duration: this.roundDuration - this.roundTimeRemaining,
+      spawned: this.enemyManager.spawned,
+      killed: this.enemiesKilled,
+      aliveAtEnd: this.enemyManager.getEnemyCount(),
+      shots: t.shots,
+      hits: t.hits,
+      hpEnd: this.playerManager.getHealth(),
+    });
+  }
+
+  /** Finish the run log and keep it (localStorage, last 50). */
+  private saveLog(outcome: Outcome): void {
+    endRun(this.run.log, outcome);
+    saveRun(this.run.log);
+    console.info(aimReport(this.run.aim, this.run.wave));
   }
 
   /**
@@ -384,7 +429,9 @@ export class GameScene extends Phaser.Scene {
 
     console.log("Game Over!");
     this.bankAim();
-    console.info(aimReport(this.run.aim, this.run.wave));
+    this.waveLog.deathTime = this.waveLog.duration;
+    // after hurt() has logged the killing blow (this runs inside takeDamage)
+    queueMicrotask(() => this.saveLog("died"));
     this.scene.pause();
     this.scene.launch(SCENE_KEYS.GAME_OVER);
   }
@@ -398,7 +445,6 @@ export class GameScene extends Phaser.Scene {
 
     console.log("Round Complete!");
     this.bankAim();
-    if (this.run.wave >= wavesData.waves.length) console.info(aimReport(this.run.aim, this.run.wave));
     // Clear enemies and bolts first so nothing can hurt the player after the
     // wave is over (no drops, no blasts)
     this.enemyManager.clearAll();
@@ -414,6 +460,9 @@ export class GameScene extends Phaser.Scene {
     // Harvesting: bonus scrap at wave end (scrap only, never XP)
     this.run.scrap += this.stats.harvesting;
     this.waveEarned += this.stats.harvesting;
+    this.waveLog.scrapBanked = leftover;
+    this.waveLog.harvesting = this.stats.harvesting;
+    if (this.run.wave >= wavesData.waves.length) this.saveLog("won");
     this.playerManager.getSprite().setVelocity(0, 0);
     // Let the banner play before handing off; the timer dies with the scene
     // on shutdown, and isGameOver (set above) prevents a second call
@@ -438,6 +487,7 @@ export class GameScene extends Phaser.Scene {
    */
   private onEnemyKilled(x: number, y: number, def: EnemyDef, drops: boolean): void {
     this.enemiesKilled++;
+    if (drops) this.waveLog.scrapDropped += def.scrap;
 
     this.juice.deathBurst(x, y, this.burstColors.get(def.id)!);
     if (def.shakeOnKill) this.juice.shake("kill");
@@ -450,6 +500,7 @@ export class GameScene extends Phaser.Scene {
     amount: number,
     crit: boolean
   ): void {
+    this.waveLog.damageDealt += amount;
     this.juice.damageNumber(enemy.x, enemy.y - 16, amount, crit);
     this.juice.hitFlash(enemy);
   }
@@ -463,6 +514,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onScrapCollected(value: number): void {
+    this.waveLog.scrapLive += value;
     this.run.scrap += value;
     this.waveEarned += value;
   }
@@ -478,7 +530,7 @@ export class GameScene extends Phaser.Scene {
   ): void {
     const p = this.playerManager.getPosition();
     if (Math.hypot(p.x - x, p.y - y) <= radius) {
-      this.playerManager.takeDamage(damage);
+      this.hurt(damage, "blast");
     }
   }
 
