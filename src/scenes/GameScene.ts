@@ -1,6 +1,7 @@
-import { SCENE_KEYS } from "@/config/constants";
+import { GAME_CONFIG, SCENE_KEYS } from "@/config/constants";
 import { THEME_CSS } from "@/config/theme";
 import { createRng, type Rng } from "@/core/rng";
+import { autopilot } from "@/core/autopilot";
 import { aimReport } from "@/core/run";
 import { addXp, xpToNext } from "@/core/progression";
 import { computeStats } from "@/core/stats";
@@ -19,6 +20,9 @@ import wavesData from "@assets/data/waves.json";
 import { applyGlow } from "@/fx/glow";
 import { onKeys } from "@/scenes/ui";
 import Phaser from "phaser";
+
+// Dev autopilot survives scene restarts between waves; ?autopilot starts it on
+let autopilotOn = import.meta.env.DEV && new URLSearchParams(window.location.search).has("autopilot");
 
 const BANNER_MS = 900; // matches Juice.banner total duration
 
@@ -308,9 +312,27 @@ export class GameScene extends Phaser.Scene {
     this.scene.launch(SCENE_KEYS.PAUSE);
   }
 
-  /** Dev only: F2 spawns 150 peas, F3 toggles an FPS readout. */
+  /** Dev only: F2 spawns 150 peas, F3 toggles an FPS readout, F4 toggles the autopilot. */
   private setupDevKeys(): void {
     const kb = this.input.keyboard!;
+    const scrap = this.pickupManager.getGroup().getChildren() as Phaser.Physics.Arcade.Sprite[];
+    const steer = () =>
+      autopilot(
+        this.playerManager.getSprite(),
+        this.enemyManager.getEnemies(),
+        scrap.filter((s) => s.active),
+        GAME_CONFIG.WIDTH,
+        GAME_CONFIG.HEIGHT
+      );
+    const pilot = () => {
+      this.inputManager.autopilot = autopilotOn ? steer : null;
+      console.info(`[dev] autopilot ${autopilotOn ? "on" : "off"}`);
+    };
+    const togglePilot = () => {
+      autopilotOn = !autopilotOn;
+      pilot();
+    };
+    if (autopilotOn) pilot();
     const fps = this.add
       .text(8, 8, "", { fontFamily: "monospace", fontSize: "14px", color: THEME_CSS.lime })
       .setDepth(1000)
@@ -322,10 +344,12 @@ export class GameScene extends Phaser.Scene {
     };
     kb.on("keydown-F2", spawn);
     kb.on("keydown-F3", toggle);
+    kb.on("keydown-F4", togglePilot);
     this.events.on(Phaser.Scenes.Events.POST_UPDATE, tick);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       kb.off("keydown-F2", spawn);
       kb.off("keydown-F3", toggle);
+      kb.off("keydown-F4", togglePilot);
       this.events.off(Phaser.Scenes.Events.POST_UPDATE, tick);
     });
   }

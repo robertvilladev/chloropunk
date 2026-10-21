@@ -2,7 +2,8 @@
  * Balance targets (design doc §4), the reference builds they are checked on,
  * and the threat-budget helper waves.json was authored with. Not read by the game.
  */
-import type { EnemyDef, Mods, SpawnGroup, WaveDef } from "@/types";
+import type { EnemyDef, Mods, RunState, SpawnGroup, WaveDef } from "@/types";
+import { newRun } from "./run";
 import { DEFAULT_PARAMS, LIVE_DATA, simulateRun, type Buy, type SimData, type SimParams } from "./sim";
 
 export interface ReferenceBuild {
@@ -46,6 +47,21 @@ export const REFERENCE_BUILDS: ReferenceBuild[] = [
   { name: "shotgun, never shops", start: "shotgun", plan: [], picks: [] },
   { name: "blade, never shops", start: "blade", plan: [], picks: [] },
 ];
+
+/**
+ * Dev `?wave=N&build=<name>`: the run state a reference build (first whose
+ * name contains `build`) starts wave `wave` with, as simulateRun shops it.
+ * Undefined for an unknown build. Past the sim's death wave it keeps the last build.
+ */
+export function runAtWave(build: string, wave: number, seed: number): RunState | undefined {
+  const ref = REFERENCE_BUILDS.find((b) => b.name.includes(build));
+  if (!ref) return undefined;
+  const run = newRun(seed, ref.start);
+  if (wave <= 1) return run;
+  const sim = simulateRun(ref.start, ref.plan, ref.picks, ref.loopFrom, LIVE_DATA, DEFAULT_PARAMS, wave - 1);
+  const r = sim[sim.length - 1];
+  return { ...run, wave, scrap: r.bank, xp: r.xp, level: r.level, ...r.build };
+}
 
 // ---- wave authoring ----
 

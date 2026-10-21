@@ -62,6 +62,8 @@ Spec: [§4, §5 waves, §9 numbers](docs/superpowers/specs/2026-10-18-mvp-roguel
 - ✅ Owner decisions (design §8): threat-budget waves, enemy growth, prices +20%/wave then +25% for the last 3 shops, starter tuning (9 HP peas/peppers, pistol 0.7 s + pierce 1), alive cap 40
 - ✅ Approved numbers applied: threat-budget `waves.json` + `scaling`, 9 HP peas/peppers, pistol 0.7 s + pierce 1, price curve in `weapons.ts`, `MAX_ALIVE` 40; browser playtest waves 1–3 ([design §10](docs/superpowers/specs/2026-10-20-balance-design.md#10-applied-2026-10-20))
 - ✅ Real aim logged once per run (`[balance] run ended …` console line; `RunState.aim`); stationary playtest: 94% of projectiles hit
+- ✅ Dev playtest tools: `?wave=N&build=<name>` starts any wave with a reference build's sim-shopped build (`runAtWave` in `sim.targets.ts`); `?autopilot` / F4 kites via `InputManager` (`core/autopilot.ts`); autopilot clears wave 1 (seed 1: 13 kills)
+- ⬜ (proposed) `npm run playtest`: headless waves 1–10 on autopilot at 3× and save the run log; needs Playwright (owner decision, new dev dependency)
 - ⬜ Playtest waves 4–9 (moving player) and recalibrate the sim's `aim`/`contactRate` from the aim log
 - ⬜ (proposed) Run log for measuring real games: local per-run/per-wave records, export, report vs sim ([design §9](docs/superpowers/specs/2026-10-20-balance-design.md#9-measuring-real-games-proposed))
 

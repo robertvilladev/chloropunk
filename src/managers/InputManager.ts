@@ -14,6 +14,9 @@ export class InputManager {
     D: Phaser.Input.Keyboard.Key;
   };
 
+  /** Dev: when set, replaces the keyboard as the movement source. */
+  autopilot: (() => { x: number; y: number }) | null = null;
+
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
   }
@@ -41,6 +44,7 @@ export class InputManager {
    * Returns {x: -1 to 1, y: -1 to 1}
    */
   getMovementInput(): { x: number; y: number } {
+    if (this.autopilot) return this.autopilot();
     let x = 0;
     let y = 0;
 
