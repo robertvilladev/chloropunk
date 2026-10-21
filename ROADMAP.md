@@ -10,7 +10,7 @@ Status: ✅ done · 🚧 in progress · ⬜ planned. "(proposed)" = inferred by 
 | M1 Waves & feel | ✅ done — merged in PR #14 | [M1 plan](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) |
 | M2 Build-crafting | ✅ done — merged in PR #16 | [M2 plan](docs/superpowers/plans/2026-10-18-m2-build-crafting.md) |
 | M3 Look | ✅ done — merged in PR #17 | [M3 plan](docs/superpowers/plans/2026-10-18-m3-look.md) |
-| Balance & progression | ✅ applied on branch `claude/balance-4dadcd`, merged with main (waves 1–3 playtested; 4–9 by sim only) | [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) |
+| Balance & progression | ✅ applied, in review as PR #22 (waves 1–3 playtested; 4–9 by sim only) | [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) |
 | M4 Boss & run end | ⬜ planned | not written |
 
 ## M1 — Waves & feel ✅
@@ -23,6 +23,7 @@ Spec: [§4 run loop, §5 systems](docs/superpowers/specs/2026-10-18-mvp-roguelik
 - ✅ Seeded RNG (`src/core/rng.ts`)
 - ✅ Juice: damage numbers, hit flash, knockback, screen shake, death bursts, low-HP vignette, wave banners, reduced-shake setting
 - ✅ Cleanup: dead files and deps removed, `theme.ts` tokens, CI green
+- ✅ (proposed) Deploy: Vercel Git integration (Vite preset, `npm run build` → `dist/`); `main` is protected by a GitHub ruleset requiring PRs and the CI `build-and-test` check
 
 ## M2 — Build-crafting ✅
 Spec: [§4 steps 1, 4, 5; §5 stats/weapons/items](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md)
