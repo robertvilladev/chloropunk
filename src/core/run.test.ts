@@ -26,7 +26,7 @@ describe("newRun", () => {
 describe("aimReport", () => {
   it("reports hits and kills as a share of shots", () => {
     expect(aimReport({ shots: 200, hits: 140, kills: 90 }, 3)).toBe(
-      "[balance] run ended wave 3: 200 shots, 140 hit (70%), 90 kills (45% of shots)"
+      "[balance] run ended wave 3: 200 attacks, 140 landed (70%), 90 kills (45% of attacks)"
     );
     expect(aimReport({ shots: 0, hits: 0, kills: 0 }, 1)).toContain("n/a");
   });

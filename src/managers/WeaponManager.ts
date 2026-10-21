@@ -52,7 +52,7 @@ export class WeaponManager {
   private angles: number[] = [];
   private slot: Vector2 = { x: 0, y: 0 };
   private clock = 0; // seconds since create, for drone hit cooldowns
-  /** Projectiles fired and projectiles that hit at least once, this wave. */
+  /** Attacks this wave (projectiles, beams, swings) and how many touched an enemy; drones aren't counted. */
   readonly tally = { shots: 0, hits: 0 };
 
   constructor(scene: Phaser.Scene) {
@@ -190,12 +190,16 @@ export class WeaponManager {
   /** Laser: every enemy on the line, once. */
   private beam(w: Equipped, from: Vector2, angle: number, enemies: Sprite[]): void {
     const half = w.def.params.width / 2;
+    let landed = false;
     for (let i = 0; i < enemies.length; i++) {
       const e = enemies[i];
       if (e.active && onBeam(from, angle, w.ws.range, half + radiusOf(e), e)) {
         this.directHit(w, e, angle);
+        landed = true;
       }
     }
+    this.tally.shots++;
+    if (landed) this.tally.hits++;
     const g = w.gfx!;
     g.clear();
     g.lineStyle(w.def.params.width, THEME.tier[1]);
@@ -212,12 +216,16 @@ export class WeaponManager {
   /** Blade: every enemy in the front arc, once. */
   private swing(w: Equipped, from: Vector2, angle: number, enemies: Sprite[]): void {
     const arc = w.def.params.arc;
+    let landed = false;
     for (let i = 0; i < enemies.length; i++) {
       const e = enemies[i];
       if (e.active && inArc(from, angle, arc, w.ws.range + radiusOf(e), e)) {
         this.directHit(w, e, Math.atan2(e.y - from.y, e.x - from.x));
+        landed = true;
       }
     }
+    this.tally.shots++;
+    if (landed) this.tally.hits++;
     const half = ((arc / 2) * Math.PI) / 180;
     const g = w.gfx!;
     g.clear();
