@@ -138,7 +138,7 @@ export interface ItemDef {
   mods: Mods;
 }
 
-/** Run totals for balance calibration (projectile weapons only count shots/hits). */
+/** Run totals for balance calibration: attacks (projectiles, beams, swings; not drones), attacks that landed, kills. */
 export interface AimTally {
   shots: number;
   hits: number;

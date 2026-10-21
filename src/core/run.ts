@@ -19,5 +19,5 @@ export function newRun(seed: number, weaponId: string): RunState {
 /** One log line per run, to recalibrate the sim's `aim` (balance design §7, §9). */
 export function aimReport(t: AimTally, wave: number): string {
   const pct = (n: number) => (t.shots > 0 ? `${Math.round((100 * n) / t.shots)}%` : "n/a");
-  return `[balance] run ended wave ${wave}: ${t.shots} shots, ${t.hits} hit (${pct(t.hits)}), ${t.kills} kills (${pct(t.kills)} of shots)`;
+  return `[balance] run ended wave ${wave}: ${t.shots} attacks, ${t.hits} landed (${pct(t.hits)}), ${t.kills} kills (${pct(t.kills)} of attacks)`;
 }
