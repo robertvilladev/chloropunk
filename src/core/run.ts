@@ -1,4 +1,5 @@
 import type { AimTally, RunState } from "@/types";
+import { newRunLog } from "./runlog";
 
 export function newRun(seed: number, weaponId: string): RunState {
   return {
@@ -9,6 +10,7 @@ export function newRun(seed: number, weaponId: string): RunState {
     pendingLevelUps: 0,
     seed,
     aim: { shots: 0, hits: 0, kills: 0 },
+    log: newRunLog(seed, weaponId),
     weapons: [{ id: weaponId, tier: 1 }],
     items: [],
     levelMods: {},

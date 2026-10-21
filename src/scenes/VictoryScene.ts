@@ -1,5 +1,6 @@
 import wavesData from "@assets/data/waves.json";
 import { SCENE_KEYS, GAME_CONFIG } from "@/config/constants";
+import { endRun, saveRun } from "@/core/runlog";
 import type { RunState } from "@/types";
 import { THEME, THEME_CSS } from "@/config/theme";
 import { button, panel, scanlines, statTile, text } from "./ui";
@@ -47,6 +48,10 @@ export class VictoryScene extends Phaser.Scene {
     }, true, true, { size: 20, font: "display", w: 220, h: 48 });
     button(this, cx, height / 2 + 105, "MAIN MENU", () => {
       exit();
+      if (this.run && !this.run.log.result) {
+        endRun(this.run.log, "quit");
+        saveRun(this.run.log);
+      }
       this.scene.start(SCENE_KEYS.MENU);
     }, false, true, { size: 14, w: 220, h: 36 });
 

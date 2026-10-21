@@ -87,33 +87,48 @@ const BANDS = [
   { name: "pressure", waves: [8, 9], kill: [70, 95], hpLeft: [1, 85] },
 ] as const; // wave 10 is the boss wave (M4); its targets come with the boss
 
+/** One wave of a typical run: simulated, or medians of real run logs (core/runlog `summarise`). */
+export interface TargetRow {
+  wave: number;
+  killPct: number;
+  hpPct: number;
+  buys: number; // in the shop after the wave
+}
+
+/** Band, buy-rate and early-shop targets on per-wave rows; `who` names the rows in messages. */
+export function checkRows(rows: TargetRow[], who = "typical"): string[] {
+  const out: string[] = [];
+  for (const band of BANDS) {
+    for (const n of band.waves) {
+      const r = rows.find((r) => r.wave === n);
+      if (!r) {
+        out.push(`${who} never reached wave ${n}`);
+        return out;
+      }
+      if (r.killPct < band.kill[0] || r.killPct > band.kill[1]) out.push(`w${n} ${band.name}: ${who} kill ${r.killPct.toFixed(0)}% not in ${band.kill}`);
+      if (r.hpPct < band.hpLeft[0] || r.hpPct > band.hpLeft[1]) out.push(`w${n} ${band.name}: ${who} hp left ${r.hpPct.toFixed(0)}% not in ${band.hpLeft}`);
+    }
+  }
+  const buys = rows.filter((r) => r.wave <= 9).reduce((s, r) => s + r.buys, 0) / 9;
+  if (buys < 0.8 || buys > 2) out.push(`${who} buys ${buys.toFixed(2)}/wave not in 0.8,2`);
+  for (const n of [1, 2, 3, 4]) if (rows.find((r) => r.wave === n)?.buys === 0) out.push(`w${n}: ${who} buys nothing`);
+  return out;
+}
+
 /** Every way `data` misses the balance targets; empty = on target. */
 export function checkTargets(data: SimData = LIVE_DATA, p: SimParams = DEFAULT_PARAMS): string[] {
-  const out: string[] = [];
   const [bare, typical, ...starters] = REFERENCE_BUILDS.map((b) =>
     simulateRun(b.start, b.plan, b.picks, b.loopFrom, data, p)
   );
-  for (const band of BANDS) {
-    for (const n of band.waves) {
-      const r = typical[n - 1];
-      if (!r) {
-        out.push(`typical died before wave ${n}`);
-        return out;
-      }
-      const kill = (100 * r.kills) / r.spawned;
-      const hp = (100 * r.hpLeft) / r.stats.maxHp;
-      if (kill < band.kill[0] || kill > band.kill[1]) out.push(`w${n} ${band.name}: typical kill ${kill.toFixed(0)}% not in ${band.kill}`);
-      if (hp < band.hpLeft[0] || hp > band.hpLeft[1]) out.push(`w${n} ${band.name}: typical hp left ${hp.toFixed(0)}% not in ${band.hpLeft}`);
-    }
-  }
+  const out = checkRows(
+    typical.map((r) => ({ wave: r.wave, killPct: (100 * r.kills) / r.spawned, hpPct: (100 * r.hpLeft) / r.stats.maxHp, buys: r.bought.length }))
+  );
+  if (out.some((v) => v.includes("never reached"))) return out;
   // Spec §2 "dense, escalating waves": late waves bring ≥ 1.75 enemies/s
   for (const n of [8, 9]) {
     const r = typical[n - 1];
     if (r && r.spawned / r.duration < 1.75) out.push(`w${n}: only ${(r.spawned / r.duration).toFixed(1)} enemies/s`);
   }
-  const buys = typical.slice(0, 9).reduce((s, r) => s + r.bought.length, 0) / 9;
-  if (buys < 0.8 || buys > 2) out.push(`typical buys ${buys.toFixed(2)}/wave not in 0.8,2`);
-  for (const n of [1, 2, 3, 4]) if (typical[n - 1]?.bought.length === 0) out.push(`w${n}: typical buys nothing`);
   // A player who never shops still gets through onboarding, but fails by wave 7
   if (bare.length < 4) out.push(`never-shop pistol dies in wave ${bare.length}`);
   if (bare.length >= 7 && (100 * bare[6].kills) / bare[6].spawned > 60) out.push("never-shop pistol still fine at wave 7");

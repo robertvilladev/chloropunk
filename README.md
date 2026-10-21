@@ -16,9 +16,9 @@ npm install
 npm run dev        # http://localhost:3000
 ```
 
-Other scripts: `npm run build` (type-check + production build), `npm test`, `npm run test:coverage`, `npm run type-check`, `npm run sim` (per-wave balance tables, see the [balance design](docs/superpowers/specs/2026-10-20-balance-design.md)). CI runs build + coverage on PRs.
+Other scripts: `npm run build` (type-check + production build), `npm test`, `npm run test:coverage`, `npm run type-check`, `npm run sim` (per-wave balance tables, see the [balance design](docs/superpowers/specs/2026-10-20-balance-design.md)), `npm run runs -- <file or folder>` (per-wave medians from exported run logs next to the sim's prediction, the targets on them, and fitted sim `aim`/`contactRate`; balance design §9). CI runs build + coverage on PRs.
 
-Dev only: `window.game` is exposed; F2 spawns 150 peas, F3 toggles an FPS readout. `?renderer=canvas` forces the Canvas renderer (fallback check), `?seed=N` fixes the run seed.
+Dev only: `window.game` is exposed; F2 spawns 150 peas, F3 toggles an FPS readout, F4 downloads the stored run logs (last 50 runs, localStorage `vv.runs`) as `runs.json`. `?renderer=canvas` forces the Canvas renderer (fallback check), `?seed=N` fixes the run seed.
 
 ## Content is data
 
