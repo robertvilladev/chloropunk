@@ -141,7 +141,8 @@ export class Juice {
   }
 
   banner(text: string): void {
-    const { width: w, height: h } = this.scene.scale;
+    // design space, not scene.scale: the canvas is rendered at 2x (config/view.ts)
+    const { WIDTH: w, HEIGHT: h } = GAME_CONFIG;
     // Pink/cyan RGB-split shadows behind the lime face
     const layers: [number, string][] = [
       [-3, THEME_CSS.tier[1]],

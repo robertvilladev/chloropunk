@@ -1,4 +1,4 @@
-import { DEPTH } from "@/config/constants";
+import { DEPTH, GAME_CONFIG } from "@/config/constants";
 import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import { tierLabel } from "@/core/labels";
 import type { Tier } from "@/types";
@@ -104,7 +104,7 @@ export function scanlines(scene: Phaser.Scene): Phaser.GameObjects.Image {
     tex.context.fillRect(0, 0, 4, 2);
     tex.refresh();
   }
-  const { width, height } = scene.scale;
+  const { WIDTH: width, HEIGHT: height } = GAME_CONFIG;
   return scene.add.tileSprite(0, 0, width, height, key).setOrigin(0).setAlpha(0.06).setDepth(DEPTH.UI - 5) as unknown as Phaser.GameObjects.Image;
 }
 

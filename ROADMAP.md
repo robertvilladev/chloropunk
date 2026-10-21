@@ -52,7 +52,8 @@ Owner playtest: text was jaggy. Cause: an 800×600 canvas upscaled with nearest-
 
 - ✅ Canvas now 1600×1200 (2×); every scene keeps its 800×600 coordinates via a camera zoom of 2 centred on the design space (`src/config/view.ts`, applied on each scene start). Arena, physics bounds and spawn edges are unchanged; all `Text` is rasterised at resolution 2. Layouts stay 4:3
 - ✅ Locked shop offers: pink border, pink-tinted face, pink "LOCKED" tab, padlock icon, button reads UNLOCK
-- Rule since then: use `GAME_CONFIG.WIDTH/HEIGHT`, never `cameras.main.width/height` or `scale.width`; no `setScrollFactor(0)` (the zoomed camera is scrolled)
+- Rule since then: use `GAME_CONFIG.WIDTH/HEIGHT`, never `cameras.main.width/height` or `scale.width`; no `setScrollFactor(0)` (the zoomed camera is scrolled). Enforced by `src/config/view.guard.test.ts`
+- ✅ Fixed after 2×: pause menu (PR #21); wave start/clear banners (were cropped bottom-right), menu skyline and footer (drawn off-screen), scanline overlay size
 
 ## Balance & progression 🚧
 Spec: [§4, §5 waves, §9 numbers](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md). Design: [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) — **approved by the owner 2026-10-20** (decisions in §8). Goal: 10 waves first, then 20, then endless.
