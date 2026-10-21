@@ -23,12 +23,8 @@ Dev only: `window.game` is exposed; F2 spawns 150 peas, F3 toggles an FPS readou
 Playtesting a late wave (dev only, combine freely):
 - `?wave=N&build=<name>` starts the run at wave N with the build the sim's shopper owns by then (weapons, items, level picks, scrap). `<name>` is any part of a `REFERENCE_BUILDS` name in `src/core/sim.targets.ts`: `typical` (default), `never` (pistol, no shopping), `shotgun`, `blade`. The loadout pick is ignored.
 - `?autopilot` (or F8 in a wave) kites for you: circle-strafes away from nearby enemies, stays off walls, grabs scrap when safe. It drives `InputManager`, so game rules are unchanged. Use it for reproducible "moving player" runs to calibrate the sim.
-<<<<<<< HEAD
 - Full run headless: `npm run playtest -- [--seed 1] [--runs 1] [--wave N --build typical] [--headed]` starts Vite, plays `/?seed=N&autopilot` in Playwright's Chromium at 3×, takes the first level-up pick, buys nothing in the shop, and writes the run log to `runs/playtest-<seed>.json` (git-ignored) until death or wave 10 (about 1–2 min). Then `npm run runs -- runs`. First time: `npx playwright install chromium`. Runs aren't frame-exact, so the same seed can end a wave or two apart.
 - Full run by hand: open `/?seed=1&autopilot`, press 3 for 3× speed, click through the shop/level-ups, F4 for the log.
-=======
-- Full run by hand: open `/?seed=1&autopilot`, press 3 for 3× speed, click through the shop/level-ups; F4 then exports the run log for `npm run runs`. There's no headless `npm run playtest` yet: Playwright isn't a dependency.
->>>>>>> origin/claude/playtest-tools
 
 ## Content is data
 
