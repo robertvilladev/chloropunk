@@ -1,6 +1,7 @@
 /**
  * Core type definitions for the game
  */
+import type { RunLog } from "@/core/runlog";
 
 export interface Vector2 {
   x: number;
@@ -154,6 +155,7 @@ export interface RunState {
   pendingLevelUps: number;
   seed: number;
   aim: AimTally;
+  log: RunLog; // balance design §9; saved when the run ends
   weapons: OwnedWeapon[];
   items: string[]; // item ids, repeats allowed
   levelMods: Mods; // summed level-up picks

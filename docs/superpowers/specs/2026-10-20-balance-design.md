@@ -19,7 +19,7 @@ Horizon: the MVP has 10 waves. The model is meant to scale to 20 waves and then 
   - About one buy per wave.
   - Real damage taken by wave 9 (43% HP left).
   - Wave 10 (the M4 boss wave) is lethal without a boss design.
-- **Next:** §9 adds measurement, a local run log, so later tuning comes from real games and not only from the sim.
+- **Next:** §9 adds measurement, a local run log (built 2026-10-21), so later tuning comes from real games and not only from the sim.
 
 ## 2. Diagnosis (live data)
 
@@ -199,6 +199,8 @@ Applied 2026-10-20 (§10).
 
 ## 9. Measuring real games (proposed)
 
+**Status (2026-10-21): built** — the local run log (§9.1–9.4) is in `src/core/runlog.ts`; see §9.4 for what shipped and how it differs. The server path (§9.5) stays a proposal.
+
 The sim is only as good as its guesses (aim, contact rate, the shopper). The owner wants real games to answer questions like:
 - How many enemies per wave are right?
 - What is the average scrap per wave?
@@ -225,8 +227,8 @@ One `RunLog` per run, in memory while playing, then saved. These are compact per
 ### 9.2 Where it goes
 
 1. **Local store.** Keep the last 50 runs in `localStorage` (about 5 KB per run), using the same guarded storage helper as `core/settings.ts`. It never blocks the game and drops the oldest first.
-2. **Export.** A dev-only key (like F2/F3) and later a settings button download `runs.json`. Playtesters send the file, and the owner drops files into a folder.
-3. **Report.** `npm run sim -- --runs <folder>` (or a sibling `npm run runs`) reads the logs and prints the same per-wave table as the sim, with measured and predicted values side by side, grouped by data hash so old balance versions don't mix with new ones.
+2. **Export.** A dev-only key (F4, built) and later a settings button download `runs.json`. Playtesters send the file, and the owner drops files into a folder.
+3. **Report.** `npm run runs -- <file or folder>` (built; see §9.4) reads the logs and prints the same per-wave table as the sim, with measured and predicted values side by side, grouped by data hash so old balance versions don't mix with new ones.
 4. **Later, optional:** an opt-in upload to a small endpoint once there are external players. That is a spec change, so it needs the owner's call.
 
 ### 9.3 How the data closes the loop
@@ -255,7 +257,42 @@ One `RunLog` per run, in memory while playing, then saved. These are compact per
 3. Storage and export (dev key first).
 4. Report script, and `checkTargets` over real data.
 
-Effort: small to medium, no new dependencies. This is listed in ROADMAP as **(proposed)**.
+Effort: small to medium, no new dependencies.
+
+**As built (2026-10-21):**
+- `RunLog` (`schemaVersion: 1`) is plain JSON: random id (`crypto.randomUUID`), ISO date, `buildVersion` (package.json), `dataHash` (FNV-1a of all `assets/data` JSON), seed, starter, `result`, then `waves[]`, `shops[]`, `levelups[]`. It lives in `RunState.log` and is saved on death, after the last wave, or on quit.
+- Differences from the §9.1 table:
+  - The `build` record sits inside each wave record and is taken at wave start. That is the build in effect for the whole wave, since it only changes between waves.
+  - `result.outcome` can also be `quit` (pause-menu quit, or Main Menu on the Victory screen), so short playtests still produce a log.
+  - Wave records add `contactHits` (for fitting `contactRate`). `spawned` counts scheduled spawns only (no F2 peas, no spawns dropped by `MAX_ALIVE`).
+  - Shop and level-up records use `afterWave` (the wave just cleared); `offers`/`offered` include every reroll.
+  - `damageDealt` includes overkill. `shots`/`hits` are `WeaponManager.tally` (projectiles only, as in §10).
+  - "Time to first hit" (for `spawnDist`) is not recorded yet.
+- Export: dev key **F4** downloads `runs.json` (all stored runs). There is no settings button yet.
+- Report: `npm run runs -- <file or folder>` reads `runs.json` files and drops duplicate run ids, since exports overlap. Per data hash it prints:
+  - per-wave medians (kill %, peak alive, scrap dropped / live / banked, buys, aim, damage dealt and taken by source, HP %);
+  - the sim's prediction for the *same builds* (`simulateWave` with default params, and again with the fitted ones);
+  - `checkRows` (the band, buy-rate and early-shop targets, split out of `checkTargets`) on the measured medians.
+- Fit helper: `fitParams(logs)` gives `aim` = Σhits ÷ Σshots and `contactRate` = contact hits ÷ seconds in contact.
+  - Caveat: the sim's `aim` also absorbs overkill and idle time (§10). The measured hit rate (≈ 0.95 standing still) is therefore an upper bound for the sim knob, not a drop-in value. The report shows both columns so the gap is visible.
+- Verified in a browser (seed 1, pistol, 2 waves, quit from the Victory screen). The exported log and report read:
+  - wave 1: 15 of 16 kills, 15/15 hits, 15 scrap banked, HP 100;
+  - wave 2: 23 of 25 kills, 22/23 hits, 23 scrap;
+  - one shop visit with 1 reroll (2 scrap), 0 buys, Cyber Visor locked.
+
+  This matches the screens and the §10 replay.
+
+### 9.5 Path to a server (proposed)
+
+This is a spec change, because online features are a spec non-goal (§2). It needs the owner's call, and nothing here is built.
+
+- **Local first (now):** the `RunLog` JSON is the stable, versioned contract. Add fields freely; bump `schemaVersion` only for breaking changes.
+- **Later, opt-in:** POST each finished run's log, unchanged, to one small endpoint. No personal data: the run id is random, and an anonymous player id would be generated locally.
+- **Storage:** Postgres with one `runs` table.
+  - Indexed columns: run id, player id, schema version, build version, data hash, starter, outcome, wave reached, date.
+  - The full log is kept as `jsonb`.
+  - Analysis is plain SQL (e.g. per-wave medians with `jsonb_array_elements(log->'waves')`). The same `summarise` logic can also run on an export.
+- **Accounts:** when registration exists, link the account to the anonymous player id. Past runs then join without re-uploading.
 
 ## 10. Applied (2026-10-20)
 
