@@ -12,9 +12,11 @@
     "test:coverage": "vitest run --coverage",
     "type-check": "tsc --noEmit",
     "sim": "vitest run src/core/sim.report.test.ts",
-    "runs": "node scripts/runs.mjs"
+    "runs": "node scripts/runs.mjs",
+    "playtest": "node scripts/playtest.mjs"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@vitest/coverage-v8": "^4.0.14",
     "jsdom": "^27.2.0",
     "terser": "^5.44.1",

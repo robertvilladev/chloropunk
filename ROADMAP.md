@@ -10,7 +10,7 @@ Status: ✅ done · 🚧 in progress · ⬜ planned. "(proposed)" = inferred by 
 | M1 Waves & feel | ✅ done — merged in PR #14 | [M1 plan](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) |
 | M2 Build-crafting | ✅ done — merged in PR #16 | [M2 plan](docs/superpowers/plans/2026-10-18-m2-build-crafting.md) |
 | M3 Look | ✅ done — merged in PR #17 | [M3 plan](docs/superpowers/plans/2026-10-18-m3-look.md) |
-| Balance & progression | ✅ applied, in review as PR #22 (waves 1–3 playtested; 4–9 by sim only) | [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) |
+| Balance & progression | ✅ applied (PR #22; waves 1–3 playtested, 4–9 by sim only) | [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) |
 | M4 Boss & run end | ⬜ planned | not written |
 
 ## M1 — Waves & feel ✅
@@ -66,7 +66,8 @@ Spec: [§4, §5 waves, §9 numbers](docs/superpowers/specs/2026-10-18-mvp-roguel
 - ✅ Real aim logged once per run (`[balance] run ended …` console line; `RunState.aim`); stationary playtest: 94% of projectiles hit
 - ✅ Run log for measuring real games ([design §9](docs/superpowers/specs/2026-10-20-balance-design.md#9-measuring-real-games-proposed)): `src/core/runlog.ts` (versioned `RunLog`, wave/shop/level-up records, last 50 runs in localStorage), dev F4 exports `runs.json`, `npm run runs -- <file|folder>` prints measured medians next to the sim, the targets on them (`checkRows`) and fitted `aim`/`contactRate`. Verified with a 2-wave browser playtest
 - ✅ Dev playtest tools: `?wave=N&build=<name>` starts any wave with a reference build's sim-shopped build (`runAtWave` in `sim.targets.ts`); `?autopilot` / F8 kites via `InputManager` (`core/autopilot.ts`); autopilot clears wave 1 (seed 1: 13 kills)
-- ⬜ (proposed) `npm run playtest`: headless waves 1–10 on autopilot at 3× and save the run log; needs Playwright (owner decision, new dev dependency)
+- ✅ (proposed) `npm run playtest` (`scripts/playtest.mjs`, `@playwright/test` Chromium): headless autopilot run at 3×, first level-up pick, no shopping, writes `runs/playtest-<seed>.json`; `--seed/--runs/--wave/--build`. Seed 1: died wave 8–9 in ~1.5 min (not in CI). Fixed on the way: dev speed keys 1/2/3 never fired (Phaser emits `keydown-THREE`)
+- ⬜ (proposed) `npm run playtest` shops like a reference build (now it buys nothing, so it reads as the `never` build)
 - ⬜ Playtest waves 4–9 (moving player) and recalibrate the sim's `aim`/`contactRate` with `npm run runs` (fitted values)
 - ⬜ Collect real logs (owner + playtesters) and tune enemies per wave, scrap per wave and starter viability from them
 
@@ -91,6 +92,7 @@ From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) an
 - **Robustness:** `rng.int` unguarded for max<min; `buildSpawnSchedule` hangs if `every<=0`
 - **Dev only:** `debugSpawn` draws from the spawn RNG; F2 peas aren't counted in the run log's `spawned` (kill % can pass 100)
 - **Shop:** the header reads `WAVE n CLEARED` with the *next* wave's number (e.g. "WAVE 02 CLEARED" after wave 1)
+- **Playtest determinism:** the same seed ends a wave or two apart between `npm run playtest` runs (variable frame deltas, 3× steps up to 300 ms)
 - **Level-up (unconfirmed):** in one playtest a single `1` keypress right after a reroll applied the same pick twice (2 levels pending); a retry didn't reproduce it
 - **M4:** Victory → GameOver "RUN COMPLETE" is a stopgap
 - **(proposed)** `vite.config.ts` still defines aliases for the non-existent `@ecs` and `@ui` folders

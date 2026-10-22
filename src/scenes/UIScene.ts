@@ -131,13 +131,15 @@ export class UIScene extends Phaser.Scene {
     });
 
     const kb = this.input.keyboard;
-    const handlers = speeds.map((speed) => {
+    // Phaser names digit keys: keydown-ONE, not keydown-1
+    const keys = ["ONE", "TWO", "THREE"];
+    const handlers = speeds.map((speed, i) => {
       const fn = () => this.setGameSpeed(speed);
-      kb?.on(`keydown-${speed}`, fn);
+      kb?.on(`keydown-${keys[i]}`, fn);
       return fn;
     });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () =>
-      speeds.forEach((speed, i) => kb?.off(`keydown-${speed}`, handlers[i]))
+      keys.forEach((key, i) => kb?.off(`keydown-${key}`, handlers[i]))
     );
     this.updateSpeedButtons();
   }
