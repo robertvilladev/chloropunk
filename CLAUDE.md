@@ -1,4 +1,4 @@
-# Veggie Vendetta — agent notes
+# Chloropunk — agent notes
 
 Phaser 3.90 + TypeScript (strict) + Vite + Vitest. Read [README.md](README.md), [ARCHITECTURE.md](ARCHITECTURE.md) and [ROADMAP.md](ROADMAP.md) first; the binding intent is the [MVP spec](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md).
 

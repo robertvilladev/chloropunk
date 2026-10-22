@@ -1,6 +1,8 @@
-# Veggie Vendetta — MVP Design
+# Chloropunk — MVP Design
 
 Date: 2026-10-18 · Status: draft for approval
+
+**Name:** *Chloropunk* (owner decision 2026-10-22, was *Veggie Vendetta*). Favicon: the pixel "Slime C" (`public/favicon.svg`); logo and marks in the [Claude Design canvas](https://claude.ai/artifact/NsAx5gUQWJPCVBDHxirktd).
 
 ## 1. Intent
 

@@ -1,4 +1,4 @@
-# Veggie Vendetta
+# Chloropunk
 
 A Brotato-style arena roguelike: a cyberpunk fighter smashes mutant vegetables in a neon city.
 Built with **Phaser 3.90**, **TypeScript (strict)**, **Vite** and **Vitest**. Desktop browser, WASD/arrows; weapons auto-fire; Esc or P pauses (also when the window loses focus).
