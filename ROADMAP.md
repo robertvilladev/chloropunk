@@ -95,7 +95,7 @@ From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) an
 - **Playtest determinism:** the same seed ends a wave or two apart between `npm run playtest` runs (variable frame deltas, 3× steps up to 300 ms)
 - **Level-up (unconfirmed):** in one playtest a single `1` keypress right after a reroll applied the same pick twice (2 levels pending); a retry didn't reproduce it
 - **M4:** Victory → GameOver "RUN COMPLETE" is a stopgap
-- **Rename to Chloropunk (2026-10-22):** title, favicon, menu logo and doc headings done. Still `veggie-vendetta`: the GitHub repo (next), the Vercel project, `package.json` `name`, the folder. `vv.runs` / `vv.settings` localStorage keys stay on purpose (renaming loses saved settings and run logs). Old plans and `docs/superpowers/specs/mockups/` keep the old name as history
+- **Rename to Chloropunk (2026-10-22):** title, favicon, menu logo, doc headings and `package.json` `name` done. Still `veggie-vendetta`: the GitHub repo and Vercel project (owner renames them by hand), the local folder. `vv.runs` / `vv.settings` localStorage keys stay on purpose (renaming loses saved settings and run logs). Old plans and `docs/superpowers/specs/mockups/` keep the old name as history
 - **(proposed)** `vite.config.ts` still defines aliases for the non-existent `@ecs` and `@ui` folders
 - **(proposed)** `STRUCTURE.md`, `PROJECT_SUMMARY.md` and `QUICKSTART.md` describe the old prototype (ShopScene "display upgrades", 3 weapons); fold into README/ARCHITECTURE or delete
 
