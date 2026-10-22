@@ -1,4 +1,4 @@
-import { SCENE_KEYS } from "@/config/constants";
+import { GAME_CONFIG, SCENE_KEYS } from "@/config/constants";
 import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import Phaser from "phaser";
 import pkg from "../../package.json";
@@ -20,7 +20,7 @@ export class MenuScene extends Phaser.Scene {
   }
 
   create() {
-    const { width: W, height: H } = this.scale;
+    const { WIDTH: W, HEIGHT: H } = GAME_CONFIG;
     this.cameras.main.setBackgroundColor(THEME.bg);
 
     let x = 0;

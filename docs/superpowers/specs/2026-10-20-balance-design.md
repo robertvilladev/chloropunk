@@ -325,10 +325,10 @@ After wave 1, three of the four shop offers were affordable: Lucky Chip 14, Synt
 **Aim logging.** `RunState.aim` totals projectile shots, projectiles that hit at least once, and kills. `GameScene` adds each wave's numbers and prints one line when the run ends (on death, or after the last wave clears):
 
 ```
-[balance] run ended wave 4: 80 shots, 75 hit (94%), 69 kills (86% of shots)
+[balance] run ended wave 4: 80 attacks, 75 landed (94%), 69 kills (86% of attacks)
 ```
 
-Beam, blade and drone attacks are not counted as shots.
+Every projectile, beam and blade swing counts as an attack; it "landed" if it touched an enemy. Drone ticks aren't counted. (First version counted projectiles only, so a blade-only run logged "0 shots"; fixed 2026-10-21.)
 
 **After merging main** (pause menu and 2× rendering), I replayed waves 1–3 the same way. They reproduced the table above exactly. Hit rates were 15/15, 22/23 and 35/38.
 
