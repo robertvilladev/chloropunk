@@ -10,7 +10,7 @@ Status: ✅ done · 🚧 in progress · ⬜ planned. "(proposed)" = inferred by 
 | M1 Waves & feel | ✅ done — merged in PR #14 | [M1 plan](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) |
 | M2 Build-crafting | ✅ done — merged in PR #16 | [M2 plan](docs/superpowers/plans/2026-10-18-m2-build-crafting.md) |
 | M3 Look | ✅ done — merged in PR #17 | [M3 plan](docs/superpowers/plans/2026-10-18-m3-look.md) |
-| Balance & progression | ✅ applied, in review as PR #22 (waves 1–3 playtested; 4–9 by sim only) | [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) |
+| Balance & progression | ✅ applied (PR #22; waves 1–3 playtested, 4–9 by sim only) | [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) |
 | M4 Boss & run end | ⬜ planned | not written |
 
 ## M1 — Waves & feel ✅
