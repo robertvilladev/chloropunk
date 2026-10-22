@@ -1,4 +1,4 @@
-# Veggie Vendetta — Balance & progression design
+# Chloropunk — Balance & progression design
 
 Date: 2026-10-20 · Status: **approved by the owner and applied to the game, 2026-10-20**. The decisions are in §8; the applied changes and the playtest are in §10. Every number comes from the headless simulator (`npm run sim`).
 Binding intent: [MVP spec](2026-10-18-mvp-roguelike-design.md) §4 (run loop), §5 (waves, stats), §9 ("start from Brotato-like ratios and tune by play").

@@ -45,7 +45,7 @@ export class MenuScene extends Phaser.Scene {
     const layers: [number, string][] = [[-3, THEME_CSS.tier[1]], [3, THEME_CSS.pink], [0, THEME_CSS.lime]];
     for (const [dx, color] of layers) {
       this.add
-        .text(56 + dx, 122, "VEGGIE\nVENDETTA", { fontFamily: FONTS.display, fontSize: "64px", color })
+        .text(56 + dx, 122, "CHLORO\nPUNK", { fontFamily: FONTS.display, fontSize: "64px", color })
         .setLineSpacing(-12);
     }
     text(this, 56, 276, "The harvest mutated. You didn't.", 14, THEME_CSS.textMuted);
