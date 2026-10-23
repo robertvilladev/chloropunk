@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { VoiceLimiter, streakRate, vary } from "./voices";
+import { VoiceLimiter, streakRate, vary, waveBoost } from "./voices";
 
 describe("VoiceLimiter", () => {
   const rule = { max: 2, gapMs: 50 };
@@ -31,6 +31,16 @@ describe("vary", () => {
     expect(vary(1, 0.1, () => 0)).toBeCloseTo(0.9);
     expect(vary(1, 0.1, () => 0.5)).toBeCloseTo(1);
     expect(vary(2, 0.1, () => 1)).toBeCloseTo(2.2);
+  });
+});
+
+describe("waveBoost", () => {
+  it("starts neutral and grows a little each wave, capped at wave 10", () => {
+    expect(waveBoost(1)).toEqual({ rate: 1, gain: 1 });
+    expect(waveBoost(2).rate).toBeGreaterThan(1);
+    expect(waveBoost(10).rate).toBeLessThan(1.15); // under ~2.5 semitones
+    expect(waveBoost(10).gain).toBeLessThanOrEqual(1.3);
+    expect(waveBoost(20)).toEqual(waveBoost(10));
   });
 });
 

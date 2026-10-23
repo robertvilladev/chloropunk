@@ -61,7 +61,7 @@ Sprites are authored as text grids, one palette letter per pixel (`.` = transpar
 
 ## Audio
 
-**SFX are code, not files.** Each one is a [ZzFX](https://killedbyapixel.github.io/ZzFX/) parameter array in `src/fx/sounds.ts`, played with `sfx("name")` from `src/fx/sfx.ts` ([audio addendum](docs/superpowers/specs/2026-10-23-audio-addendum.md)). To add or retune one, design it in the ZzFX page, paste the array (keep index 1, randomness, at `0`) and pick a voice limit (`max` copies at once, `gapMs` between starts). `npx vitest run src/fx` checks that every sound renders short and unclipped.
+**SFX are code, not files.** Each one is a [ZzFX](https://killedbyapixel.github.io/ZzFX/) parameter array in `src/fx/sounds.ts`, played with `sfx("name")` from `src/fx/sfx.ts` ([audio addendum](docs/superpowers/specs/2026-10-23-audio-addendum.md)). To add or retune one, design it in the ZzFX page, paste the array (keep index 1, randomness, at `0`) and pick a voice limit (`max` copies at once, `gapMs` between starts) and `pitchVar` (random pitch spread per play). The house style is filtered (negative last value = low-pass) saw/triangle tones with light bitcrush; menus use the same family, quieter. `npx vitest run src/fx` checks that every sound renders short and unclipped.
 
 **Music (planned, not built yet):** 1–2 free-licence loops go in `assets/audio/`, each listed in `assets/audio/CREDITS.md` (title, author, source URL, licence). Load them with `this.load.audio(key, url)` in `BootScene.preload()` and play them with `this.sound.add(key, { loop: true })`. They share Phaser's AudioContext with SFX.
 

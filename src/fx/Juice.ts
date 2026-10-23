@@ -1,6 +1,7 @@
 import { DEPTH, GAME_CONFIG } from "@/config/constants";
 import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import { loadSettings } from "@/core/settings";
+import { waveBoost } from "@/core/voices";
 import Phaser from "phaser";
 import { sfx } from "./sfx";
 import type { SoundName } from "./sounds";
@@ -147,8 +148,10 @@ export class Juice {
     }
   }
 
-  banner(text: string, sound: SoundName = "waveStart"): void {
-    sfx(sound);
+  /** Wave banner + its sound, a little louder and higher each wave. */
+  banner(text: string, wave: number, sound: SoundName = "waveStart"): void {
+    const boost = waveBoost(wave);
+    sfx(sound, boost.rate, boost.gain);
     // design space, not scene.scale: the canvas is rendered at 2x (config/view.ts)
     const { WIDTH: w, HEIGHT: h } = GAME_CONFIG;
     // Pink/cyan RGB-split shadows behind the lime face

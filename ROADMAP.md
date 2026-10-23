@@ -102,7 +102,7 @@ From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) an
 
 - **M3 polish carry-overs:** weapon-slot row on the HUD is 36 px at stride 42 (mockup 40 px at 46); menu/loadout fighter has no shadow ellipse; loadout tag lines come from `behavior` (mockup says SINGLE TARGET / CONE); shop `OWNED ×n` is text not a chip, items list cut at 3 lines without ellipsis; level-up focus ring uses the tier colour; HUD XP bar is 140 px (mockup ~180); `theme.guard` only scans 6-digit hex; a recycled enemy's stale hit-frame timer can end a new hit frame early; `bodyOffset` rescans grids per spawn (memoise)
 - **UI:** the shop header says "WAVE 02 CLEARED" after wave 1 (it shows the next wave's number)
-- **SFX:** the sounds were checked by tests and in-browser event counts, not by ear: the owner listens and reports per sound (too loud / quiet / harsh / long), then `src/fx/sounds.ts` gets retuned
+- **SFX:** first listening pass by the owner (2026-10-23) applied: softer combat sounds (low-pass, less bitcrush), menu sounds redone in the game's palette with a very quiet hover, punkier wave/run-end stabs, and wave banners grow slightly each wave (`waveBoost`). Next: another listening pass
 - **Dev only:** after editing `assets/data/*.json` with a page open, Vite HMR logs one "Failed to load module script … application/json" console error; a fresh load is clean
 
 ## Ideas parking lot (post-MVP)

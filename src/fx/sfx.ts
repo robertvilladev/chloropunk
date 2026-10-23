@@ -28,8 +28,8 @@ export function setSfxVolume(v: number): void {
   if (out) out.gain.value = MASTER * v;
 }
 
-/** Play a sound with a little random pitch/volume; `rate` shifts pitch (pickup streaks). */
-export function sfx(name: SoundName, rate = 1): void {
+/** Play a sound with a little random pitch/volume; `rate` shifts pitch (pickup streaks), `gain` scales volume. */
+export function sfx(name: SoundName, rate = 1, gain = 1): void {
   // Still locked (no click/key yet) or suspended on blur: drop it rather than queue a burst
   if (!ctx || !out || ctx.state !== "running") return;
   const s = SOUNDS[name];
@@ -40,13 +40,13 @@ export function sfx(name: SoundName, rate = 1): void {
     buf.copyToChannel(samples, 0);
     buffers.set(name, buf);
   }
-  const r = vary(rate, 0.06);
+  const r = vary(rate, s.pitchVar);
   if (!limiter.tryStart(name, s, ctx.currentTime * 1000, (buf.duration * 1000) / r)) return;
   const src = ctx.createBufferSource();
   src.buffer = buf;
   src.playbackRate.value = r;
   const g = ctx.createGain();
-  g.gain.value = vary(1, 0.1);
+  g.gain.value = vary(gain, 0.1);
   src.connect(g).connect(out);
   src.start();
 }
