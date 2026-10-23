@@ -1,6 +1,6 @@
 /**
- * `npm run sim`: prints per-wave tables for the reference builds (skipped by
- * plain `npm test`). To try a curve, edit assets/data and rerun.
+ * `pnpm sim`: prints per-wave tables for the reference builds (skipped by
+ * plain `pnpm test`). To try a curve, edit assets/data and rerun.
  */
 import { it } from "vitest";
 import { LIVE_DATA, simulateRun, type RunWave, type SimData } from "./sim";

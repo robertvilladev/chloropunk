@@ -57,7 +57,7 @@ Sprites are authored as text grids, one palette letter per pixel (`.` = transpar
 - `palette.ts` - letter -> hex (`PALETTE`); `grid.ts` - `parseGrid`, `gridBounds`, `validateActor`.
 - `actors.ts` - `ACTORS`: each actor has `walk0`, `walk1` (legs swapped, or body bobbed) and `hit` (white flash, `>_<` face, one row lower). Always draw facing right; flipping is runtime.
 - `pickups.ts` - 8x8 two-frame pickups.
-- To add an actor: append an `ActorArt` to `ACTORS`; `npx vitest run src/art` validates it (width/rows, letters, bounds, hit differs from walk0).
+- To add an actor: append an `ActorArt` to `ACTORS`; `pnpm exec vitest run src/art` validates it (width/rows, letters, bounds, hit differs from walk0).
 
 ## Audio Assets (Future)
 
@@ -89,11 +89,11 @@ this.sound.play('shoot');
 ### TypeScript Error: "Cannot find module"
 1. Check you're using `@assets/` not `@/assets/`
 2. Restart VS Code (Ctrl+Shift+P → "Reload Window")
-3. Run `npm run type-check` to verify
+3. Run `pnpm type-check` to verify
 
 ### Vite Build Error
 1. Make sure `vite.config.ts` has the `@assets` alias
-2. Restart dev server (`Ctrl+C` then `npm run dev`)
+2. Restart dev server (`Ctrl+C` then `pnpm dev`)
 
 ### JSON not typed correctly
 Check `src/types/json.d.ts` has declarations for your JSON files.

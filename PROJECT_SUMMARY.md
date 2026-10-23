@@ -64,7 +64,7 @@ JSON Data Files: 3
 # Already running at http://localhost:3000
 # If not:
 cd c:\Users\rober\Desktop\brotato-experiment
-npm run dev
+pnpm dev
 ```
 
 ## 🎯 Next Implementation Phase
@@ -164,16 +164,16 @@ STRUCTURE.md                  ← File organization
 
 ```bash
 # Start development server (with hot reload)
-npm run dev
+pnpm dev
 
 # Build for production
-npm run build
+pnpm build
 
 # Preview production build
-npm run preview
+pnpm preview
 
 # Type check without building
-npm run type-check
+pnpm type-check
 ```
 
 ## 🎓 Learning Path

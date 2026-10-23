@@ -157,18 +157,18 @@ GameScene.update() [60 FPS]
 
 ### Running the Game
 ```bash
-npm run dev          # Start dev server at localhost:3000
+pnpm dev          # Start dev server at localhost:3000
 ```
 
 ### Building for Production
 ```bash
-npm run build        # Creates optimized build in dist/
-npm run preview      # Preview production build
+pnpm build        # Creates optimized build in dist/
+pnpm preview      # Preview production build
 ```
 
 ### Type Checking
 ```bash
-npm run type-check   # Check TypeScript without building
+pnpm type-check   # Check TypeScript without building
 ```
 
 ### Debugging

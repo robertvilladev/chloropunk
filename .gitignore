@@ -24,5 +24,5 @@ dist-ssr
 *.sw?
 coverage
 
-# npm run playtest output
+# pnpm playtest output
 runs/
