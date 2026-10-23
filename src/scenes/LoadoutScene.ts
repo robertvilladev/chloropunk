@@ -9,6 +9,7 @@ import type { WeaponDef } from "@/types";
 import character from "@assets/data/character.json";
 import weaponDefs from "@assets/data/weapons.json";
 import Phaser from "phaser";
+import { sfx } from "@/fx/sfx";
 import { button, onKeys, panel, scanlines, text } from "./ui";
 
 const STARTERS = ["pistol", "shotgun", "blade"] as const;
@@ -78,9 +79,12 @@ export class LoadoutScene extends Phaser.Scene {
 
     onKeys(this, (e) => {
       const digit = /^Digit([1-3])$/.exec(e.code);
-      if (digit) this.start(STARTERS[Number(digit[1]) - 1]);
-      else if (e.code === "ArrowLeft" || e.code === "ArrowRight") {
+      if (digit || e.code === "Enter" || e.code === "Space") {
+        sfx("uiConfirm");
+        this.start(STARTERS[digit ? Number(digit[1]) - 1 : this.selected]);
+      } else if (e.code === "ArrowLeft" || e.code === "ArrowRight") {
         this.selected = (this.selected + (e.code === "ArrowRight" ? 1 : STARTERS.length - 1)) % STARTERS.length;
+        sfx("uiMove");
         refresh();
       } else if (e.code === "Escape") this.scene.start(SCENE_KEYS.MENU);
     });

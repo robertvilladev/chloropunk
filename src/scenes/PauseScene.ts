@@ -49,7 +49,10 @@ export class PauseScene extends Phaser.Scene {
       else if (e.code === "Escape") (this.view === "main" ? this.resume() : this.show("main"));
       else if (e.code === "ArrowUp" || e.code === "KeyW") this.moveFocus(-1);
       else if (e.code === "ArrowDown" || e.code === "KeyS") this.moveFocus(1);
-      else if (e.code === "Enter" || e.code === "Space") this.items[this.focus]?.run();
+      else if (e.code === "Enter" || e.code === "Space") {
+        sfx("uiConfirm");
+        this.items[this.focus]?.run();
+      }
     });
     this.show("main");
   }
@@ -114,6 +117,7 @@ export class PauseScene extends Phaser.Scene {
 
   private moveFocus(dir: 1 | -1): void {
     this.focus = stepIndex(this.focus, this.items.length, dir);
+    sfx("uiMove");
     this.applyFocus();
   }
 

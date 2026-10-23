@@ -46,8 +46,9 @@ export function button(
       face.setPosition(d, d);
       t.setPosition(d, d);
     };
-    c.on("pointerover", () => {
-      sfx("uiMove"); // also fires for keyboard focus (PauseScene emits pointerover)
+    // PauseScene emits pointerover without a pointer to draw keyboard focus; it plays its own blip
+    c.on("pointerover", (p?: Phaser.Input.Pointer) => {
+      if (p) sfx("uiMove");
       move(-2);
       face.setFillStyle(primary ? THEME.pink300 : THEME.line);
     });

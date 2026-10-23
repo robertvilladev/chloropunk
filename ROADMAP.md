@@ -78,7 +78,7 @@ Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-
 - ⬜ Victory / defeat run summary (wave reached, kills, damage dealt, build) with "one more run"; replaces the "RUN COMPLETE" stopgap
 - ✅ Pause menu (resume, settings, quit run) — moved forward from M4 by the owner: Esc/P or window blur opens `PauseScene`; settings has the reduced-shake toggle and master / music / SFX volume; quit asks for confirmation
 - ⬜ Best-wave high-score record
-- ✅ SFX — back in scope by the owner (2026-10-23, [audio addendum](docs/superpowers/specs/2026-10-23-audio-addendum.md), [plan](docs/superpowers/plans/2026-10-23-sfx.md)): 16 procedural ZzFX sounds (hits, kills, hurt, low HP, blasts, waves, pickup streaks, level up, buy/deny, UI move/confirm/back, game over / run complete) on Phaser's AudioContext, voice limiting + pitch variation (`core/voices.ts`), SFX volume in pause settings. Verified in the browser (no console errors); level-up and run-complete sounds not heard in that session
+- ✅ SFX — back in scope by the owner (2026-10-23, [audio addendum](docs/superpowers/specs/2026-10-23-audio-addendum.md), [plan](docs/superpowers/plans/2026-10-23-sfx.md)): 16 procedural ZzFX sounds (hits, kills, hurt, low HP, blasts, waves, pickup streaks, level up, buy/deny, UI move/confirm/back, game over / run complete) on Phaser's AudioContext, voice limiting + pitch variation (`core/voices.ts`), SFX volume in pause settings. Every keyboard and mouse menu action blips once (move / confirm / back); every shop refusal and a level-up reroll without enough scrap play deny; Enter/Space now confirms the loadout pick. Verified in the browser (no console errors); level-up and run-complete sounds not triggered in that session
 - ✅ Music ([plan](docs/superpowers/plans/2026-10-23-music.md)): 2 CC-BY 4.0 synthwave loops (NLV on menu/loadout, Spring in waves/level-up/shop) streamed through a music bus on Phaser's AudioContext, 1.5 s crossfade on state change, duck to 30% under pause / round complete / game over, master + music volume in pause settings, credits in `assets/audio/CREDITS.md` and a menu CREDITS overlay. Verified in the browser (crossfade, duck, no duplicate tracks, settings persist); not yet listened to by the owner
 - ⬜ Final README pass
 
@@ -102,7 +102,7 @@ From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) an
 
 - **M3 polish carry-overs:** weapon-slot row on the HUD is 36 px at stride 42 (mockup 40 px at 46); menu/loadout fighter has no shadow ellipse; loadout tag lines come from `behavior` (mockup says SINGLE TARGET / CONE); shop `OWNED ×n` is text not a chip, items list cut at 3 lines without ellipsis; level-up focus ring uses the tier colour; HUD XP bar is 140 px (mockup ~180); `theme.guard` only scans 6-digit hex; a recycled enemy's stale hit-frame timer can end a new hit frame early; `bodyOffset` rescans grids per spawn (memoise)
 - **UI:** the shop header says "WAVE 02 CLEARED" after wave 1 (it shows the next wave's number)
-- **SFX (proposed):** keyboard focus in Menu/Loadout/Shop (Tab) plays no move blip (only Pause and Level-up do); in Pause, every redraw re-emits `pointerover`, so a confirm also plays a quiet move blip. The sounds were tuned by sample checks, not by ear: the owner should listen and retune `src/fx/sounds.ts`
+- **SFX:** first listening pass by the owner (2026-10-23) applied: softer combat sounds (low-pass, less bitcrush), menu sounds redone in the game's palette with a very quiet hover, punkier wave/run-end stabs, and wave banners grow slightly each wave (`waveBoost`). Next: another listening pass
 - **Music (proposed):** neither track loops seamlessly (NLV fades out then restarts from its quiet intro; Spring cuts from full level back to its start) and the levels were matched by meter (NLV trimmed to 0.75): the owner should listen. Safari before 18.4 can't play Ogg and gets no music; an M4A fallback is the fix if that matters. The autoplay-unlock path (music starting on the first click) couldn't be exercised in the preview, which allows autoplay
 - **Dev only:** after editing `assets/data/*.json` with a page open, Vite HMR logs one "Failed to load module script … application/json" console error; a fresh load is clean
 
@@ -113,7 +113,6 @@ Named by the spec as non-goals / later:
 - Meta-progression and unlocks; save files beyond a high score
 - Mobile/touch controls, gamepad, localization
 - Audio beyond two music loops and a few SFX
-- Music sources (for the M4 music item): CC0 packs from Kenney.nl or OpenGameArt; AI tools (Suno/Udio) only after checking their licences
 - Online features: leaderboards, accounts
 - (proposed) Opt-in upload of finished run logs to a small endpoint (Postgres `runs` table), accounts linked to an anonymous player id — a spec change, needs the owner's call ([balance design §9.5](docs/superpowers/specs/2026-10-20-balance-design.md#95-path-to-a-server-proposed))
 - (proposed) 20-wave run: extend the balance model (bands for waves 11–20, longer reference builds, more AoE content for density) — [balance design §5](docs/superpowers/specs/2026-10-20-balance-design.md#5-the-model-approved)

@@ -29,3 +29,9 @@ export function vary(base: number, amount: number, rand: () => number = Math.ran
 export function streakRate(n: number): number {
   return 2 ** (Math.min(n, 12) / 12);
 }
+
+/** Wave start/clear sounds grow a little each wave: +1/4 semitone and +3% volume per wave, capped at wave 10. */
+export function waveBoost(wave: number): { rate: number; gain: number } {
+  const step = Math.min(Math.max(wave, 1), 10) - 1;
+  return { rate: 2 ** (step / 48), gain: 1 + step * 0.03 };
+}

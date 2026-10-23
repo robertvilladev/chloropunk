@@ -153,7 +153,7 @@ export class GameScene extends Phaser.Scene {
         this.enemyManager.damageEnemy(enemy, damage, crit);
       },
     });
-    this.juice.banner(`WAVE ${String(this.run.wave).padStart(2, "0")}`);
+    this.juice.banner(`WAVE ${String(this.run.wave).padStart(2, "0")}`, this.run.wave);
     this.events.on("enemyHit", this.onEnemyHit, this);
     this.events.on("playerHit", this.onPlayerHit, this);
     this.events.on("playerHealthChanged", this.onHealthChanged, this);
@@ -451,7 +451,7 @@ export class GameScene extends Phaser.Scene {
     // wave is over (no drops, no blasts)
     this.enemyManager.clearAll();
     this.weaponManager.clear();
-    this.juice.banner("WAVE CLEARED", "waveClear");
+    this.juice.banner("WAVE CLEARED", this.run.wave, "waveClear");
 
     // Leftover scrap is auto-collected
     const leftover = this.pickupManager.collectAll();

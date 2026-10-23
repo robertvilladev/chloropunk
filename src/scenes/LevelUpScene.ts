@@ -73,6 +73,7 @@ export class LevelUpScene extends Phaser.Scene {
   private reroll(): void {
     const cost = rerollCost(this.run.wave, this.rerolls);
     if (this.run.scrap < cost) {
+      sfx("deny");
       this.diff.removeAll(true);
       this.info.setText("Not enough scrap to reroll").setColor(THEME_CSS.danger);
       return;
