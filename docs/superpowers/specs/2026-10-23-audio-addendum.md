@@ -27,3 +27,21 @@ About 10 events, in a glitchy/digital/bitcrushed cyberpunk style. No weapon-fire
 - **Variation.** Each play gets about ±6% random pitch and ±10% volume, so repeats don't sound robotic. This uses `Math.random`, never the seeded run RNG, so seeds stay deterministic.
 - **Setting.** The pause menu has an SFX volume setting (0–100% in 20% steps, saved with the other settings). A scene pause freezes gameplay SFX; window blur suspends the AudioContext.
 - **Readability.** The same rule as visual FX: sounds must not mask each other. Hits are quiet and short, and big events (wave, level up, death) are louder and rarer.
+
+## Music (proposed 2026-10-23, waiting on owner sign-off)
+
+Two CC-BY 4.0 tracks, picked by the owner (licences checked 2026-10-23; full attribution goes in `assets/audio/CREDITS.md` and in the game):
+
+| Track | Author | Source | Length | Proposed use |
+|---|---|---|---|---|
+| "Cyberpunk/Synthwave project track" (WIP) | NLV | [OGA](https://opengameart.org/content/cyberpunksynthwave-project-track) | 4:42 WAV (music ends ~4:31, silence after ~4:36) | Menu + Loadout |
+| "06-06-19 Synthwave" | Spring | [OGA](https://opengameart.org/content/06-06-19-synthwave) | 5:22 OGG | Waves, level-up, shop |
+
+Proposed rules (each is an open question in the [music plan](../plans/2026-10-23-music.md#open-questions-for-the-owner)):
+
+- **Mixer.** Master = Phaser's own `sound.volume`; a music bus and the existing SFX bus are gain nodes under it. Each has a 0–100% setting (20% steps) in Pause → Settings.
+- **One track at a time.** Changing state crossfades (~1.5 s). Requesting the track that's already playing does nothing, so scene restarts can't stack copies.
+- **Ducking.** Pause, game over and victory overlays lower music to ~30%; resuming restores it.
+- **Streaming, not decoding.** Music plays from an `<audio>` element routed into Phaser's AudioContext (`createMediaElementSource`), so a 5-minute track isn't decoded into ~120 MB of RAM and startup isn't blocked. It still goes through Phaser's master gain, unlock and blur suspend.
+- **Loops.** Neither track is a seamless loop. Trailing silence is trimmed and a short fade baked in at the end, so a loop sounds like the song restarting.
+- **Format.** OGG Vorbis only (Safari 18.4+ plays Ogg); older Safari just gets no music.
