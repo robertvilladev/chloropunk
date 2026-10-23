@@ -449,7 +449,7 @@ export class GameScene extends Phaser.Scene {
     // wave is over (no drops, no blasts)
     this.enemyManager.clearAll();
     this.weaponManager.clear();
-    this.juice.banner("WAVE CLEARED");
+    this.juice.banner("WAVE CLEARED", "waveClear");
 
     // Leftover scrap is auto-collected
     const leftover = this.pickupManager.collectAll();

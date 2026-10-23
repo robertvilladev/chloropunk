@@ -76,9 +76,10 @@ Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-
 
 - ⬜ Wave 10 boss: no timer, 2–3 attack patterns, reduced-rate regular spawns as support
 - ⬜ Victory / defeat run summary (wave reached, kills, damage dealt, build) with "one more run"; replaces the "RUN COMPLETE" stopgap
-- ✅ Pause menu (resume, settings, quit run) — moved forward from M4 by the owner: Esc/P or window blur opens `PauseScene`; settings has the reduced-shake toggle; quit asks for confirmation. Volume setting still ⬜ (no audio yet)
+- ✅ Pause menu (resume, settings, quit run) — moved forward from M4 by the owner: Esc/P or window blur opens `PauseScene`; settings has the reduced-shake toggle and SFX volume; quit asks for confirmation
 - ⬜ Best-wave high-score record
-- ➡️ SFX/music: parked as an idea (see the parking lot), no longer in M4
+- ✅ SFX — back in scope by the owner (2026-10-23, [audio addendum](docs/superpowers/specs/2026-10-23-audio-addendum.md), [plan](docs/superpowers/plans/2026-10-23-sfx.md)): 16 procedural ZzFX sounds (hits, kills, hurt, low HP, blasts, waves, pickup streaks, level up, buy/deny, UI move/confirm/back, game over / run complete) on Phaser's AudioContext, voice limiting + pitch variation (`core/voices.ts`), SFX volume in pause settings. Verified in the browser (no console errors); level-up and run-complete sounds not heard in that session
+- ⬜ Music: 1–2 free-licence (CC0) synthwave loops picked by the owner, licences logged in `assets/audio/CREDITS.md`, music volume setting
 - ⬜ Final README pass
 
 ## Carry-overs / known issues
@@ -101,6 +102,7 @@ From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) an
 
 - **M3 polish carry-overs:** weapon-slot row on the HUD is 36 px at stride 42 (mockup 40 px at 46); menu/loadout fighter has no shadow ellipse; loadout tag lines come from `behavior` (mockup says SINGLE TARGET / CONE); shop `OWNED ×n` is text not a chip, items list cut at 3 lines without ellipsis; level-up focus ring uses the tier colour; HUD XP bar is 140 px (mockup ~180); `theme.guard` only scans 6-digit hex; a recycled enemy's stale hit-frame timer can end a new hit frame early; `bodyOffset` rescans grids per spawn (memoise)
 - **UI:** the shop header says "WAVE 02 CLEARED" after wave 1 (it shows the next wave's number)
+- **SFX (proposed):** keyboard focus in Menu/Loadout/Shop (Tab) plays no move blip (only Pause and Level-up do); in Pause, every redraw re-emits `pointerover`, so a confirm also plays a quiet move blip. The sounds were tuned by sample checks, not by ear: the owner should listen and retune `src/fx/sounds.ts`
 - **Dev only:** after editing `assets/data/*.json` with a page open, Vite HMR logs one "Failed to load module script … application/json" console error; a fresh load is clean
 
 ## Ideas parking lot (post-MVP)
@@ -110,10 +112,7 @@ Named by the spec as non-goals / later:
 - Meta-progression and unlocks; save files beyond a high score
 - Mobile/touch controls, gamepad, localization
 - Audio beyond a few SFX
-- **SFX / music** (moved out of M4 by the owner; owner leans towards ZzFX SFX plus one CC0 music loop). Options:
-  - ZzFX procedural SFX: ~1 KB, no files
-  - CC0 packs from Kenney.nl or OpenGameArt for SFX and a synthwave loop
-  - AI tools (ElevenLabs SFX, Suno/Udio music); check their licences first
+- Music sources (for the M4 music item): CC0 packs from Kenney.nl or OpenGameArt; AI tools (Suno/Udio) only after checking their licences
 - Online features: leaderboards, accounts
 - (proposed) Opt-in upload of finished run logs to a small endpoint (Postgres `runs` table), accounts linked to an anonymous player id — a spec change, needs the owner's call ([balance design §9.5](docs/superpowers/specs/2026-10-20-balance-design.md#95-path-to-a-server-proposed))
 - (proposed) 20-wave run: extend the balance model (bands for waves 11–20, longer reference builds, more AoE content for density) — [balance design §5](docs/superpowers/specs/2026-10-20-balance-design.md#5-the-model-approved)

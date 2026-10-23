@@ -20,6 +20,7 @@ import itemDefs from "@assets/data/items.json";
 import weaponDefs from "@assets/data/weapons.json";
 import Phaser from "phaser";
 import { truncate } from "@/core/labels";
+import { sfx } from "@/fx/sfx";
 import { button, lockIcon, lockedTab, onKeys, panel, text, tierTab } from "./ui";
 
 const weapons = weaponDefs as Record<string, WeaponDef>;
@@ -88,7 +89,11 @@ export class ShopScene extends Phaser.Scene {
   private buy(i: number): void {
     const o = this.shop.offers[i];
     const r = buy(this.shop, this.run, i);
-    if (o && (r === "add" || r === "merge" || r === "item")) this.log.bought.push({ ...o });
+    if (o && (r === "add" || r === "merge" || r === "item")) {
+      this.log.bought.push({ ...o });
+      sfx("buy");
+    }
+    if (r === "poor" || r === "blocked") sfx("deny");
     if (r === "poor") this.say("Not enough scrap");
     else if (r === "blocked") this.say("No free slot and no matching weapon to merge");
     else if (r !== "empty") this.render();

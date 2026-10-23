@@ -1,9 +1,11 @@
 export interface Settings {
   reducedShake: boolean;
+  /** 0..1, applied to the SFX gain node (fx/sfx.ts) */
+  sfxVolume: number;
 }
 
 const KEY = "vv.settings";
-const DEFAULTS: Settings = { reducedShake: false };
+const DEFAULTS: Settings = { reducedShake: false, sfxVolume: 0.6 };
 
 function defaultStorage(): Storage | undefined {
   try {
@@ -20,7 +22,11 @@ export function loadSettings(
     const raw = storage?.getItem(KEY);
     if (!raw) return { ...DEFAULTS };
     const parsed = JSON.parse(raw) as Partial<Settings>;
-    return { reducedShake: parsed.reducedShake === true };
+    const vol = parsed.sfxVolume;
+    return {
+      reducedShake: parsed.reducedShake === true,
+      sfxVolume: typeof vol === "number" && vol >= 0 && vol <= 1 ? vol : DEFAULTS.sfxVolume,
+    };
   } catch {
     return { ...DEFAULTS };
   }
