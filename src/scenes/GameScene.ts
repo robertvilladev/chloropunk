@@ -1,4 +1,5 @@
 import { GAME_CONFIG, SCENE_KEYS } from "@/config/constants";
+import { setMusic } from "@/fx/music";
 import { THEME_CSS } from "@/config/theme";
 import { createRng, type Rng } from "@/core/rng";
 import { autopilot } from "@/core/autopilot";
@@ -102,6 +103,7 @@ export class GameScene extends Phaser.Scene {
    * Initialize the game - create all managers and systems
    */
   create() {
+    setMusic("game");
     // 1. Create world/environment
     this.worldManager = new WorldManager(this);
     this.worldManager.create();

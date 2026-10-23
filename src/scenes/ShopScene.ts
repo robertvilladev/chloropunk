@@ -1,4 +1,5 @@
 import { SCENE_KEYS } from "@/config/constants";
+import { setMusic } from "@/fx/music";
 import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import { combine, combinePairs, sellWeapon, weaponBuyMode } from "@/core/inventory";
 import { createRng, type Rng } from "@/core/rng";
@@ -48,6 +49,7 @@ export class ShopScene extends Phaser.Scene {
   }
 
   create(data: { run: RunState }) {
+    setMusic("game");
     this.run = data.run;
     this.focus = -1;
     this.offerFocus = -1;

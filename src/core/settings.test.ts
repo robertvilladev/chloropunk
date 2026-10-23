@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { loadSettings, saveSettings } from "./settings";
 
-const DEF = { reducedShake: false, sfxVolume: 0.6 };
+const DEF = { reducedShake: false, sfxVolume: 0.6, musicVolume: 0.4, masterVolume: 1 };
 
 describe("settings", () => {
   it("defaults when storage empty", () => {
@@ -19,8 +19,9 @@ describe("settings", () => {
       getItem: (k: string) => m.get(k) ?? null,
       setItem: (k: string, v: string) => void m.set(k, v),
     };
-    saveSettings({ reducedShake: true, sfxVolume: 0.4 }, store);
-    expect(loadSettings(store)).toEqual({ reducedShake: true, sfxVolume: 0.4 });
+    const s = { reducedShake: true, sfxVolume: 0.4, musicVolume: 0.2, masterVolume: 0.8 };
+    saveSettings(s, store);
+    expect(loadSettings(store)).toEqual(s);
   });
   it("defaults on bad JSON", () => {
     expect(loadSettings({ getItem: () => "{oops" })).toEqual(DEF);
@@ -30,5 +31,7 @@ describe("settings", () => {
     expect(loadSettings({ getItem: () => '{"sfxVolume":7}' })).toEqual(DEF);
     expect(loadSettings({ getItem: () => '{"sfxVolume":"x"}' })).toEqual(DEF);
     expect(loadSettings({ getItem: () => '{"sfxVolume":0}' }).sfxVolume).toBe(0);
+    expect(loadSettings({ getItem: () => '{"musicVolume":-1,"masterVolume":2}' })).toEqual(DEF);
+    expect(loadSettings({ getItem: () => '{"musicVolume":0,"masterVolume":0.4}' })).toEqual({ ...DEF, musicVolume: 0, masterVolume: 0.4 });
   });
 });
