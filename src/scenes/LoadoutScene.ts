@@ -1,4 +1,5 @@
 import { GAME_CONFIG, SCENE_KEYS } from "@/config/constants";
+import { setMusic } from "@/fx/music";
 import { THEME, THEME_CSS } from "@/config/theme";
 import { newRun } from "@/core/run";
 import { runAtWave } from "@/core/sim.targets";
@@ -24,6 +25,7 @@ export class LoadoutScene extends Phaser.Scene {
   }
 
   create() {
+    setMusic("menu");
     this.selected = 0;
     this.cameras.main.setBackgroundColor(THEME.bg);
     text(this, 32, 32, "LOADOUT", 10, THEME_CSS.pink300).setLetterSpacing(1.8);

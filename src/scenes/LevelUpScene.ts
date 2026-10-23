@@ -1,4 +1,5 @@
 import { SCENE_KEYS } from "@/config/constants";
+import { setMusic } from "@/fx/music";
 import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import { applyUpgrade, rollUpgrades, type UpgradeChoice } from "@/core/levelup";
 import { createRng, type Rng } from "@/core/rng";
@@ -31,6 +32,7 @@ export class LevelUpScene extends Phaser.Scene {
   }
 
   create(data: { run: RunState; total?: number }) {
+    setMusic("game"); // between waves: keeps the game track, lifts the round-complete duck
     this.run = data.run;
     this.total = data.total ?? this.run.pendingLevelUps;
     this.rerolls = 0;

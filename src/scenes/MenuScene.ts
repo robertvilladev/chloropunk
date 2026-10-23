@@ -1,4 +1,5 @@
 import { GAME_CONFIG, SCENE_KEYS } from "@/config/constants";
+import { MUSIC_CREDITS, MUSIC_LICENCE, setMusic } from "@/fx/music";
 import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import Phaser from "phaser";
 import pkg from "../../package.json";
@@ -20,6 +21,7 @@ export class MenuScene extends Phaser.Scene {
   }
 
   create() {
+    setMusic("menu");
     const { WIDTH: W, HEIGHT: H } = GAME_CONFIG;
     this.cameras.main.setBackgroundColor(THEME.bg);
 
@@ -62,9 +64,33 @@ export class MenuScene extends Phaser.Scene {
 
     this.add.image(636, 340, "player", "walk0").setScale(4);
     text(this, 16, H - 12, `v${pkg.version} // MVP`, 16, THEME_CSS.faint, "pixel").setOrigin(0, 1);
+    text(this, W - 112, H - 12, "MUSIC: NLV · SPRING (CC-BY 4.0)", 16, THEME_CSS.faint, "pixel").setOrigin(1, 1);
+    button(this, W - 52, H - 20, "CREDITS", () => this.showCredits(), false, true, { size: 11, w: 84, h: 26 });
 
     scanlines(this);
     this.cameras.main.fadeIn(300);
+  }
+
+  /** Full CC-BY attribution for the music; click anywhere or Esc closes it. */
+  private showCredits(): void {
+    const { WIDTH: W, HEIGHT: H } = GAME_CONFIG;
+    const pw = 600, ph = 300, x = W / 2 - pw / 2, y = H / 2 - ph / 2;
+    const parts: Phaser.GameObjects.GameObject[] = [this.add.rectangle(0, 0, W, H, THEME.bg, 0.8).setOrigin(0).setInteractive()];
+    parts.push(this.add.rectangle(x + 4, y + 4, pw, ph, THEME.pink).setOrigin(0));
+    parts.push(this.add.rectangle(x, y, pw, ph, THEME.surface).setOrigin(0).setStrokeStyle(1, THEME.lime));
+    parts.push(text(this, W / 2, y + 36, "MUSIC CREDITS", 24, THEME_CSS.lime, "display").setOrigin(0.5));
+    MUSIC_CREDITS.forEach((c, i) => {
+      const ty = y + 76 + i * 76;
+      parts.push(text(this, x + 24, ty, c.line, 14));
+      parts.push(text(this, x + 24, ty + 22, c.source, 11, THEME_CSS.textMuted));
+      parts.push(text(this, x + 24, ty + 40, c.changes, 11, THEME_CSS.textMuted));
+    });
+    parts.push(text(this, W / 2, y + ph - 48, MUSIC_LICENCE, 11, THEME_CSS.text).setOrigin(0.5));
+    parts.push(text(this, W / 2, y + ph - 24, "Click or Esc to close", 10, THEME_CSS.faint).setOrigin(0.5));
+    const overlay = this.add.container(0, 0, parts).setDepth(10);
+    const close = () => overlay.destroy();
+    parts[0].once("pointerdown", close);
+    this.input.keyboard?.once("keydown-ESC", close);
   }
 
   private startRun(): void {

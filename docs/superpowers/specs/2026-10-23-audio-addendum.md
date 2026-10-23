@@ -5,7 +5,7 @@ Date: 2026-10-23 · Status: owner decision · Amends: [MVP spec §2](2026-10-18-
 ## Decision (owner, 2026-10-23)
 
 1. **SFX are in scope now** (they were parked after M3). They are procedural, made with [ZzFX](https://github.com/KilledByAPixel/ZzFX) (MIT, ~1 KB of code). There are no audio files to license or load.
-2. **Music comes next, still unbuilt:** 1–2 free-licence (CC0 or similar) cyberpunk/synthwave loops picked by the owner. Each track's source, author and licence goes in `assets/audio/CREDITS.md` when it lands. A music volume setting comes with it.
+2. **Music:** 2 free-licence cyberpunk/synthwave loops picked by the owner (CC-BY 4.0, see Music below). Each track's source, author and licence is in `assets/audio/CREDITS.md`. Master and music volume settings come with it.
 
 ## SFX scope
 
@@ -27,3 +27,21 @@ About 10 events, in a glitchy/digital/bitcrushed cyberpunk style. No weapon-fire
 - **Variation.** Each play gets about ±6% random pitch and ±10% volume, so repeats don't sound robotic. This uses `Math.random`, never the seeded run RNG, so seeds stay deterministic.
 - **Setting.** The pause menu has an SFX volume setting (0–100% in 20% steps, saved with the other settings). A scene pause freezes gameplay SFX; window blur suspends the AudioContext.
 - **Readability.** The same rule as visual FX: sounds must not mask each other. Hits are quiet and short, and big events (wave, level up, death) are louder and rarer.
+
+## Music (owner approved 2026-10-23)
+
+Two CC-BY 4.0 tracks, picked by the owner (licences checked 2026-10-23; full attribution goes in `assets/audio/CREDITS.md` and in the game):
+
+| Track | Author | Source | Length | Proposed use |
+|---|---|---|---|---|
+| "Cyberpunk/Synthwave project track" (WIP) | NLV | [OGA](https://opengameart.org/content/cyberpunksynthwave-project-track) | 4:42 WAV; shipped 0:45–4:34 (starts on the drop) | Menu + Loadout |
+| "06-06-19 Synthwave" | Spring | [OGA](https://opengameart.org/content/06-06-19-synthwave) | 5:22 OGG | Waves, level-up, shop |
+
+Rules (the owner took every recommendation in the [music plan](../plans/2026-10-23-music.md#open-questions-for-the-owner)):
+
+- **Mixer.** Master = Phaser's own `sound.volume`; a music bus and the existing SFX bus are gain nodes under it. Each has a 0–100% setting (20% steps) in Pause → Settings.
+- **One track at a time.** Changing state crossfades (~1.5 s). Requesting the track that's already playing does nothing, so scene restarts can't stack copies.
+- **Ducking.** Pause, game over and victory overlays lower music to ~30%; resuming restores it.
+- **Streaming, not decoding.** Music plays from an `<audio>` element routed into Phaser's AudioContext (`createMediaElementSource`), so a 5-minute track isn't decoded into ~120 MB of RAM and startup isn't blocked. It still goes through Phaser's master gain, unlock and blur suspend.
+- **Loops.** Neither track is a seamless loop. Trailing silence is trimmed and a short fade baked in at the end, so a loop sounds like the song restarting. The menu track skips its 45 s slow intro (owner, 2026-10-23) so the menu opens on the punchy part.
+- **Format.** OGG Vorbis only (Safari 18.4+ plays Ogg); older Safari just gets no music.

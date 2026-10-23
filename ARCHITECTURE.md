@@ -10,7 +10,7 @@ src/
   entities/             enemyBehaviors.ts, weaponBehaviors.ts (pure movement/targeting geometry)
   core/                 pure logic: rng, waves (spawn schedule), progression (XP/levels), run (newRun),
                         stats (computeStats), weapons (tier stats, prices), inventory (slots, merge, sell),
-                        shop (offers, reroll, lock), levelup (picks), time, settings (reduced shake, SFX volume), voices (SFX voice limit, pitch/volume variation, pickup streak pitch), menuNav (keyboard selection), depth (y-sort, facing), labels (tier names, clock, truncate),
+                        shop (offers, reroll, lock), levelup (picks), time, settings (reduced shake, master/music/SFX volume), music (track per state, duck/crossfade constants, volume step), voices (SFX voice limit, pitch/volume variation, pickup streak pitch), menuNav (keyboard selection), depth (y-sort, facing), labels (tier names, clock, truncate),
                         sim (headless balance simulator; sim.targets = reference builds, balance targets, threat-budget wave authoring, dev `runAtWave`), autopilot (dev kiting input),
                         runlog (versioned per-run log: wave/shop/level-up records, localStorage store of the last 50, summarise + fitParams for `npm run runs`)
 scripts/runs.mjs        `npm run runs -- <file|folder>` wrapper: runs src/core/runlog.report.test.ts under Vitest with RUNS_PATH set
@@ -19,6 +19,7 @@ scripts/playtest.mjs    `npm run playtest`: Vite + Playwright Chromium autopilot
   fx/glow.ts            isWebGL() guard + applyGlow() (single camera bloom, WebGL only); renderer picked via ?renderer=canvas|webgl (config/renderer.ts)
   fx/Juice.ts           all hit/kill feedback (numbers, flash, shake, bursts, vignette, banners) and their SFX
   fx/sfx.ts             initSfx (BootScene) + sfx(name): ZzFX buffers played on Phaser's WebAudio context through an SFX gain node; dropped while audio is locked/suspended
+  fx/music.ts           initMusic (BootScene) + setMusic(state) / duckMusic(on): one streamed <audio> per track routed through a music gain node on Phaser's context; crossfades, ducks, waits for the autoplay unlock, pauses on blur; MUSIC_CREDITS for the menu overlay
   fx/sounds.ts          every SFX as a ZzFX parameter array + voice rule (one data file); fx/zzfx.ts = vendored ZzFX sample generator (MIT)
   art/                  sprite grids (actors, pickups, palette), body.ts (pure hitbox offset), textures.ts bakes CanvasTextures + walk anims at boot
   types/, utils/        shared types, math helpers
@@ -37,7 +38,7 @@ assets/data/            enemies.json, waves.json, weapons.json, character.json, 
 
 ## Run flow
 
-`MenuScene` → `LoadoutScene` (pick 1 of 3 weapons) → `GameScene` runs wave *n* (spawns from the `waves.json` schedule via `EnemyManager`, drops via `PickupManager`, feedback via `Juice`) → wave ends, scrap auto-collected → `VictoryScene` (wave cleared) → `LevelUpScene` once per level gained → `ShopScene` → next wave. HP 0 → `GameOverScene` (try again → loadout). Esc/P or the window losing focus during a wave calls `GameScene.openPause`: it pauses GameScene and UIScene (physics, timers and tweens freeze and continue where they stopped) and launches `PauseScene` (resume / settings: reduced shake and SFX volume via `core/settings` / quit run with confirmation → stops UI and Game, back to the menu). Not opened once the wave is over (`isGameOver`). After wave 10 the run ends in a stopgap "RUN COMPLETE"; the boss and run summary are M4.
+`MenuScene` → `LoadoutScene` (pick 1 of 3 weapons) → `GameScene` runs wave *n* (spawns from the `waves.json` schedule via `EnemyManager`, drops via `PickupManager`, feedback via `Juice`) → wave ends, scrap auto-collected → `VictoryScene` (wave cleared) → `LevelUpScene` once per level gained → `ShopScene` → next wave. HP 0 → `GameOverScene` (try again → loadout). Esc/P or the window losing focus during a wave calls `GameScene.openPause`: it pauses GameScene and UIScene (physics, timers and tweens freeze and continue where they stopped) and launches `PauseScene` (resume / settings: reduced shake and master/music/SFX volume via `core/settings` / quit run with confirmation → stops UI and Game, back to the menu). Not opened once the wave is over (`isGameOver`). After wave 10 the run ends in a stopgap "RUN COMPLETE"; the boss and run summary are M4.
 
 **Run log** ([balance design §9](docs/superpowers/specs/2026-10-20-balance-design.md#9-measuring-real-games-proposed)): `newRun` creates `RunState.log`, which rides along with the run. `GameScene` opens a wave record at `create` and fills it from its own events (kills, `enemyHit`, `scrapCollected`, `playerDodged`, damage by source via `hurt()`, `WeaponManager.tally` shots/hits, `EnemyManager.spawned`); `ShopScene` and `LevelUpScene` push a record when they close. The log is saved to localStorage when the run ends: death, last wave cleared, quit from the pause menu, or Main Menu on the Victory screen. Dev F4 downloads `runs.json`.
 

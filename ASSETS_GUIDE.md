@@ -1,6 +1,6 @@
 # Importing Assets Guide
 
-> Only JSON data is in use today. Sprites are pixel grids in `src/art/` (data, not files; see below); SFX are ZzFX parameter arrays (see Audio below); music files are still to come. `@ecs` and `@ui` aliases exist in `vite.config.ts` but their folders do not.
+> Only JSON data is in use today. Sprites are pixel grids in `src/art/` (data, not files; see below); SFX are ZzFX parameter arrays (see Audio below); music is two OGG files in `assets/audio/`. `@ecs` and `@ui` aliases exist in `vite.config.ts` but their folders do not.
 
 ## JSON Data Files
 
@@ -63,7 +63,7 @@ Sprites are authored as text grids, one palette letter per pixel (`.` = transpar
 
 **SFX are code, not files.** Each one is a [ZzFX](https://killedbyapixel.github.io/ZzFX/) parameter array in `src/fx/sounds.ts`, played with `sfx("name")` from `src/fx/sfx.ts` ([audio addendum](docs/superpowers/specs/2026-10-23-audio-addendum.md)). To add or retune one, design it in the ZzFX page, paste the array (keep index 1, randomness, at `0`) and pick a voice limit (`max` copies at once, `gapMs` between starts) and `pitchVar` (random pitch spread per play). The house style is filtered (negative last value = low-pass) saw/triangle tones with light bitcrush; menus use the same family, quieter. `npx vitest run src/fx` checks that every sound renders short and unclipped.
 
-**Music (planned, not built yet):** 1–2 free-licence loops go in `assets/audio/`, each listed in `assets/audio/CREDITS.md` (title, author, source URL, licence). Load them with `this.load.audio(key, url)` in `BootScene.preload()` and play them with `this.sound.add(key, { loop: true })`. They share Phaser's AudioContext with SFX.
+**Music is streamed OGG files** in `assets/audio/`, each listed in `assets/audio/CREDITS.md` (title, author, source, licence, changes) and in `MUSIC_CREDITS` (`src/fx/music.ts`, shown on the menu). They are imported as URLs and played by `<audio>` elements routed into Phaser's AudioContext, not loaded with `this.load.audio` (that would decode ~120 MB per 5-minute track). To add a track: drop the OGG in, add it to `SRC`/`TRIM` in `src/fx/music.ts` and to `TrackId`/`TRACK_FOR` in `src/core/music.ts`, and credit it. Encode with OGG Vorbis ~q4, trim silence, and never commit WAVs.
 
 ## Path Aliases Reference
 
