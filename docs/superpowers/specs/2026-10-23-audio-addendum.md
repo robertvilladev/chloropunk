@@ -34,7 +34,7 @@ Two CC-BY 4.0 tracks, picked by the owner (licences checked 2026-10-23; full att
 
 | Track | Author | Source | Length | Proposed use |
 |---|---|---|---|---|
-| "Cyberpunk/Synthwave project track" (WIP) | NLV | [OGA](https://opengameart.org/content/cyberpunksynthwave-project-track) | 4:42 WAV (music ends ~4:31, silence after ~4:36) | Menu + Loadout |
+| "Cyberpunk/Synthwave project track" (WIP) | NLV | [OGA](https://opengameart.org/content/cyberpunksynthwave-project-track) | 4:42 WAV; shipped 0:45–4:34 (starts on the drop) | Menu + Loadout |
 | "06-06-19 Synthwave" | Spring | [OGA](https://opengameart.org/content/06-06-19-synthwave) | 5:22 OGG | Waves, level-up, shop |
 
 Rules (the owner took every recommendation in the [music plan](../plans/2026-10-23-music.md#open-questions-for-the-owner)):
@@ -43,5 +43,5 @@ Rules (the owner took every recommendation in the [music plan](../plans/2026-10-
 - **One track at a time.** Changing state crossfades (~1.5 s). Requesting the track that's already playing does nothing, so scene restarts can't stack copies.
 - **Ducking.** Pause, game over and victory overlays lower music to ~30%; resuming restores it.
 - **Streaming, not decoding.** Music plays from an `<audio>` element routed into Phaser's AudioContext (`createMediaElementSource`), so a 5-minute track isn't decoded into ~120 MB of RAM and startup isn't blocked. It still goes through Phaser's master gain, unlock and blur suspend.
-- **Loops.** Neither track is a seamless loop. Trailing silence is trimmed and a short fade baked in at the end, so a loop sounds like the song restarting.
+- **Loops.** Neither track is a seamless loop. Trailing silence is trimmed and a short fade baked in at the end, so a loop sounds like the song restarting. The menu track skips its 45 s slow intro (owner, 2026-10-23) so the menu opens on the punchy part.
 - **Format.** OGG Vorbis only (Safari 18.4+ plays Ogg); older Safari just gets no music.

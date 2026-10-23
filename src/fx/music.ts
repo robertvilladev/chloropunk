@@ -4,8 +4,8 @@ import { FADE_S, trackGains, type MusicState, type TrackId } from "@/core/music"
 import { loadSettings } from "@/core/settings";
 import Phaser from "phaser";
 
-/** Per-track loudness trim, so both sit at the same level (NLV measured ~2.5 dB hotter). */
-const TRIM: Record<TrackId, number> = { nlv: 0.75, spring: 1 };
+/** Per-track loudness trim, so both sit at the same level (NLV measured ~3 dB hotter). */
+const TRIM: Record<TrackId, number> = { nlv: 0.7, spring: 1 };
 const SRC: Record<TrackId, string> = { nlv: nlvUrl, spring: springUrl };
 
 /** CC-BY 4.0 attribution, shown on MenuScene's credits overlay (also in assets/audio/CREDITS.md). */
@@ -13,7 +13,7 @@ export const MUSIC_CREDITS = [
   {
     line: '"Cyberpunk/Synthwave project track" by NLV',
     source: "opengameart.org/content/cyberpunksynthwave-project-track",
-    changes: "Trimmed trailing silence, 2 s fade-out, re-encoded to OGG",
+    changes: "Starts at the 0:45 drop, trailing silence cut, 2 s fade-out, re-encoded to OGG",
   },
   {
     line: '"06-06-19 Synthwave" by Spring',
