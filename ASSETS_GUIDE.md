@@ -1,6 +1,6 @@
 # Importing Assets Guide
 
-> Only JSON data is in use today. Sprites are pixel grids in `src/art/` (data, not files; see below); audio assets are still to come (see [ROADMAP.md](ROADMAP.md)). `@ecs` and `@ui` aliases exist in `vite.config.ts` but their folders do not.
+> Only JSON data is in use today. Sprites are pixel grids in `src/art/` (data, not files; see below); SFX are ZzFX parameter arrays (see Audio below); music files are still to come. `@ecs` and `@ui` aliases exist in `vite.config.ts` but their folders do not.
 
 ## JSON Data Files
 
@@ -59,19 +59,11 @@ Sprites are authored as text grids, one palette letter per pixel (`.` = transpar
 - `pickups.ts` - 8x8 two-frame pickups.
 - To add an actor: append an `ActorArt` to `ACTORS`; `npx vitest run src/art` validates it (width/rows, letters, bounds, hit differs from walk0).
 
-## Audio Assets (Future)
+## Audio
 
-When you add sounds:
+**SFX are code, not files.** Each one is a [ZzFX](https://killedbyapixel.github.io/ZzFX/) parameter array in `src/fx/sounds.ts`, played with `sfx("name")` from `src/fx/sfx.ts` ([audio addendum](docs/superpowers/specs/2026-10-23-audio-addendum.md)). To add or retune one, design it in the ZzFX page, paste the array (keep index 1, randomness, at `0`) and pick a voice limit (`max` copies at once, `gapMs` between starts) and `pitchVar` (random pitch spread per play). The house style is filtered (negative last value = low-pass) saw/triangle tones with light bitcrush; menus use the same family, quieter. `npx vitest run src/fx` checks that every sound renders short and unclipped.
 
-```typescript
-// In BootScene.preload()
-this.load.image('player', 'assets/sprites/player.png');
-this.load.audio('shoot', 'assets/audio/shoot.mp3');
-
-// Use in scene
-this.add.sprite(x, y, 'player');
-this.sound.play('shoot');
-```
+**Music (planned, not built yet):** 1–2 free-licence loops go in `assets/audio/`, each listed in `assets/audio/CREDITS.md` (title, author, source URL, licence). Load them with `this.load.audio(key, url)` in `BootScene.preload()` and play them with `this.sound.add(key, { loop: true })`. They share Phaser's AudioContext with SFX.
 
 ## Path Aliases Reference
 

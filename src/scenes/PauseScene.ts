@@ -1,7 +1,8 @@
 import { GAME_CONFIG, SCENE_KEYS } from "@/config/constants";
 import { THEME, THEME_CSS } from "@/config/theme";
 import { stepIndex } from "@/core/menuNav";
-import { loadSettings, saveSettings } from "@/core/settings";
+import { loadSettings, saveSettings, type Settings } from "@/core/settings";
+import { setSfxVolume, sfx } from "@/fx/sfx";
 import { button, onKeys, panel, scanlines, text } from "./ui";
 import Phaser from "phaser";
 
@@ -43,7 +44,10 @@ export class PauseScene extends Phaser.Scene {
       else if (e.code === "Escape") (this.view === "main" ? this.resume() : this.show("main"));
       else if (e.code === "ArrowUp" || e.code === "KeyW") this.moveFocus(-1);
       else if (e.code === "ArrowDown" || e.code === "KeyS") this.moveFocus(1);
-      else if (e.code === "Enter" || e.code === "Space") this.items[this.focus]?.run();
+      else if (e.code === "Enter" || e.code === "Space") {
+        sfx("uiConfirm");
+        this.items[this.focus]?.run();
+      }
     });
     this.show("main");
   }
@@ -67,9 +71,10 @@ export class PauseScene extends Phaser.Scene {
       ];
     } else if (view === "settings") {
       title = "SETTINGS";
-      const on = loadSettings().reducedShake;
+      const s = loadSettings();
       this.items = [
-        { label: `REDUCED SHAKE: ${on ? "ON" : "OFF"}`, run: () => this.toggleShake() },
+        { label: `REDUCED SHAKE: ${s.reducedShake ? "ON" : "OFF"}`, run: () => this.saveSetting({ reducedShake: !s.reducedShake }) },
+        { label: `SFX VOLUME: ${Math.round(s.sfxVolume * 100)}%`, run: () => this.cycleVolume(s.sfxVolume) },
         { label: "BACK", run: () => this.show("main"), primary: true },
       ];
     } else {
@@ -105,12 +110,21 @@ export class PauseScene extends Phaser.Scene {
 
   private moveFocus(dir: 1 | -1): void {
     this.focus = stepIndex(this.focus, this.items.length, dir);
+    sfx("uiMove");
     this.applyFocus();
   }
 
-  private toggleShake(): void {
-    const s = loadSettings();
-    saveSettings({ ...s, reducedShake: !s.reducedShake });
+  /** 0% → 100% in 20% steps, wrapping; plays a preview blip at the new level. */
+  private cycleVolume(v: number): void {
+    const next = v >= 0.99 ? 0 : Math.min(1, Math.round(v * 5 + 1) / 5);
+    setSfxVolume(next);
+    this.saveSetting({ sfxVolume: next });
+    sfx("pickup");
+  }
+
+  /** Save a settings change and redraw the settings view, keeping focus. */
+  private saveSetting(change: Partial<Settings>): void {
+    saveSettings({ ...loadSettings(), ...change });
     const keep = this.focus;
     this.show("settings");
     this.focus = keep;

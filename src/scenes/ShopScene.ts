@@ -20,6 +20,7 @@ import itemDefs from "@assets/data/items.json";
 import weaponDefs from "@assets/data/weapons.json";
 import Phaser from "phaser";
 import { truncate } from "@/core/labels";
+import { sfx } from "@/fx/sfx";
 import { button, lockIcon, lockedTab, onKeys, panel, text, tierTab } from "./ui";
 
 const weapons = weaponDefs as Record<string, WeaponDef>;
@@ -88,7 +89,10 @@ export class ShopScene extends Phaser.Scene {
   private buy(i: number): void {
     const o = this.shop.offers[i];
     const r = buy(this.shop, this.run, i);
-    if (o && (r === "add" || r === "merge" || r === "item")) this.log.bought.push({ ...o });
+    if (o && (r === "add" || r === "merge" || r === "item")) {
+      this.log.bought.push({ ...o });
+      sfx("buy");
+    }
     if (r === "poor") this.say("Not enough scrap");
     else if (r === "blocked") this.say("No free slot and no matching weapon to merge");
     else if (r !== "empty") this.render();
@@ -152,6 +156,7 @@ export class ShopScene extends Phaser.Scene {
       case "ArrowLeft":
       case "ArrowRight":
         this.offerFocus = (this.offerFocus + (e.code === "ArrowLeft" ? 3 : 1)) % 4;
+        sfx("uiMove");
         this.render();
         this.preview(this.offerFocus);
         break;
@@ -160,6 +165,7 @@ export class ShopScene extends Phaser.Scene {
         break;
       case "Tab":
         this.focus = (this.focus + 1) % n;
+        sfx("uiMove");
         this.render();
         break;
       case "KeyS":
@@ -177,7 +183,9 @@ export class ShopScene extends Phaser.Scene {
 
   // ---- rendering (rebuilt on every change; the shop is not a hot path) ----
 
+  /** Show a refusal (not enough scrap, can't sell, ...) with the deny sound. */
   private say(msg: string): void {
+    sfx("deny");
     this.previewUp.setText(msg).setColor(THEME_CSS.danger);
     this.previewDown.setText("");
   }

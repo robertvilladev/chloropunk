@@ -7,6 +7,7 @@ import { STAT_LABELS, computeStats, statDiff } from "@/core/stats";
 import type { RunState } from "@/types";
 import Phaser from "phaser";
 import { truncate } from "@/core/labels";
+import { sfx } from "@/fx/sfx";
 import { button, onKeys, panel, text, tierTab } from "./ui";
 
 /**
@@ -38,12 +39,14 @@ export class LevelUpScene extends Phaser.Scene {
     this.choices = this.roll();
     this.offered = [...this.choices];
     this.cameras.main.setBackgroundColor(THEME.bg);
+    sfx("levelUp"); // once per level: the scene restarts for each pending level-up
     onKeys(this, (e) => {
       const digit = /^Digit([1-4])$/.exec(e.code);
       if (digit) this.pick(Number(digit[1]) - 1);
       else if (e.code === "KeyR") this.reroll();
       else if (e.code === "ArrowLeft" || e.code === "ArrowRight") {
         this.focus = (this.focus + (e.code === "ArrowLeft" ? 3 : 1)) % 4;
+        sfx("uiMove");
         this.render();
         this.preview(this.choices[this.focus]);
       }
@@ -68,6 +71,7 @@ export class LevelUpScene extends Phaser.Scene {
   private reroll(): void {
     const cost = rerollCost(this.run.wave, this.rerolls);
     if (this.run.scrap < cost) {
+      sfx("deny");
       this.diff.removeAll(true);
       this.info.setText("Not enough scrap to reroll").setColor(THEME_CSS.danger);
       return;

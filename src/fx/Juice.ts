@@ -1,7 +1,10 @@
 import { DEPTH, GAME_CONFIG } from "@/config/constants";
 import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import { loadSettings } from "@/core/settings";
+import { waveBoost } from "@/core/voices";
 import Phaser from "phaser";
+import { sfx } from "./sfx";
+import type { SoundName } from "./sounds";
 
 const MAX_NUMBERS = 40; // per pool (normal, crit)
 const LOW_HP = 0.25;
@@ -12,7 +15,7 @@ const SHAKES = {
 };
 
 /**
- * Juice - all hit/kill feedback effects. Scenes and managers only call this.
+ * Juice - all hit/kill feedback effects (visual and sound). Scenes and managers only call this.
  */
 export class Juice {
   private scene: Phaser.Scene;
@@ -82,6 +85,7 @@ export class Juice {
   }
 
   hitFlash(sprite: Phaser.GameObjects.Sprite): void {
+    sfx("hit");
     sprite.anims.pause();
     sprite.setFrame("hit");
     this.scene.time.delayedCall(80, () => {
@@ -92,18 +96,21 @@ export class Juice {
   }
 
   shake(kind: "hit" | "kill"): void {
+    if (kind === "hit") sfx("hurt"); // the "hit" shake = the player got hit
     if (this.reducedShake) return;
     const s = SHAKES[kind];
     this.scene.cameras.main.shake(s.ms, s.intensity);
   }
 
   deathBurst(x: number, y: number, color: number): void {
+    sfx("kill");
     this.burst.particleTint = color;
     this.burst.explode(8, x, y);
   }
 
   /** Rocket explosion ring (pooled). */
   blast(x: number, y: number, radius: number): void {
+    sfx("blast");
     let c = this.blasts[this.nextBlast];
     if (!c) {
       c = this.scene.add
@@ -130,6 +137,7 @@ export class Juice {
       this.vignetteTween = undefined;
       this.vignette.setAlpha(0);
     } else if (!this.vignetteTween) {
+      sfx("lowHp");
       this.vignetteTween = this.scene.tweens.add({
         targets: this.vignette,
         alpha: { from: 0.35, to: 1 },
@@ -140,7 +148,10 @@ export class Juice {
     }
   }
 
-  banner(text: string): void {
+  /** Wave banner + its sound, a little louder and higher each wave. */
+  banner(text: string, wave: number, sound: SoundName = "waveStart"): void {
+    const boost = waveBoost(wave);
+    sfx(sound, boost.rate, boost.gain);
     // design space, not scene.scale: the canvas is rendered at 2x (config/view.ts)
     const { WIDTH: w, HEIGHT: h } = GAME_CONFIG;
     // Pink/cyan RGB-split shadows behind the lime face
