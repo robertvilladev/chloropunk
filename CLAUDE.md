@@ -12,7 +12,7 @@ Use `pnpm` for everything (`pnpm install`, `pnpm add -D x`, `pnpm <script>`, `pn
 ## Branches and commits
 
 - Branches: `<type>/<kebab-slug>`, e.g. `feat/arena-spawning`, `fix/shop-reroll`, `docs/roadmap-a3`. Types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `perf`, `ci`. No `claude/` (or other tool) prefix.
-- A session worktree created by the app starts on `<app prefix>/<name>`: rename it before the first push (`git branch -m feat/<slug>`).
+- A session worktree created by the app starts on `wip/<name>` (older ones on `claude/<name>`): rename it before the first push (`git branch -m feat/<slug>`).
 - Commits: [Conventional Commits](https://www.conventionalcommits.org/) with the same types (`feat: far enemies catch up`). PRs target `main`.
 
 ## Docs are part of the work
