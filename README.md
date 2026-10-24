@@ -5,7 +5,7 @@ Built with **Phaser 3.90**, **TypeScript (strict)**, **Vite** and **Vitest**. De
 
 **Status:** MVP in progress. [ROADMAP.md](ROADMAP.md) tracks what's done and what's next; the [MVP spec](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md) holds the intent.
 
-Today you pick a starting weapon and play timed waves 1–10 against five vegetable types. Between waves you take level-up picks and shop: 4 offers with reroll, lock, sell and weapon merging. There are 6 weapon types (tiers 1–4, up to 6 slots) and 15 items. Sound effects are procedural ([ZzFX](https://github.com/KilledByAPixel/ZzFX), no audio files) with an SFX volume in the pause settings. Two CC-BY synthwave loops play on the menu and in waves ([credits](assets/audio/CREDITS.md)), with master and music volume too. The boss, run summary and final art are on the roadmap.
+Today you pick a starting weapon and play timed waves 1–10 against five vegetable types. Between waves you take level-up picks and shop: 4 offers with reroll, lock, sell and weapon merging. There are 6 weapon types (tiers 1–4, up to 6 slots) and 15 items. Sound effects are procedural ([ZzFX](https://github.com/KilledByAPixel/ZzFX), no audio files) with an SFX volume in the pause settings. Two CC-BY synthwave loops play on the menu and in waves ([credits](assets/audio/CREDITS.md)), with master and music volume too. A run ends in a summary screen (victory or defeat, with your build) and the main menu shows your best wave. The wave-10 boss and final art are on the roadmap.
 
 ## Run it
 

@@ -39,9 +39,9 @@ export class VictoryScene extends Phaser.Scene {
     };
     button(this, cx, height / 2 + 35, "CONTINUE", () => {
       exit();
-      // Past the last defined wave the run is over (real end flow lands in M4)
+      // Past the last defined wave the run is over (GameScene has saved it as won)
       if (this.run && this.run.wave > wavesData.waves.length) {
-        this.scene.start(SCENE_KEYS.GAME_OVER, { complete: true });
+        this.scene.start(SCENE_KEYS.SUMMARY, { run: this.run, outcome: "victory" });
         return;
       }
       // One pick per level gained, then the shop

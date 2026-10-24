@@ -1,4 +1,5 @@
 import { GAME_CONFIG, SCENE_KEYS } from "@/config/constants";
+import { loadBest } from "@/core/summary";
 import { MUSIC_CREDITS, MUSIC_LICENCE, setMusic } from "@/fx/music";
 import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import Phaser from "phaser";
@@ -61,6 +62,9 @@ export class MenuScene extends Phaser.Scene {
       11,
       THEME_CSS.textMuted
     ).setLineSpacing(2);
+    const best = loadBest().wave;
+    const label = text(this, 56, 432, "BEST", 11, THEME_CSS.textMuted).setLetterSpacing(1.1);
+    text(this, 56 + label.width + 8, 432, best > 0 ? `WAVE ${best}` : "—", 11, THEME_CSS.pink300).setLetterSpacing(1.1);
 
     this.add.image(636, 340, "player", "walk0").setScale(4);
     text(this, 16, H - 12, `v${pkg.version} // MVP`, 16, THEME_CSS.faint, "pixel").setOrigin(0, 1);
