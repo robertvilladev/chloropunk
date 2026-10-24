@@ -18,9 +18,28 @@ const HEX = {
 } as const;
 const TIER_HEX = ["#a9b0b8", "#3ad8ff", "#ff4f9a", "#ffb13b"] as const;
 
+/**
+ * Rooftop decor (A4, owner pick 2026-10-24: Night violet). CSS colours with alpha baked in (#rrggbbaa),
+ * dim on purpose: everything that moves is brighter. Violet/indigo is used by no actor or projectile.
+ */
+const DECOR = {
+  zone: "#1a1730",
+  zoneEdge: "#3a2f6b",
+  vent: "#1d1a2c",
+  ventEdge: "#6a4cc299",
+  slat: "#2e2848",
+  rail: "#2f2657",
+  railPost: "#7b5cffaa",
+  puddle: "#5b3fd133",
+  puddleEdge: "#ff4f9a33",
+  padEdge: "#6a4cc2aa",
+  padText: "#6a4cc277",
+  signBg: "#1a1236",
+} as const;
+
 const num = (h: string): number => parseInt(h.slice(1), 16);
 
-export const THEME_CSS = { ...HEX, tier: TIER_HEX };
+export const THEME_CSS = { ...HEX, tier: TIER_HEX, decor: DECOR };
 
 export const THEME = {
   ...(Object.fromEntries(Object.entries(HEX).map(([k, v]) => [k, num(v)])) as {

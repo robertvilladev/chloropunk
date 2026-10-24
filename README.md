@@ -28,7 +28,7 @@ Playtesting a late wave (dev only, combine freely):
 
 ## Content is data
 
-Enemies, weapons, items, level-up upgrades, the character and waves live in `assets/data/*.json`. Adding an enemy, weapon, item or wave is a JSON change plus at most one behaviour function. See [ARCHITECTURE.md](ARCHITECTURE.md).
+Enemies, weapons, items, level-up upgrades, the character, waves and the rooftop decor layout live in `assets/data/*.json`. Adding an enemy, weapon, item or wave is a JSON change plus at most one behaviour function. See [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Docs
 

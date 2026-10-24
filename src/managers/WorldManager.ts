@@ -1,5 +1,8 @@
 import { ARENA, DEPTH } from "@/config/constants";
 import { THEME } from "@/config/theme";
+import { bakeArena } from "@/art/arena";
+import layout from "@assets/data/arena.json";
+import type { ArenaProp } from "@/types";
 import Phaser from "phaser";
 
 /**
@@ -30,17 +33,11 @@ export class WorldManager {
     console.log("✓ WorldManager: World created");
   }
 
-  /**
-   * Create background visuals
-   */
+  /** Baked rooftop floor; the layout is authored for 1600x1200, so `?arena=small` gets the plain grid. */
   private createBackground(): void {
-    const { w: width, h: height } = ARENA;
-    const g = this.scene.add.graphics().setDepth(DEPTH.BACKGROUND);
-    g.fillStyle(THEME.bg).fillRect(0, 0, width, height);
-    g.lineStyle(1, THEME.line, 0.25);
-    for (let x = 0; x <= width; x += 48) g.lineBetween(x, 0, x, height);
-    for (let y = 0; y <= height; y += 48) g.lineBetween(0, y, width, y);
-    g.lineStyle(2, THEME.lime, 0.8).strokeRect(1, 1, width - 2, height - 2);
+    const fits = layout.w === ARENA.w && layout.h === ARENA.h;
+    const key = bakeArena(this.scene, fits ? (layout.props as ArenaProp[]) : [], ARENA);
+    this.scene.add.image(0, 0, key).setOrigin(0).setDepth(DEPTH.BACKGROUND);
   }
 
   /**

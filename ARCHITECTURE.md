@@ -10,7 +10,7 @@ src/
   entities/             enemyBehaviors.ts, weaponBehaviors.ts (pure movement/targeting geometry)
   core/                 pure logic: rng, waves (spawn schedule; spawn points just off-screen via offscreenPoint, edgePoint for an arena no bigger than the view; CATCH_UP far-enemy speed-up), edgeArrow (HUD arrows for off-screen telegraphs), progression (XP/levels), run (newRun),
                         stats (computeStats), weapons (tier stats, prices), inventory (slots, merge, sell),
-                        shop (offers, reroll, lock), levelup (picks), time, settings (reduced shake, master/music/SFX volume), music (track per state, duck/crossfade constants, volume step), voices (SFX voice limit, pitch/volume variation, pickup streak pitch), menuNav (keyboard selection), depth (y-sort, facing), labels (tier names, clock, truncate),
+                        shop (offers, reroll, lock), levelup (picks), time, settings (reduced shake, master/music/SFX volume), music (track per state, duck/crossfade constants, volume step), voices (SFX voice limit, pitch/volume variation, pickup streak pitch), menuNav (keyboard selection), depth (y-sort, facing), arena (validateArena: rooftop decor inside the arena and clear of the 160 px start circle), labels (tier names, clock, truncate),
                         sim (headless balance simulator; sim.targets = reference builds, balance targets, threat-budget wave authoring, dev `runAtWave`), autopilot (dev kiting input),
                         runlog (versioned per-run log: wave/shop/level-up records, localStorage store of the last 50, summarise + fitParams for `pnpm runs`)
 scripts/runs.mjs        `pnpm runs <file|folder>` wrapper: runs src/core/runlog.report.test.ts under Vitest with RUNS_PATH set
@@ -22,9 +22,9 @@ scripts/playtest.mjs    `pnpm playtest`: Vite + Playwright Chromium autopilot ru
   fx/sfx.ts             initSfx (BootScene) + sfx(name): ZzFX buffers played on Phaser's WebAudio context through an SFX gain node; dropped while audio is locked/suspended
   fx/music.ts           initMusic (BootScene) + setMusic(state) / duckMusic(on): one streamed <audio> per track routed through a music gain node on Phaser's context; crossfades, ducks, waits for the autoplay unlock, pauses on blur; MUSIC_CREDITS for the menu overlay
   fx/sounds.ts          every SFX as a ZzFX parameter array + voice rule (one data file); fx/zzfx.ts = vendored ZzFX sample generator (MIT)
-  art/                  sprite grids (actors, pickups, palette), body.ts (pure hitbox offset), textures.ts bakes CanvasTextures + walk anims at boot
+  art/                  sprite grids (actors, pickups, palette), body.ts (pure hitbox offset), textures.ts bakes CanvasTextures + walk anims at boot; arena.ts bakes the floor (grid, rooftop decor from arena.json, lime edge) into one texture per arena size, shown by WorldManager as one image
   types/, utils/        shared types, math helpers
-assets/data/            enemies.json, waves.json, weapons.json, character.json, items.json, upgrades.json
+assets/data/            enemies.json, waves.json, weapons.json, character.json, items.json, upgrades.json, arena.json (rooftop decor layout)
 ```
 
 ## Rules of the house

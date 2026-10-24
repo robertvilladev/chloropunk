@@ -76,3 +76,9 @@ The owner asked (2026-10-24) to explore more colour than "graphite + one pink si
 - [ ] **Step 1:** Owner reviews the screenshots in the browser; adjust layout data only.
 - [ ] **Step 2:** Docs: ASSETS_GUIDE (`arena.json`), ARCHITECTURE (`core/arena`, `art/arena`, WorldManager bakes the floor), README "content is data" list, ROADMAP tick A4 with the owner's verdict, M3 plan decision 3 gets a "superseded by the arena addendum" note.
 - [ ] **Step 3: Commit** `docs: rooftop arena`, open the PR to `main`.
+
+## Outcome (2026-10-24)
+
+Shipped on `feat/arena-rooftop`: `assets/data/arena.json` (4 vents, billboard at y 88 so the HUD timer never covers it, helipad at (1050, 776), 3 puddles, 3 floor zones, 8 rail segments), `core/arena` validation, `art/arena` bake (one texture per arena size), Night violet palette in `THEME_CSS.decor` (owner pick from three in-game options). Checked: every enemy, scrap, bolts and telegraphs over a vent, a puddle and the helipad on WebGL and Canvas, greyscale value check, 150 peas 62–69 fps (same with the floor hidden), seed-1 playtest won wave 10. Owner approved the look.
+
+Carry-overs: A5 marks props `solid`; the helipad H was dimmed so a pink telegraph on it still wins.

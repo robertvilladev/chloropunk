@@ -59,6 +59,10 @@ Sprites are authored as text grids, one palette letter per pixel (`.` = transpar
 - `pickups.ts` - 8x8 two-frame pickups.
 - To add an actor: append an `ActorArt` to `ACTORS`; `pnpm exec vitest run src/art` validates it (width/rows, letters, bounds, hit differs from walk0).
 
+## Rooftop layout (`assets/data/arena.json`)
+
+`{ w, h, props }` for the 1600×1200 arena: each prop is `{ kind, x, y, w, h, label? }` in arena px (top-left), kind one of `vent`, `sign`, `pad`, `puddle`, `rail`, `zone`, `crate` (`ArenaProp`, `src/types`). Decor only for now; `solid: true` is reserved for A5 obstacles. `src/art/arena.ts` bakes it once into `arena_floor_1600x1200` (zones under the grid, the rest on top). Rules (checked by `src/core/arena.test.ts`): props inside the arena and clear of the 160 px circle around the centre start; pink only for the billboard (`sign`), since pink is the telegraph colour. Colours come from `THEME_CSS.decor` (Night violet, `#rrggbbaa` with alpha baked in); decor stays darker than anything that moves, and cyan/amber are reserved for projectiles. Any other arena size (`?arena=small`) gets the plain grid.
+
 ## Audio
 
 **SFX are code, not files.** Each one is a [ZzFX](https://killedbyapixel.github.io/ZzFX/) parameter array in `src/fx/sounds.ts`, played with `sfx("name")` from `src/fx/sfx.ts` ([audio addendum](docs/superpowers/specs/2026-10-23-audio-addendum.md)). To add or retune one, design it in the ZzFX page, paste the array (keep index 1, randomness, at `0`) and pick a voice limit (`max` copies at once, `gapMs` between starts) and `pitchVar` (random pitch spread per play). The house style is filtered (negative last value = low-pass) saw/triangle tones with light bitcrush; menus use the same family, quieter. `pnpm exec vitest run src/fx` checks that every sound renders short and unclipped.

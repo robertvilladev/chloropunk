@@ -151,6 +151,7 @@ and readable, and is revisited after the loop is fun.
 - Ground: neutral cool graphite `#12151b`, surfaces `#1c2029` / `#171a21`, line `#2c323d`, text `#edf2ec`, muted `#949ca3`. No colour washes on the ground.
 - **Lime `#c6ff3d` = actions and good events**: primary buttons, scrap, crits, wave banner, positive deltas.
 - **Pink `#ff4f9a` = state**: the player, owned/selected things, XP, offset shadows.
+- **Decor (arena rooftop, owner pick 2026-10-24: Night violet)**: dim indigo/violet only (floor zones `#1a1730`, vent and helipad outlines `#6a4cc2`, rail posts `#7b5cff`, puddles `#5b3fd1` at ~20% alpha with a faint pink rim), always darker than anything that moves; tokens in `THEME_CSS.decor`. The pink billboard is the only bright decor.
 - Danger `#ff6b3d` (orange-red, kept apart from pink). Rarity: grey `#a9b0b8`, cyan `#3ad8ff`, pink `#ff4f9a`, amber `#ffb13b`.
 - Display font **Bungee**, UI font **IBM Plex Mono**, in-game numbers **VT323**.
 - Motifs: radius 0, hard 4px pink offset shadow under primary elements, tier chips on cards, RGB-split on the logo and wave banner only, a lime slime-drip edge on the main menu, barely-visible scanlines in menus.
