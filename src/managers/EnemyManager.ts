@@ -2,6 +2,7 @@ import { bodyOffset } from "@/art/body";
 import { ARENA, DEPTH, HIT_SIZE } from "@/config/constants";
 import type { Rng } from "@/core/rng";
 import { actorDepth, facingFlip } from "@/core/depth";
+import { outsideSolids } from "@/core/arena";
 import { MAX_ALIVE, advanceCursor, buildSpawnSchedule, offscreenPoint } from "@/core/waves";
 import {
   avoid,
@@ -21,6 +22,7 @@ const TELEGRAPH_S = 0.6;
 const EDGE_INSET = 40;
 const MIN_PLAYER_DIST = 160;
 const SPAWN_MARGIN = 50; // px outside the view: enemy radius <= 20 + the 24 px group spread
+const SPREAD = 24; // px a group spreads around its telegraph
 const MAX_ENEMIES = 250;
 const MAX_BOLTS = 100;
 const KNOCK_DECAY = 8; // per second
@@ -124,11 +126,12 @@ export class EnemyManager {
   debugSpawn(id: string, count: number): void {
     const def = (enemyDefs as Record<string, EnemyDef>)[id];
     for (let i = 0; def && i < count; i++) {
-      this.spawnEnemy(
-        def,
-        this.rng.int(EDGE_INSET, ARENA.w - EDGE_INSET),
-        this.rng.int(EDGE_INSET, ARENA.h - EDGE_INSET)
+      const { x, y } = outsideSolids(
+        { x: this.rng.int(EDGE_INSET, ARENA.w - EDGE_INSET), y: this.rng.int(EDGE_INSET, ARENA.h - EDGE_INSET) },
+        this.solids,
+        def.radius
       );
+      this.spawnEnemy(def, x, y);
     }
   }
 
@@ -236,9 +239,9 @@ export class EnemyManager {
     });
   }
 
-  /** Point just outside the camera view, inside the arena, >= 160 px from the player (one RNG draw). */
+  /** Point just outside the camera view, inside the arena, >= 160 px from the player, off the solids (one RNG draw). */
   private pickSpawnPoint(player: Vector2): Vector2 {
-    return offscreenPoint(
+    const p = offscreenPoint(
       this.rng.next(),
       player,
       this.scene.cameras.main.worldView,
@@ -247,6 +250,7 @@ export class EnemyManager {
       EDGE_INSET,
       MIN_PLAYER_DIST
     );
+    return outsideSolids(p, this.solids, SPREAD); // marker off the vents; each enemy is pushed out again
   }
 
   private updateTelegraphs(dt: number, player: Vector2): void {
@@ -261,8 +265,11 @@ export class EnemyManager {
       }
       for (let n = 0; n < p.count; n++) {
         // draw first so the spawn RNG stream doesn't depend on the cap
-        const x = p.x + this.rng.int(-24, 24);
-        const y = p.y + this.rng.int(-24, 24);
+        const { x, y } = outsideSolids(
+          { x: p.x + this.rng.int(-SPREAD, SPREAD), y: p.y + this.rng.int(-SPREAD, SPREAD) },
+          this.solids,
+          p.def.radius
+        );
         if (this.enemies.countActive(true) < MAX_ALIVE) {
           this.spawnEnemy(p.def, x, y);
           this.spawned++;

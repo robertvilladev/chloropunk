@@ -1,4 +1,4 @@
-import type { ArenaProp, PropKind, Rect } from "@/types";
+import type { ArenaProp, PropKind, Rect, Vector2 } from "@/types";
 
 /** Radius kept free around the arena centre (fighter start); equals MIN_PLAYER_DIST in EnemyManager. */
 export const CLEAR_RADIUS = 160;
@@ -42,4 +42,25 @@ export function validateArena(props: readonly ArenaProp[], arena: { w: number; h
 /** The solid props' boxes. */
 export function solidRects(props: readonly ArenaProp[]): Rect[] {
   return props.filter((p) => p.solid).map(({ x, y, w, h }) => ({ x, y, w, h }));
+}
+
+/**
+ * `p` moved to the nearest point outside every solid grown by `pad` (unchanged when already outside).
+ * ponytail: one pass; fine while solids sit >= SOLID_GAP apart and pad <= SOLID_GAP / 2.
+ */
+export function outsideSolids(p: Vector2, rects: readonly Rect[], pad: number): Vector2 {
+  let { x, y } = p;
+  for (const r of rects) {
+    const l = x - (r.x - pad);
+    const rt = r.x + r.w + pad - x;
+    const t = y - (r.y - pad);
+    const b = r.y + r.h + pad - y;
+    if (l <= 0 || rt <= 0 || t <= 0 || b <= 0) continue;
+    const m = Math.min(l, rt, t, b);
+    if (m === l) x = r.x - pad;
+    else if (m === rt) x = r.x + r.w + pad;
+    else if (m === t) y = r.y - pad;
+    else y = r.y + r.h + pad;
+  }
+  return { x, y };
 }

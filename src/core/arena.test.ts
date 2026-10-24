@@ -1,7 +1,7 @@
 import layout from "@assets/data/arena.json";
 import { describe, expect, it } from "vitest";
 import type { ArenaProp } from "@/types";
-import { CLEAR_RADIUS, solidRects, validateArena } from "./arena";
+import { CLEAR_RADIUS, outsideSolids, solidRects, validateArena } from "./arena";
 
 const arena = { w: 1600, h: 1200 };
 const vent = (x: number, y: number, w = 100, h = 50): ArenaProp => ({ kind: "vent", x, y, w, h });
@@ -53,5 +53,19 @@ describe("validateArena", () => {
   it("solidRects returns only solids; the shipped layout has the 4 vents", () => {
     expect(solidRects([vent(100, 100), solid(300, 300, 40, 30)])).toEqual([{ x: 300, y: 300, w: 40, h: 30 }]);
     expect(solidRects(layout.props as ArenaProp[])).toHaveLength(4);
+  });
+});
+
+describe("outsideSolids", () => {
+  const rects = [{ x: 100, y: 100, w: 100, h: 50 }];
+  it("moves a point inside a solid to the nearest edge plus pad", () => {
+    expect(outsideSolids({ x: 110, y: 130 }, rects, 10)).toEqual({ x: 90, y: 130 }); // left edge nearest
+    expect(outsideSolids({ x: 150, y: 145 }, rects, 10)).toEqual({ x: 150, y: 160 }); // bottom edge nearest
+    expect(outsideSolids({ x: 150, y: 95 }, rects, 10)).toEqual({ x: 150, y: 90 }); // inside the pad only
+  });
+
+  it("leaves a point outside unchanged", () => {
+    expect(outsideSolids({ x: 50, y: 50 }, rects, 10)).toEqual({ x: 50, y: 50 });
+    expect(outsideSolids({ x: 50, y: 50 }, [], 10)).toEqual({ x: 50, y: 50 });
   });
 });

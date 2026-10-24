@@ -134,7 +134,7 @@ export class GameScene extends Phaser.Scene {
 
 
     // 7. Initialize pickups
-    this.pickupManager = new PickupManager(this);
+    this.pickupManager = new PickupManager(this, this.worldManager.getSolidRects());
     this.waveEarned = 0;
     this.events.on("scrapCollected", this.onScrapCollected, this);
 
@@ -358,7 +358,8 @@ export class GameScene extends Phaser.Scene {
         this.enemyManager.getEnemies(),
         scrap.filter((s) => s.active),
         ARENA.w,
-        ARENA.h
+        ARENA.h,
+        this.worldManager.getSolidRects()
       );
     const pilot = () => {
       this.inputManager.autopilot = autopilotOn ? steer : null;
