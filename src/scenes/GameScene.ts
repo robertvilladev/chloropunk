@@ -1,4 +1,4 @@
-import { GAME_CONFIG, SCENE_KEYS } from "@/config/constants";
+import { ARENA, SCENE_KEYS } from "@/config/constants";
 import { setMusic } from "@/fx/music";
 import { THEME_CSS } from "@/config/theme";
 import { createRng, type Rng } from "@/core/rng";
@@ -346,8 +346,8 @@ export class GameScene extends Phaser.Scene {
         this.playerManager.getSprite(),
         this.enemyManager.getEnemies(),
         scrap.filter((s) => s.active),
-        GAME_CONFIG.WIDTH,
-        GAME_CONFIG.HEIGHT
+        ARENA.w,
+        ARENA.h
       );
     const pilot = () => {
       this.inputManager.autopilot = autopilotOn ? steer : null;

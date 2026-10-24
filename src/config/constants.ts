@@ -2,6 +2,9 @@
  * Game constants and configuration
  */
 
+/** Playfield size (physics bounds, spawns, y-sort). GAME_CONFIG.WIDTH/HEIGHT is the 800x600 design space for layout. */
+export const ARENA = { w: 800, h: 600 } as const;
+
 export const GAME_CONFIG = {
   // Canvas dimensions
   WIDTH: 800,
