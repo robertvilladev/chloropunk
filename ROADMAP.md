@@ -11,7 +11,7 @@ Status: ✅ done · 🚧 in progress · ⬜ planned. "(proposed)" = inferred by 
 | M2 Build-crafting | ✅ done — merged in PR #16 | [M2 plan](docs/superpowers/plans/2026-10-18-m2-build-crafting.md) |
 | M3 Look | ✅ done — merged in PR #17 | [M3 plan](docs/superpowers/plans/2026-10-18-m3-look.md) |
 | Balance & progression | ✅ applied (PR #22; waves 1–3 playtested, 4–9 by sim only) | [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) |
-| Arena map (A1–A5) | 🚧 A1–A2 done (owner-approved 2026-10-23) | [arena addendum](docs/superpowers/specs/2026-10-23-arena-map-addendum.md) §5 |
+| Arena map (A1–A5) | 🚧 A1–A3 done (owner-approved 2026-10-23) | [arena addendum](docs/superpowers/specs/2026-10-23-arena-map-addendum.md) §5 |
 | M4 Boss & run end | ⬜ planned | not written |
 
 ## M1 — Waves & feel ✅
@@ -77,6 +77,8 @@ Spec: [arena map addendum](docs/superpowers/specs/2026-10-23-arena-map-addendum.
 
 - ✅ A1 Arena size split from the 800×600 design space, no visible change: `ARENA` in `src/config/constants.ts`, guarded by `src/config/arena.guard.test.ts` — [plan](docs/superpowers/plans/2026-10-23-arena-1-split.md)
 - ✅ A2 Arena 1600×1200 with a follow camera (GameScene only, zoom 2, clamped); the fighter starts at the arena centre; the wave banner and low-HP vignette moved to UIScene; dev `?arena=small` keeps 800×600. Enemies still spawn at the map edges until A3, so waves play easier (seed-1 playtest: won wave 10, vs dying at wave 6–8 before). Owner played both sizes (2026-10-24): camera and big arena work; spawns too far and too few kills, so scrap can't keep up with shop prices (full run: ~90 scrap earned, 4–17 kills a wave, 40 alive at every wave end from wave 6). A3 fixes the spawn distance; tune the economy after it — [plan](docs/superpowers/plans/2026-10-23-arena-2-camera.md)
+- ✅ A3 Waves spawn just off-screen: a ring 50 px outside the camera view, clamped into the arena, one RNG draw per spawn (`offscreenPoint`; `?arena=small` keeps the old edge rule); pooled arrows on the screen edge for off-screen telegraphs (`edgeArrow`, UIScene). Run log records the mean spawn distance (`spawnDist`, shown by `npm run runs`). Measured 480 px (seed 1–3 autopilot: won, died in wave 10, won), so the sim's `spawnDist` went 330 → 480; the sim's typical build now dies in wave 8, a known miss in `sim.test.ts` until the economy pass. Spawns can enter the view when the player walks onto a telegraph (it is visible first). Owner playtest waves 1–5 pending — [plan](docs/superpowers/plans/2026-10-23-arena-3-spawning.md)
+- ⬜ Economy pass after A3 (proposed): scrap and prices against the sim and the owner's A3 run logs, clearing the A3 known misses ([balance design §7](docs/superpowers/specs/2026-10-20-balance-design.md#7-known-misses-and-risks))
 
 ## M4 — Boss & run end ⬜
 Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md)
