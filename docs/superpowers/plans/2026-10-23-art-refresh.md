@@ -63,17 +63,17 @@ Done 2026-10-24: direction (keyline), cast, scrap (power bolt), boss proposals. 
 **Interfaces:**
 - Produces: `type ActorKey = "player" | "enemy_pea" | "enemy_pepper" | "enemy_potato" | "enemy_carrot" | "enemy_tomato"`; `type SpriteKey = ActorKey | "pickup_scrap"`; `interface SpriteMeta { w: number; h: number; feet: number; cx: number; cy: number }` (design px; `cy` = body centre); `const SPRITE_META: Record<SpriteKey, SpriteMeta>`; `const FRAMES: Record<SpriteKey, readonly string[]>` (`walk0, walk1, hit` / `0, 1`); `svg(key: SpriteKey, frame: string): string` (keyline style, `width`/`height` = 2× `w`/`h`).
 
-- [ ] **Step 1: Write the failing tests** in `vector.test.ts`:
+- [x] **Step 1: Write the failing tests** in `vector.test.ts`:
   - `every key and frame builds an svg`: for each key × `FRAMES[key]`, the string starts with `<svg`, has `viewBox="0 0 ${w} ${h}"` and `width="${2*w}"`.
   - `svgs parse`: `new DOMParser().parseFromString(s, "image/svg+xml")` has no `parsererror` (vitest `environment: "jsdom"` for this file via `// @vitest-environment jsdom`).
   - `ids are unique inside one svg`: all `id="…"` values in a string are distinct.
   - `no external references`: no `href=`, no `url(http`.
   - `hit differs from walk0` and `walk1 differs from walk0` for every actor.
   - `total size < 300 KB` (sum of all strings) and each < 16 KB.
-- [ ] **Step 2:** `pnpm vitest run src/art/vector.test.ts` → FAIL (module missing).
-- [ ] **Step 3:** Port the canvas `project/vector.js` (actors, `bolt` scrap, keyline style only, `PROPOSALS`/boss left for PR 4) to TypeScript in `vector.ts`; colours from `THEME_CSS` where a token exists (`pink`, `pink700`, `pink300`, `lime`, `line`, `faint`, `deep`), the rest as named consts in the file. `cy` values: read the body centre off the canvas cast board (player 32, pea 22, pepper 30, potato 33, carrot 30, tomato 32; scrap 12).
-- [ ] **Step 4:** Tests PASS; `pnpm type-check` clean.
-- [ ] **Step 5: Commit** `feat(art): vector sprite source`.
+- [x] **Step 2:** `pnpm vitest run src/art/vector.test.ts` → FAIL (module missing).
+- [x] **Step 3:** Port the canvas `project/vector.js` (actors, `bolt` scrap, keyline style only, `PROPOSALS`/boss left for PR 4) to TypeScript in `vector.ts`; colours from `THEME_CSS` where a token exists (`pink`, `pink700`, `pink300`, `lime`, `line`, `faint`, `deep`), the rest as named consts in the file. `cy` values: read the body centre off the canvas cast board (player 32, pea 22, pepper 30, potato 33, carrot 30, tomato 32; scrap 12).
+- [x] **Step 4:** Tests PASS; `pnpm type-check` clean.
+- [x] **Step 5: Commit** `feat(art): vector sprite source`.
 
 ### Task 2: Bodies fitted in design px, bigger hit areas
 
@@ -84,16 +84,16 @@ Done 2026-10-24: direction (keyline), cast, scrap (power bolt), boss proposals. 
 - Consumes: `SPRITE_META`, `SpriteKey` (Task 1).
 - Produces: `const ART_SCALE = 2`; `frameSize(key: SpriteKey): { w: number; h: number }` (texture px = meta × 2); `fitCircle(s: Phaser.Physics.Arcade.Sprite, key: SpriteKey, radius: number): void` (sets `setScale(1/ART_SCALE)` and `setCircle(radius*ART_SCALE, ox, oy)` centred on `(cx, cy)`); `fitBox(s, key, w, h): void` (same for `setSize`/`setOffset`).
 
-- [ ] **Step 1: Write the failing tests** (`body.test.ts`, a fake sprite recording `setScale`, `setCircle`, `setSize`, `setOffset` calls):
+- [x] **Step 1: Write the failing tests** (`body.test.ts`, a fake sprite recording `setScale`, `setCircle`, `setSize`, `setOffset` calls):
   - `fitCircle centres the circle on the body centre`: for every enemy in `enemies.json`, `ox + r*2 === cx*2` and `oy + r*2 === cy*2`, circle inside `frameSize`.
   - `fitBox centres the player box`: `fitBox(s, "player", 32, 32)` → `setSize(64, 64)`, offset centres on `(cx*2, cy*2)`, inside the frame.
   - `fitCircle sets scale every call` (call twice with different keys; last scale is ½, last circle matches the second key).
   - `radii follow the owner's sizes`: pea 12, pepper 14, carrot 15, tomato 17, potato 26.
   - `SPAWN_MARGIN covers the largest enemy`: export `SPAWN_MARGIN` from `EnemyManager.ts`; `SPAWN_MARGIN >= max(radius) + 24`.
-- [ ] **Step 2:** Run → FAIL.
-- [ ] **Step 3:** Implement `fitCircle`/`fitBox`; replace the three manager call sites with them (`PickupManager`: `fitBox(s, "pickup_scrap", PICKUP_SIZE, PICKUP_SIZE)`); `SPAWN_MARGIN = 50` stays (26 + 24 = 50), update its comment.
-- [ ] **Step 4:** `pnpm vitest run` → all PASS.
-- [ ] **Step 5: Commit** `feat(art): fit bodies in design px; larger potato and tomato`.
+- [x] **Step 2:** Run → FAIL.
+- [x] **Step 3:** Implement `fitCircle`/`fitBox`; replace the three manager call sites with them (`PickupManager`: `fitBox(s, "pickup_scrap", PICKUP_SIZE, PICKUP_SIZE)`); `SPAWN_MARGIN = 50` stays (26 + 24 = 50), update its comment.
+- [x] **Step 4:** `pnpm vitest run` → all PASS.
+- [x] **Step 5: Commit** `feat(art): fit bodies in design px; larger potato and tomato`.
 
 ### Task 3: Bake SVG frames at boot
 
@@ -105,21 +105,32 @@ Done 2026-10-24: direction (keyline), cast, scrap (power bolt), boss proposals. 
 - Consumes: `svg`, `FRAMES`, `SPRITE_META` (Task 1), `frameSize`, `ART_SCALE` (Task 2).
 - Produces: `svgUri(s: string): string` (`data:image/svg+xml;base64,` + `btoa`; ruled in PR 1, see Outcome); `preloadSprites(scene: Phaser.Scene): void` (queues `scene.load.svg(\`${key}@${frame}\`, svgUri(...))` for every key × frame, plus `player_portrait` = player `walk0` with `scale: 4` → 8× design); `buildSpriteTextures(scene): void` (one CanvasTexture per key, frames side by side, frame names as today, shadow ellipse rx 0.36·w, ry rx/4 at `feet` under actors only, `setFilter(LINEAR)`, temp `key@frame` textures removed). `registerAnimations` unchanged in behaviour.
 
-- [ ] **Step 1: Write the failing test** `textures.test.ts`: `svgUri` round-trips (`decodeURIComponent(uri.split(",")[1]) === s`); `spriteFrameKeys()` (exported helper) lists `player@walk0 … pickup_scrap@1` (20 entries) plus `player_portrait`.
-- [ ] **Step 2:** Run → FAIL.
-- [ ] **Step 3:** Implement; `BootScene.preload` calls `preloadSprites(this)`, `create` calls `buildSpriteTextures(this)` instead of `buildActorTextures`/`buildPickupTextures`. Menu: `add.image(636, 340, "player_portrait").setScale(0.5)` (384 px texture → 192 design px, as today); loadout: `setScale(1 / 3)` (→ 128). If Phaser's loader rejects `data:` URLs (it fetches SVG via XHR), load each string into an `Image` instead, `textures.addImage` it on `onload`, and await all of them next to `loadFonts` before `scene.start(MENU)`.
-- [ ] **Step 4:** Tests PASS; `pnpm build` clean.
-- [ ] **Step 5: Commit** `feat(art): bake vector sprites at boot`.
+- [x] **Step 1: Write the failing test** `textures.test.ts`: `svgUri` round-trips (`decodeURIComponent(uri.split(",")[1]) === s`); `spriteFrameKeys()` (exported helper) lists `player@walk0 … pickup_scrap@1` (20 entries) plus `player_portrait`.
+- [x] **Step 2:** Run → FAIL.
+- [x] **Step 3:** Implement; `BootScene.preload` calls `preloadSprites(this)`, `create` calls `buildSpriteTextures(this)` instead of `buildActorTextures`/`buildPickupTextures`. Menu: `add.image(636, 340, "player_portrait").setScale(0.5)` (384 px texture → 192 design px, as today); loadout: `setScale(1 / 3)` (→ 128). If Phaser's loader rejects `data:` URLs (it fetches SVG via XHR), load each string into an `Image` instead, `textures.addImage` it on `onload`, and await all of them next to `loadFonts` before `scene.start(MENU)`.
+- [x] **Step 4:** Tests PASS; `pnpm build` clean.
+- [x] **Step 5: Commit** `feat(art): bake vector sprites at boot`.
 
 ### Task 4: Browser check, balance check, docs
 
 **Files:** Modify `ROADMAP.md`, `ARCHITECTURE.md` (`art/` line), `docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md` §6 (sprite line → "vector SVG, see addendum §4"), `docs/superpowers/plans/2026-10-18-m3-look.md` (16×16 constraint: "superseded 2026-10-24"), this plan (outcome section).
 
-- [ ] **Step 1:** `pnpm dev`; menu, loadout, a wave with every enemy type (`?seed=1`), WebGL and `?renderer=canvas`; screenshot each plus a greyscale one (CSS `filter: grayscale(1)` on the canvas via devtools); hit flash visible on Canvas.
-- [ ] **Step 2:** F2 + F3: ≥ 60 fps on both renderers; boot time before/after from the console timestamps.
-- [ ] **Step 3:** Hit-area balance: `pnpm playtest --seed 1 --runs 3` on `main` and on the branch; record waves reached; a drop of more than 1 wave on average → tell the owner before merging.
-- [ ] **Step 4:** Docs as listed; ROADMAP "Art refresh" section: PR 1 ✅ with the numbers.
-- [ ] **Step 5: Commit** `docs: art refresh PR 1 outcome`; open the PR when the owner says so.
+- [x] **Step 1:** `pnpm dev`; menu, loadout, a wave with every enemy type (`?seed=1`), WebGL and `?renderer=canvas`; screenshot each plus a greyscale one (CSS `filter: grayscale(1)` on the canvas via devtools); hit flash visible on Canvas.
+- [x] **Step 2:** F2 + F3: ≥ 60 fps on both renderers; boot time before/after from the console timestamps.
+- [x] **Step 3:** Hit-area balance: `pnpm playtest --seed 1 --runs 3` on `main` and on the branch; record waves reached; a drop of more than 1 wave on average → tell the owner before merging.
+- [x] **Step 4:** Docs as listed; ROADMAP "Art refresh" section: PR 1 ✅ with the numbers.
+- [x] **Step 5: Commit** `docs: art refresh PR 1 outcome`; open the PR when the owner says so (pending).
+
+
+### PR 1 outcome (2026-10-25)
+
+- Shipped: `vector.ts` (fighter, 5 enemies, power-bolt scrap; byte-identical to the canvas `vector.js` except ink = `THEME_CSS.deep`), `body.ts` `fitCircle`/`fitBox`, `textures.ts` SVG preload + bake, `player_portrait` at 8x, radii pea 12 / carrot 15 / tomato 17 / potato 26. Pixel files deleted. 204 tests pass, `pnpm build` clean.
+- Rulings: Tasks 2 and 3 landed in one commit (the new body fit only works with the 2x textures). `svgUri` is base64, because Phaser marks every `data:` URL base64 and `atob`-decodes it (the URL-encoded form crashed boot), so the SVGs must stay ASCII (tested). The `Image` loader fallback was not needed.
+- Browser (WebGL + `?renderer=canvas`): menu, loadout and a wave with all five enemies render, no console errors; the hit frame (white, `><`) shows on Canvas; greyscale silhouettes read.
+- 150 peas (F2): in-app browser WebGL 61–66 fps. Headless Chrome on the GPU: WebGL 52–59 (main 58–60), Canvas 57–60 (main 59–60). Headless WebGL misses 60 on main too; recheck on the owner's screen.
+- Boot to menu (dev server, warm): WebGL about 1.0–1.1 s vs main 0.7–0.8 s, Canvas about 0.5–0.55 s vs 0.3 s: roughly +250–300 ms, inside the 500 ms budget.
+- Balance (`pnpm playtest --seed 1 --runs 3`, autopilot): all 3 runs won wave 10 on both main and the branch, so no wave drop. Contact damage taken, summed over waves: 162 (main) vs 127 (branch). Wave 9–10 kill%: 22/18 vs 17/15 (medians, within run noise).
+- Carry-overs: the player hurt flash is still `setTint` (invisible on Canvas) until PR 3; weapons and projectiles stay placeholder shapes until PR 2.
 
 ---
 
