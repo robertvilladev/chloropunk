@@ -15,15 +15,17 @@
 - `ARENA` comes from `arenaFromSearch` (`src/config/arena.ts`): 1600×1200, or 800×600 with dev `?arena=small`. The fighter starts at the arena centre (800, 600).
 - `WorldManager.createBackground` draws the grid (48 px) and the lime edge as live `Graphics` each wave.
 - Spawns: `offscreenPoint` ring 50 px outside the view; telegraphs are pink markers, off-screen ones pink arrows on the screen edge (UIScene); enemies beyond 360 px walk 2× (`CATCH_UP`).
-- Balance: the wave-length/economy pass is a separate open item (ROADMAP, proposed). A4 changes nothing the sim or the run log measures.
+- Balance: waves now last `32 + 2·(n−1)` s (PR #40, wave-length addendum); further economy tuning is separate. A4 changes nothing the sim or the run log measures.
 
 ## Global Constraints
 
 - pnpm only (`pnpm test`, `pnpm type-check`, `pnpm playtest --seed 1`); fresh worktree needs `pnpm install`; branch `feat/arena-rooftop` (rename the `wip/`/`claude/` branch before the first push, CLAUDE.md).
-- Colours only via `THEME` (`theme.guard` forbids hex literals outside `theme.ts`/`src/art`). No colour washes on the ground: decor is dark fills, outlines and low-alpha accents.
-- Decor never competes with gameplay colours: **pink is the telegraph colour** (markers and arrows), so pink on the floor is limited to the billboard text on the top edge; no X shapes, no pink near the play area. Lime stays for the arena edge.
+- Colours only via `THEME` (`theme.guard` forbids hex literals outside `theme.ts`/`src/art`). Decor colours get their own `decor` token group in `theme.ts`, picked by the owner in Task 0.
+- **Value hierarchy:** decor is dim (dark fills, outlines, low alpha); everything that moves is bright. A decor colour may be a hue the game already uses only if it stays clearly darker than that gameplay use.
+- **Reserved in the arena (don't use at gameplay brightness):** lime = scrap, laser, arena edge; pink = player, drone, spawn telegraphs and arrows (no pink X shapes, no pink near the play area; billboard text on the top edge is the one exception); danger orange = rockets, telegraph lines; cyan `tier[1]` = pistol shots **and enemy bolts**; amber `tier[3]` = shotgun pellets; white = blade; enemy greens/reds/orange/brown (`enemies.json` colours); flame yellow `#ffd23f`.
+- **Free for decor:** violet/indigo and deep teal/blue (classic night-city neon not used by any actor or projectile), plus the graphite surfaces. Cyan and amber only as dark tints (e.g. a deep-teal puddle, a muted ochre hazard stripe), never as bright accents.
 - Decor sits below `DEPTH.SCRAP`; one baked texture (key per arena size, built once, reused across wave restarts); no per-prop game objects.
-- `?arena=small` (dev, 800×600) shows today's plain grid floor: the layout is authored for 1600×1200 only.
+- `?arena=small` (dev, 800×600) shows today's plain grid floor: the layout is authored for 1600×1200 only. The owner no longer uses `?arena=small` (2026-10-24): don't spend effort on it beyond not breaking it; its removal is a separate cleanup (ROADMAP, proposed).
 - Keep a clear circle of **160 px** around the arena centre (player start, matches `MIN_PLAYER_DIST`) and the helipad off-centre.
 - Content is data: the layout is JSON; A5 adds `solid: true` to some props.
 
@@ -37,6 +39,17 @@
 
 ---
 
+### Task 0: Decor palette (owner gate, before Task 2's final colours)
+
+The owner asked (2026-10-24) to explore more colour than "graphite + one pink sign". Show three options **in the game** (same layout, play view at wave 3–5 with enemies, scrap, bolts and a telegraph on screen, WebGL), then wait for the owner's pick:
+
+- **A · Night violet:** indigo-tinted floor zones, violet vent outlines and rail glow, puddles reflecting violet with a faint pink glint, billboard pink on violet.
+- **B · Toxic teal:** deep-teal puddles ("chlorophyll runoff"), teal floor-zone seams, helipad with muted ochre hazard stripes, vents graphite.
+- **C · Graphite + one neon:** today's greys everywhere, the billboard is the only colour (the original plan).
+
+- [ ] **Step 1:** Add the chosen-to-be tokens as a `decor` group in `src/config/theme.ts` (all three options' values, so switching is a one-line change); render each option (a temporary dev query such as `?decor=a|b|c`, removed before the PR) and take one screenshot each plus a greyscale of the winner.
+- [ ] **Step 2:** Owner picks; keep only the chosen tokens; record the choice and token values in the addendum §2.5 and the MVP spec §6 palette lines (decor is a new palette role).
+
 ### Task 1: Layout data + validation
 
 **Files:** Create `assets/data/arena.json`, `src/core/arena.ts`, `src/core/arena.test.ts`; add the types in `src/types/index.ts`.
@@ -46,7 +59,7 @@
 
 - [ ] **Step 1: Failing tests:** a prop outside the arena is reported; a prop overlapping the 160 px clear circle at the centre is reported; an unknown kind is reported; the shipped `arena.json` validates clean against `{ w: 1600, h: 1200 }`.
 - [ ] **Step 2:** Run `pnpm test src/core/arena.test.ts` — FAIL (missing module).
-- [ ] **Step 3:** Implement; author the layout from the design-page sketch (its fractions × 1600/1200): 4 vents, billboard "CHLOROPUNK" on the top edge, helipad off-centre, 2–3 puddles, a few floor zones (lighter graphite panels), rail segments along the edge.
+- [ ] **Step 3:** Implement; author the layout from the design-page sketch (positions = its fractions × 1600/1200; sizes = the sketch's drawn sizes, not doubled): 4 vents, billboard "CHLOROPUNK" on the top edge, helipad off-centre (≈1050, 760; the sketch's spot overlaps the start circle), 2–3 puddles, a few floor zones (lighter graphite panels), rail segments along the edge.
 - [ ] **Step 4:** PASS. **Commit** `feat: rooftop layout data`.
 
 ### Task 2: Bake and draw
