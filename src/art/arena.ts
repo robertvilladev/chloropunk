@@ -1,28 +1,31 @@
 import Phaser from "phaser";
-import { THEME_CSS } from "@/config/theme";
+import { THEME_CSS, type DecorOption } from "@/config/theme";
 import type { ArenaProp, PropKind } from "@/types";
 
 const GRID = 48;
-const CYAN = THEME_CSS.tier[1];
-const AMBER = THEME_CSS.tier[3];
+
+// TEMP (A4 Task 0): dev `?decor=a|b|c` picks a palette candidate; removed once the owner picks.
+const OPTION: DecorOption = ((): DecorOption => {
+  const q = import.meta.env.DEV ? new URLSearchParams(window.location.search).get("decor") : null;
+  return q === "a" || q === "b" || q === "c" ? q : "c";
+})();
+const D = THEME_CSS.decorOptions[OPTION];
 
 type Ctx = CanvasRenderingContext2D;
 
 function vent(c: Ctx, { x, y, w, h }: ArenaProp): void {
   c.fillStyle = THEME_CSS.deep;
   c.fillRect(x + 4, y + 6, w, h); // drop shadow
-  c.fillStyle = THEME_CSS.surface;
+  c.fillStyle = D.vent;
   c.fillRect(x, y, w, h);
-  c.globalAlpha = 0.5;
-  c.strokeStyle = THEME_CSS.textMuted;
+  c.strokeStyle = D.ventEdge;
   c.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
-  c.globalAlpha = 1;
-  c.fillStyle = THEME_CSS.line;
+  c.fillStyle = D.slat;
   for (let i = 1; i < 4; i++) c.fillRect(x + 6, y + (h * i) / 4 - 1, w - 12, 2);
 }
 
 function sign(c: Ctx, { x, y, w, h, label }: ArenaProp): void {
-  c.fillStyle = THEME_CSS.deep;
+  c.fillStyle = D.signBg;
   c.fillRect(x, y, w, h);
   c.strokeStyle = THEME_CSS.pink;
   c.lineWidth = 2;
@@ -41,54 +44,65 @@ function sign(c: Ctx, { x, y, w, h, label }: ArenaProp): void {
 }
 
 function pad(c: Ctx, { x, y, w, h }: ArenaProp): void {
-  const r = Math.min(w, h) / 2;
-  c.globalAlpha = 0.5;
-  c.strokeStyle = AMBER;
+  const cx = x + w / 2;
+  const cy = y + h / 2;
+  const r = Math.min(w, h) / 2 - 2;
+  // hazard band: diagonal stripes clipped to the outer ring
+  c.save();
+  c.beginPath();
+  c.arc(cx, cy, r, 0, Math.PI * 2);
+  c.arc(cx, cy, r - 10, 0, Math.PI * 2, true);
+  c.clip();
+  c.strokeStyle = D.padStripe;
+  c.lineWidth = 4;
+  for (let t = -2 * r; t < 2 * r; t += 12) {
+    c.beginPath();
+    c.moveTo(cx + t, cy - r);
+    c.lineTo(cx + t + 2 * r, cy + r);
+    c.stroke();
+  }
+  c.restore();
+  c.strokeStyle = D.padEdge;
   c.lineWidth = 2;
   c.beginPath();
-  c.arc(x + w / 2, y + h / 2, r - 2, 0, Math.PI * 2);
+  c.arc(cx, cy, r, 0, Math.PI * 2);
   c.stroke();
-  c.globalAlpha = 0.3; // dimmer than the ring: a pink telegraph on the pad must still win
-  c.fillStyle = AMBER;
+  c.lineWidth = 1;
+  c.fillStyle = D.padText;
   c.font = `${Math.round(r)}px Bungee, Impact, sans-serif`;
   c.textAlign = "center";
   c.textBaseline = "middle";
-  c.fillText("H", x + w / 2, y + h / 2 + 2);
-  c.globalAlpha = 1;
-  c.lineWidth = 1;
+  c.fillText("H", cx, cy + 2);
 }
 
 function puddle(c: Ctx, { x, y, w, h }: ArenaProp): void {
-  c.fillStyle = CYAN;
-  c.strokeStyle = CYAN;
   c.beginPath();
   c.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
-  c.globalAlpha = 0.14;
+  c.fillStyle = D.puddle;
   c.fill();
-  c.globalAlpha = 0.25;
+  c.strokeStyle = D.puddleEdge;
   c.stroke();
-  c.globalAlpha = 1;
 }
 
 function rail(c: Ctx, { x, y, w, h }: ArenaProp): void {
-  c.fillStyle = THEME_CSS.faint;
+  c.fillStyle = D.rail;
   c.fillRect(x, y, w, h);
-  c.fillStyle = THEME_CSS.textMuted; // posts every 48 px
+  c.fillStyle = D.railPost; // posts every 48 px
   const along = w >= h;
   for (let t = 0; t <= (along ? w : h) - 4; t += GRID) c.fillRect(along ? x + t : x, along ? y : y + t, along ? 4 : w, along ? h : 4);
 }
 
 function zone(c: Ctx, { x, y, w, h }: ArenaProp): void {
-  c.fillStyle = THEME_CSS.surface2;
+  c.fillStyle = D.zone;
   c.fillRect(x, y, w, h);
-  c.strokeStyle = THEME_CSS.line;
+  c.strokeStyle = D.zoneEdge;
   c.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
 }
 
 function crate(c: Ctx, { x, y, w, h }: ArenaProp): void {
-  c.fillStyle = THEME_CSS.surface;
+  c.fillStyle = D.vent;
   c.fillRect(x, y, w, h);
-  c.strokeStyle = THEME_CSS.faint;
+  c.strokeStyle = D.ventEdge;
   c.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
   c.strokeRect(x + 4.5, y + 4.5, w - 9, h - 9);
 }
