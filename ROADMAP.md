@@ -18,7 +18,7 @@ Status: ✅ done · 🚧 in progress · ⬜ planned. "(proposed)" = inferred by 
 Spec: [§4 run loop, §5 systems](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md)
 
 - ✅ 5 vegetable enemies with behaviours (chaser, dasher, tank, shooter, exploder) — `assets/data/enemies.json`
-- ✅ 10 data-driven waves, duration `20 + 4·(n−1)` s capped at 60 — `assets/data/waves.json`, `src/core/waves.ts`
+- ✅ 10 data-driven waves, duration `32 + 2·(n−1)` s capped at 60 (was `20 + 4·(n−1)` until the [wave length addendum](docs/superpowers/specs/2026-10-24-wave-length-addendum.md)) — `assets/data/waves.json`, `src/core/waves.ts`
 - ✅ Pooled spawning with telegraph markers; holds 60 fps with 150 enemies
 - ✅ Scrap + XP drops, pickup magnet, auto-collect at wave end, XP curve and levels (`src/core/progression.ts`)
 - ✅ Seeded RNG (`src/core/rng.ts`)
@@ -72,7 +72,8 @@ Spec: [§4, §5 waves, §9 numbers](docs/superpowers/specs/2026-10-18-mvp-roguel
 - ⬜ (proposed) `pnpm playtest` shops like a reference build (now it buys nothing, so it reads as the `never` build)
 - ⬜ Playtest waves 4–9 (moving player) and recalibrate the sim's `aim`/`contactRate` with `pnpm runs` (fitted values)
 - ⬜ Collect real logs (owner + playtesters) and tune enemies per wave, scrap per wave and starter viability from them
-- ⬜ (proposed) Wave length + economy pass (owner 2026-10-24: rounds feel too short to shop and grow): test longer waves (e.g. flat ~45–50 s or a higher start than `20 + 4·(n−1)`) and scrap/prices in the sim against the owner's A3 logs, then playtest. Amends MVP spec §4 step 2's wave-length formula, so it needs the owner's sign-off
+- ✅ Wave length pass (owner 2026-10-24: rounds too short to shop and grow): waves last `32 + 2·(n−1)` s (32 → 48 s by wave 9), prices unchanged, 10 waves; owner-approved, [wave length addendum](docs/superpowers/specs/2026-10-24-wave-length-addendum.md), options and sim numbers in [balance design §11](docs/superpowers/specs/2026-10-20-balance-design.md#11-wave-length-pass-2026-10-24). Sim: blade wave-1 miss gone; waves 8–9 now too easy for the scripted shopper (known misses). Autopilot `pnpm playtest --seed 1 --runs 3` (never shops): all 3 won, as with A3b; wave 1–5 kills 92/97/67/52/30% (A3b 88/92/67/58/36), scrap dropped 23 in wave 1 and 180 over the run (A3b 158).
+- ⬜ Owner playtest of the longer waves with `pnpm runs`: target 0.8–2 buys/wave and kills in band; if waves 8–9 play too easy, prices ×1.1 (balance design §11)
 
 ## Arena map 🚧
 Spec: [arena map addendum](docs/superpowers/specs/2026-10-23-arena-map-addendum.md) (owner decisions 2026-10-23; [design page](https://claude.ai/artifact/Joe6YTuK7XMsoCTbkyFs56)). One PR each, in order.

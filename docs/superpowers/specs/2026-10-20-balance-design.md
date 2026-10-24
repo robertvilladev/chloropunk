@@ -131,7 +131,7 @@ The numbers now live in the game data: `waves.json` (`scaling` and the generated
 | 7 | **XP curve** `(level+3)²`. Unchanged. The typical shopper reaches level 10 by wave 10. | | unchanged | — |
 
 **Scaling past wave 10.**
-- `T(n)`, the growth formula and the price curve are defined for any *n*. Wave length is already capped at 60 s from wave 11.
+- `T(n)`, the growth formula and the price curve are defined for any *n*. Wave length is capped at 60 s from wave 15 (since the [wave length addendum](2026-10-24-wave-length-addendum.md); was wave 11).
 - **20 waves:**
   - extend `REFERENCE_BUILDS` with longer shopping plans;
   - add bands for waves 11–20 to `checkTargets`;
@@ -173,9 +173,8 @@ Spawn rate: 0.8 enemies/s in wave 1, 1.3 in wave 5, 2.1 in wave 9 and 2.3 in wav
 
 ## 7. Known misses and risks
 
-- **A3 spawn distance (2026-10-24).** At `spawnDist` 480 alone the typical build ran short of scrap and died in wave 8; the far-enemy catch-up (§3) clears that. Left: the blade starter kills 12/16 in wave 1 (target 13), because a standing-still melee player waits for the last group (the owner's real blade run also got 12/16).
-
-- **Wave 8 is a little easy** (100% HP left). It is the only failed target at the calibrated centre. Leave it for the playtest.
+- **A3 spawn distance (2026-10-24).** At `spawnDist` 480 alone the typical build ran short of scrap and died in wave 8; the far-enemy catch-up (§3) clears that. The blade starter's 12/16 in wave 1 went away with the longer waves (§11: 22/25).
+- **Waves 8–9 too easy for the scripted shopper** (since §11; before it, wave 8 only): 98–101% HP left, 97% kills in wave 9. These are the only failed targets at the calibrated centre. The shopper banks more early scrap and snowballs, while the owner's own runs sit in the pressure band (34–39% HP). Leave it for the playtest; the fallback is prices ×1.1 (§11).
 - **Wave 10 kills the typical build** without a boss. Its targets are written with the M4 boss.
 - **Sensitivity.** Across aim 0.6–0.8 × contact rate 0.15–0.35, the knobs miss 1–4 targets per corner:
   - low aim is harder mid-run;
@@ -339,3 +338,37 @@ Every projectile, beam and blade swing counts as an attack; it "landed" if it to
 - The sim still matches kills, because its `aim` also absorbs other losses: overkill, knockback, and time with no target in range.
 - Recalibrate it from logs of real, moving players, not from this one stationary number.
 
+
+## 11. Wave length pass (2026-10-24)
+
+The owner found rounds too short to shop and grow, and suggested ~50 s waves. **Owner decision: `32 + 2·(n−1)` s, capped at 60, prices unchanged, 10 waves** ([wave length addendum](2026-10-24-wave-length-addendum.md)).
+
+**Measured** (owner, 2 big-map A3b runs, `pnpm runs`):
+- kills 54–77% a wave;
+- 0.61 buys per wave, none after wave 1 (11 scrap; the cheapest buy is 12);
+- scrap dropped 11 → 54.5 from wave 1 to 9, about half the sim shopper's from wave 6 on;
+- 40 alive (the cap) in waves 8–10, with 34–39% HP left in waves 8–9.
+
+**Why longer waves help:** in a 20 s wave, the last ~5 s of spawns are still walking in when the timer ends. The spawn rate is unchanged, so a longer wave adds income, not density. Front-loading keeps waves 8–9 near their old length (46/48 vs 48/52 s).
+
+**Options** (sim, typical pistol shopper, default params). Owner scrap is the owner's per-wave scrap × new ÷ old wave length, a rough estimate.
+
+| option | w1→w9 | w1–9 total | kill % w1–9 | HP left w9 | buys/wave | owner scrap w1 / w1–4 / w1–9 | targets missed |
+|---|---|---|---|---|---|---|---|
+| old `20+4n` | 20→52 s | 324 s | 91–96 | 44% | 1.11 | 11 / 81 / 294 | w8 easy, blade w1 12/16 |
+| flat 45 | 45 | 405 s | 93–99 | 100% | 1.33 | 25 / 136 / 354 | 6 (never-shop pistol dies w3; w8–9 trivial) |
+| flat 50 | 50 | 450 s | 95–99 | 100% | 1.44 | 28 / 151 / 393 | 7 |
+| `30+3n` | 30→54 | 378 s | 93–97 | 100% | 1.22 | 16 / 106 / 339 | 4 (w8–9 easy) |
+| `30+3n`, prices ×1.2 | 30→54 | 378 s | 89–97 | 41% | 1.11 | — | 1, dies w9 at the owner's fitted aim |
+| old length, scrap ×1.25 or prices ×0.8 | 20→52 | 324 s | 91–96 | 100% | 1.22 | 14 / 101 / 368 (scrap) | 5 |
+| `30+2n` | 30→46 | 342 s | 86–96 | 65% | 1.11 | 16 / 101 / 305 | 1 (w8 easy) |
+| **`32+2n` (chosen)** | 32→48 | 360 s | 92–97 | 100% | 1.11 | 18 / 107 / 320 | 3 (w8–9 easy) |
+| `32+2n`, prices ×1.1 | 32→48 | 360 s | 87–96 | 54% | 1.11 | — | 1 |
+
+**Sensitivity** (aim 0.6–0.8 × contact rate 0.15–0.35, plus the owner fit aim 0.68 / spawnDist 544): the old length dies in wave 6 at aim 0.6. `32+2n` survives to wave 10 in every corner. `30+2n` and any price rise die in wave 8–9 at aim 0.6.
+
+**Why no price rise:** prices ×1.1 would put the sim back on target, but the owner already buys too little (0.61/wave). The owner's next `pnpm runs` decides. If waves 8–9 play too easy, the fallback is prices ×1.1.
+
+**Applied:** `waveDuration` in `core/waves.ts`. `sim.test.ts` lists the w8–9 pressure misses. The wave-1 calibration pin now runs 20 s, the length of that playtest. With the new length, the sim shopper's wave 1 is 23/25 kills and 23 scrap, and the starters kill 23/25, 23/25 and 22/25 (pistol, shotgun, blade) in wave 1.
+
+**Playtest:** Autopilot `pnpm playtest --seed 1 --runs 3` (never shops): all 3 won, as with A3b; wave 1–5 kills 92/97/67/52/30% (A3b 88/92/67/58/36), scrap dropped 23 in wave 1 and 180 over the run (A3b 158). Waves 6–10 sit at the 40 alive cap, as before; that's the never-shop build failing on schedule.
