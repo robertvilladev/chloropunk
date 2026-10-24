@@ -24,7 +24,8 @@ Spec: [§4 run loop, §5 systems](docs/superpowers/specs/2026-10-18-mvp-roguelik
 - ✅ Seeded RNG (`src/core/rng.ts`)
 - ✅ Juice: damage numbers, hit flash, knockback, screen shake, death bursts, low-HP vignette, wave banners, reduced-shake setting
 - ✅ Cleanup: dead files and deps removed, `theme.ts` tokens, CI green
-- ✅ (proposed) Deploy: Vercel Git integration (Vite preset, `npm run build` → `dist/`); `main` is protected by a GitHub ruleset requiring PRs and the CI `build-and-test` check
+- ✅ (proposed) Deploy: Vercel Git integration (Vite preset, `pnpm build` → `dist/`); `main` is protected by a GitHub ruleset requiring PRs and the CI `build-and-test` check
+- ✅ (proposed) pnpm instead of npm: `pnpm-lock.yaml` imported from the npm lockfile (same versions), CI on `pnpm install --frozen-lockfile` + Node 24, npm blocked via `engines.npm` + `engine-strict`
 
 ## M2 — Build-crafting ✅
 Spec: [§4 steps 1, 4, 5; §5 stats/weapons/items](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md)
@@ -60,16 +61,16 @@ Owner playtest: text was jaggy. Cause: an 800×600 canvas upscaled with nearest-
 Spec: [§4, §5 waves, §9 numbers](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md). Design: [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) — **approved by the owner 2026-10-20** (decisions in §8). Goal: 10 waves first, then 20, then endless.
 
 - ✅ Diagnosis: wave 1 brings 28 enemy HP/s against ~10 HP/s from the starting pistol (load ≈ 2.8); 7–8 kills, scrap starved (leftovers were already banked)
-- ✅ Headless simulator `src/core/sim.ts` + `npm run sim` report, calibrated to a playtest (wave 1: 8 kills, 40 HP left)
+- ✅ Headless simulator `src/core/sim.ts` + `pnpm sim` report, calibrated to a playtest (wave 1: 8 kills, 40 HP left)
 - ✅ Target metrics per wave band as `checkTargets()` assertions (`sim.targets.ts`, `sim.test.ts`)
 - ✅ Owner decisions (design §8): threat-budget waves, enemy growth, prices +20%/wave then +25% for the last 3 shops, starter tuning (9 HP peas/peppers, pistol 0.7 s + pierce 1), alive cap 40
 - ✅ Approved numbers applied: threat-budget `waves.json` + `scaling`, 9 HP peas/peppers, pistol 0.7 s + pierce 1, price curve in `weapons.ts`, `MAX_ALIVE` 40; browser playtest waves 1–3 ([design §10](docs/superpowers/specs/2026-10-20-balance-design.md#10-applied-2026-10-20))
 - ✅ Real aim logged once per run (`[balance] run ended …` console line; `RunState.aim`); stationary playtest: 94% of projectiles hit
-- ✅ Run log for measuring real games ([design §9](docs/superpowers/specs/2026-10-20-balance-design.md#9-measuring-real-games-proposed)): `src/core/runlog.ts` (versioned `RunLog`, wave/shop/level-up records, last 50 runs in localStorage), dev F4 exports `runs.json`, `npm run runs -- <file|folder>` prints measured medians next to the sim, the targets on them (`checkRows`) and fitted `aim`/`contactRate`. Verified with a 2-wave browser playtest
+- ✅ Run log for measuring real games ([design §9](docs/superpowers/specs/2026-10-20-balance-design.md#9-measuring-real-games-proposed)): `src/core/runlog.ts` (versioned `RunLog`, wave/shop/level-up records, last 50 runs in localStorage), dev F4 exports `runs.json`, `pnpm runs <file|folder>` prints measured medians next to the sim, the targets on them (`checkRows`) and fitted `aim`/`contactRate`. Verified with a 2-wave browser playtest
 - ✅ Dev playtest tools: `?wave=N&build=<name>` starts any wave with a reference build's sim-shopped build (`runAtWave` in `sim.targets.ts`); `?autopilot` / F8 kites via `InputManager` (`core/autopilot.ts`); autopilot clears wave 1 (seed 1: 13 kills)
-- ✅ (proposed) `npm run playtest` (`scripts/playtest.mjs`, `@playwright/test` Chromium): headless autopilot run at 3×, first level-up pick, no shopping, writes `runs/playtest-<seed>.json`; `--seed/--runs/--wave/--build`. Seed 1: died wave 8–9 in ~1.5 min (not in CI). Fixed on the way: dev speed keys 1/2/3 never fired (Phaser emits `keydown-THREE`)
-- ⬜ (proposed) `npm run playtest` shops like a reference build (now it buys nothing, so it reads as the `never` build)
-- ⬜ Playtest waves 4–9 (moving player) and recalibrate the sim's `aim`/`contactRate` with `npm run runs` (fitted values)
+- ✅ (proposed) `pnpm playtest` (`scripts/playtest.mjs`, `@playwright/test` Chromium): headless autopilot run at 3×, first level-up pick, no shopping, writes `runs/playtest-<seed>.json`; `--seed/--runs/--wave/--build`. Seed 1: died wave 8–9 in ~1.5 min (not in CI). Fixed on the way: dev speed keys 1/2/3 never fired (Phaser emits `keydown-THREE`)
+- ⬜ (proposed) `pnpm playtest` shops like a reference build (now it buys nothing, so it reads as the `never` build)
+- ⬜ Playtest waves 4–9 (moving player) and recalibrate the sim's `aim`/`contactRate` with `pnpm runs` (fitted values)
 - ⬜ Collect real logs (owner + playtesters) and tune enemies per wave, scrap per wave and starter viability from them
 
 ## Arena map 🚧
@@ -100,7 +101,7 @@ From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) an
 - **Robustness:** `rng.int` unguarded for max<min; `buildSpawnSchedule` hangs if `every<=0`
 - **Dev only:** `debugSpawn` draws from the spawn RNG; F2 peas aren't counted in the run log's `spawned` (kill % can pass 100)
 - **Shop:** the header reads `WAVE n CLEARED` with the *next* wave's number (e.g. "WAVE 02 CLEARED" after wave 1)
-- **Playtest determinism:** the same seed ends a wave or two apart between `npm run playtest` runs (variable frame deltas, 3× steps up to 300 ms)
+- **Playtest determinism:** the same seed ends a wave or two apart between `pnpm playtest` runs (variable frame deltas, 3× steps up to 300 ms)
 - **Level-up (unconfirmed):** in one playtest a single `1` keypress right after a reroll applied the same pick twice (2 levels pending); a retry didn't reproduce it
 - **M4:** Victory → GameOver "RUN COMPLETE" is a stopgap
 - **Rename to Chloropunk (2026-10-22):** title, favicon, menu logo, doc headings and `package.json` `name` done. Still `veggie-vendetta`: the GitHub repo and Vercel project (owner renames them by hand), the local folder. `vv.runs` / `vv.settings` localStorage keys stay on purpose (renaming loses saved settings and run logs). Old plans and `docs/superpowers/specs/mockups/` keep the old name as history

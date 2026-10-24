@@ -1,6 +1,6 @@
 # Chloropunk — Balance & progression design
 
-Date: 2026-10-20 · Status: **approved by the owner and applied to the game, 2026-10-20**. The decisions are in §8; the applied changes and the playtest are in §10. Every number comes from the headless simulator (`npm run sim`).
+Date: 2026-10-20 · Status: **approved by the owner and applied to the game, 2026-10-20**. The decisions are in §8; the applied changes and the playtest are in §10. Every number comes from the headless simulator (`pnpm sim`).
 Binding intent: [MVP spec](2026-10-18-mvp-roguelike-design.md) §4 (run loop), §5 (waves, stats), §9 ("start from Brotato-like ratios and tune by play").
 Horizon: the MVP has 10 waves. The model is meant to scale to 20 waves and then an endless mode ([ROADMAP](../../../ROADMAP.md) parking lot).
 
@@ -118,7 +118,7 @@ The **reference builds** live in `REFERENCE_BUILDS`:
 
 ## 5. The model (approved)
 
-The numbers now live in the game data: `waves.json` (`scaling` and the generated waves), `enemies.json`, `weapons.json`, the price constants in `core/weapons.ts` and `MAX_ALIVE` in `core/waves.ts`. `THREAT` and `budgetWave` in `src/core/sim.targets.ts` re-author waves. `npm run sim` prints the tables for the live data.
+The numbers now live in the game data: `waves.json` (`scaling` and the generated waves), `enemies.json`, `weapons.json`, the price constants in `core/weapons.ts` and `MAX_ALIVE` in `core/waves.ts`. `THREAT` and `budgetWave` in `src/core/sim.targets.ts` re-author waves. `pnpm sim` prints the tables for the live data.
 
 | # | change | live | approved | kind |
 |---|---|---|---|---|
@@ -228,7 +228,7 @@ One `RunLog` per run, in memory while playing, then saved. These are compact per
 
 1. **Local store.** Keep the last 50 runs in `localStorage` (about 5 KB per run), using the same guarded storage helper as `core/settings.ts`. It never blocks the game and drops the oldest first.
 2. **Export.** A dev-only key (F4, built) and later a settings button download `runs.json`. Playtesters send the file, and the owner drops files into a folder.
-3. **Report.** `npm run runs -- <file or folder>` (built; see §9.4) reads the logs and prints the same per-wave table as the sim, with measured and predicted values side by side, grouped by data hash so old balance versions don't mix with new ones.
+3. **Report.** `pnpm runs <file or folder>` (built; see §9.4) reads the logs and prints the same per-wave table as the sim, with measured and predicted values side by side, grouped by data hash so old balance versions don't mix with new ones.
 4. **Later, optional:** an opt-in upload to a small endpoint once there are external players. That is a spec change, so it needs the owner's call.
 
 ### 9.3 How the data closes the loop
@@ -269,7 +269,7 @@ Effort: small to medium, no new dependencies.
   - `damageDealt` includes overkill. `shots`/`hits` are `WeaponManager.tally` (projectiles only, as in §10).
   - "Time to first hit" (for `spawnDist`) is not recorded yet.
 - Export: dev key **F4** downloads `runs.json` (all stored runs). There is no settings button yet.
-- Report: `npm run runs -- <file or folder>` reads `runs.json` files and drops duplicate run ids, since exports overlap. Per data hash it prints:
+- Report: `pnpm runs <file or folder>` reads `runs.json` files and drops duplicate run ids, since exports overlap. Per data hash it prints:
   - per-wave medians (kill %, peak alive, scrap dropped / live / banked, buys, aim, damage dealt and taken by source, HP %);
   - the sim's prediction for the *same builds* (`simulateWave` with default params, and again with the fitted ones);
   - `checkRows` (the band, buy-rate and early-shop targets, split out of `checkTargets`) on the measured medians.
@@ -320,7 +320,7 @@ This is a spec change, because online features are a spec non-goal (§2). It nee
 
 Before this change the same wave 1 gave 8 kills, 8 scrap, 18 alive and 40 HP.
 
-After wave 1, three of the four shop offers were affordable: Lucky Chip 14, Synth Steak 12, Mono Blade 18. Only the shotgun at 24 was out of reach. Waves 4–9 haven't been playtested yet; the run log in §9 is the next step. `npm run playtest` (2026-10-21) produces such logs headless on autopilot (no shopping); seed 1 died at wave 8–9.
+After wave 1, three of the four shop offers were affordable: Lucky Chip 14, Synth Steak 12, Mono Blade 18. Only the shotgun at 24 was out of reach. Waves 4–9 haven't been playtested yet; the run log in §9 is the next step. `pnpm playtest` (2026-10-21) produces such logs headless on autopilot (no shopping); seed 1 died at wave 8–9.
 
 **Aim logging.** `RunState.aim` totals projectile shots, projectiles that hit at least once, and kills. `GameScene` adds each wave's numbers and prints one line when the run ends (on death, or after the last wave clears):
 

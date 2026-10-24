@@ -29,7 +29,7 @@
 - Seeded RNG for spawn rolls.
 - Feedback: damage numbers (crits highlighted), white hit flash, knockback, screen shake on player hit and big kills, death burst, scrap magnet, low-HP vignette, wave start/end banner; a reduced-screen-shake setting.
 - Don't regress PR #13: reset per-run fields in `create()`, `disableBody`/`enableBody` for pooled sprites, remove scene event listeners on shutdown.
-- CI (`npm run build`, `npm run test:coverage`) stays green.
+- CI (`pnpm build`, `pnpm test:coverage`) stays green.
 - Colours come from the design system (`theme.ts`): lime `#c6ff3d` = actions/good events, pink `#ff4f9a` = state, danger `#ff6b3d`; fonts Bungee / IBM Plex Mono / VT323.
 
 ## Review Focus
@@ -60,9 +60,9 @@
   - `next is in [0,1)`: 1000 draws all `>= 0 && < 1`.
   - `int is inclusive and bounded`: 1000 `int(3, 5)` draws are all in {3,4,5} and each value appears.
   - `pick returns an element`: `pick(["a","b"])` ∈ `["a","b"]`.
-- [ ] **Step 2: Run** `npx vitest run src/core/rng.test.ts` — expect FAIL (module not found).
+- [ ] **Step 2: Run** `pnpm exec vitest run src/core/rng.test.ts` — expect FAIL (module not found).
 - [ ] **Step 3: Implement** `createRng` (mulberry32) in `src/core/rng.ts`, and `src/config/theme.ts`.
-- [ ] **Step 4: Do the deletions and package/html/menu edits; run** `npm install` (to update the lockfile), then `npm run build && npx vitest run` — expect build OK, all tests PASS.
+- [ ] **Step 4: Do the deletions and package/html/menu edits; run** `pnpm install` (to update the lockfile), then `pnpm build && pnpm exec vitest run` — expect build OK, all tests PASS.
 - [ ] **Step 5: Commit** `chore: cleanup, theme tokens and seeded rng`.
 
 ### Task 2: Wave data and spawn schedule
@@ -93,9 +93,9 @@
   - `dueEvents fires each event once across frames` (Review Focus 2): for a schedule with events at `0, 0.5, 1.0`, summing `dueEvents` over frames `[0,0.3],[0.3,0.5],[0.5,0.51],[0.51,1.0]` returns exactly the 3 events once each; and over one big frame `[0, 1.0]` also returns all 3.
   - `scaleEnemy`: `scaleEnemy({hp:20, damage:4}, 1)` → `{hp:20, damage:4}`; wave 5 → `{hp:40, damage:6}`.
   - `every wave in waves.json is valid`: 10 waves numbered 1–10, every `enemy` id exists in `enemies.json` (import both JSONs), every `every > 0`.
-- [ ] **Step 2: Run** `npx vitest run src/core/waves.test.ts` — expect FAIL.
+- [ ] **Step 2: Run** `pnpm exec vitest run src/core/waves.test.ts` — expect FAIL.
 - [ ] **Step 3: Implement** the four functions and write `waves.json`. (The `enemies.json` check will fail until Task 4 lands the new ids; write the new `enemies.json` ids now as part of this task: `pea`, `pepper`, `potato`, `carrot`, `tomato` with the Task 4 fields.)
-- [ ] **Step 4: Run** `npx vitest run src/core/waves.test.ts` — expect PASS.
+- [ ] **Step 4: Run** `pnpm exec vitest run src/core/waves.test.ts` — expect PASS.
 - [ ] **Step 5: Commit** `feat: data-driven wave schedules`.
 
 ### Task 3: XP curve and run state
@@ -117,9 +117,9 @@ M2 turns `pendingLevelUps` into level-up picks; in M1 it is only counted and sho
   - `addXp below threshold`: `addXp({level:1, xp:0}, 10)` → `{level:1, xp:10, levelsGained:0}`.
   - `addXp exact level`: `addXp({level:1, xp:10}, 6)` → `{level:2, xp:0, levelsGained:1}`.
   - `addXp several levels at once` (Review Focus 4): `addXp({level:1, xp:0}, 16 + 25 + 36 + 5)` → `{level:4, xp:5, levelsGained:3}`.
-- [ ] **Step 2: Run** `npx vitest run src/core/progression.test.ts` — expect FAIL.
+- [ ] **Step 2: Run** `pnpm exec vitest run src/core/progression.test.ts` — expect FAIL.
 - [ ] **Step 3: Implement** `progression.ts`; update `RunState` and rename `coins`→`scrap` in the three scenes (labels say `SCRAP`).
-- [ ] **Step 4: Run** `npx tsc --noEmit && npx vitest run` — expect PASS.
+- [ ] **Step 4: Run** `pnpm exec tsc --noEmit && pnpm exec vitest run` — expect PASS.
 - [ ] **Step 5: Commit** `feat: xp curve and scrap in run state`.
 
 ### Task 4: Vegetable enemies — pooled spawning and behaviours
@@ -147,9 +147,9 @@ M2 turns `pendingLevelUps` into level-up picks; in M1 it is only counted and sho
     - `chaser moves toward player`: self `(0,0)`, player `(100,0)`, speed 90 → `vx ≈ 90, vy ≈ 0`.
     - `dasher dashes after dashEvery`: after accumulated `dt` ≥ 2.5 s, returned speed magnitude ≈ 320 for 0.35 s, then back to 70.
     - `shooter keeps distance and fires`: at distance 100 it moves away; at distance 220 with timer ≥ 2 it returns `fire: true`.
-- [ ] **Step 2: Run** `npx vitest run src/core/time.test.ts src/entities/enemyBehaviors.test.ts` — expect FAIL.
+- [ ] **Step 2: Run** `pnpm exec vitest run src/core/time.test.ts src/entities/enemyBehaviors.test.ts` — expect FAIL.
 - [ ] **Step 3: Implement** `time.ts`, `enemyBehaviors.ts`; rewrite `EnemyManager` (pooled group via `get()` + `enableBody`, state stored with `setData("state", createEnemyState(...))`, knockback ignored for `tank`, carrot bolts in an enemy projectile pool of 100); in `GameScene.update` use `clampDelta(delta) * gameSpeed` and drive `EnemyManager.update` with elapsed wave time; round length from `waveDuration(run.wave)`; wire overlaps for enemy bolts → player and `enemyExploded` → player damage if within radius.
-- [ ] **Step 4: Run** `npx tsc --noEmit && npx vitest run` — expect PASS. Then `npm run dev`, play wave 1 and wave 5 (set `run.wave` via `window.game` in the console): enemies appear after a telegraph at the edges, peppers dash, carrots shoot and keep distance, tomatoes explode.
+- [ ] **Step 4: Run** `pnpm exec tsc --noEmit && pnpm exec vitest run` — expect PASS. Then `pnpm dev`, play wave 1 and wave 5 (set `run.wave` via `window.game` in the console): enemies appear after a telegraph at the edges, peppers dash, carrots shoot and keep distance, tomatoes explode.
 - [ ] **Step 5: Commit** `feat: vegetable enemies with pooled spawning and behaviours`.
 
 ### Task 5: Scrap, XP pickups and wave end
@@ -165,8 +165,8 @@ M2 turns `pendingLevelUps` into level-up picks; in M1 it is only counted and sho
 - Wave end in `GameScene.onRoundComplete`: `enemyManager.clearAll()` and clear enemy bolts first (Review Focus 5), then `collectAll()`, apply XP via `addXp` (adds `levelsGained` to `run.pendingLevelUps`), then show the summary.
 
 - [ ] **Step 1: Implement** `PickupManager` and the wiring above; HUD shows XP bar (pink), `LV n`, scrap count.
-- [ ] **Step 2: Run** `npx tsc --noEmit && npx vitest run` — expect PASS.
-- [ ] **Step 3: Manual check** with `npm run dev`: scrap is pulled in when close; at wave end leftover scrap is added to the counter; a tomato killed in the last second does not damage the player after the banner (Review Focus 5); scrap and level carry into the next wave.
+- [ ] **Step 2: Run** `pnpm exec tsc --noEmit && pnpm exec vitest run` — expect PASS.
+- [ ] **Step 3: Manual check** with `pnpm dev`: scrap is pulled in when close; at wave end leftover scrap is added to the counter; a tomato killed in the last second does not damage the player after the banner (Review Focus 5); scrap and level carry into the next wave.
 - [ ] **Step 4: Commit** `feat: scrap and xp pickups with magnet`.
 
 ### Task 6: Juice
@@ -187,9 +187,9 @@ M2 turns `pendingLevelUps` into level-up picks; in M1 it is only counted and sho
   - `defaults when storage throws`: a `getItem` that throws → `{reducedShake: false}`.
   - `round trip`: saving `{reducedShake: true}` into a Map-backed fake, then loading it → `{reducedShake: true}`.
   - `defaults on bad JSON`: `getItem` returns `"{oops"` → defaults.
-- [ ] **Step 2: Run** `npx vitest run src/core/settings.test.ts` — expect FAIL.
+- [ ] **Step 2: Run** `pnpm exec vitest run src/core/settings.test.ts` — expect FAIL.
 - [ ] **Step 3: Implement** `settings.ts` and `Juice.ts`; call it from the hit/kill/player-damage/wave-start/wave-end points.
-- [ ] **Step 4: Run** `npx tsc --noEmit && npx vitest run` — expect PASS; manual check in `npm run dev` that numbers, crits, flash, shake, bursts, vignette and banners all show, and that setting `localStorage["vv.settings"] = '{"reducedShake":true}'` stops the shake.
+- [ ] **Step 4: Run** `pnpm exec tsc --noEmit && pnpm exec vitest run` — expect PASS; manual check in `pnpm dev` that numbers, crits, flash, shake, bursts, vignette and banners all show, and that setting `localStorage["vv.settings"] = '{"reducedShake":true}'` stops the shake.
 - [ ] **Step 5: Commit** `feat: hit and kill feedback`.
 
 ### Task 7: Performance pass
@@ -198,8 +198,8 @@ M2 turns `pendingLevelUps` into level-up picks; in M1 it is only counted and sho
 - Modify: `src/scenes/GameScene.ts` (dev-only: `F2` spawns 150 peas in one go; `F3` toggles an FPS readout), `src/config/gameConfig.ts` (`physics.arcade.debug` off by default, on with `?debug` in the URL)
 
 - [ ] **Step 1: Implement** the dev keys behind `import.meta.env.DEV`, and the `?debug` switch.
-- [ ] **Step 2: Measure** in `npm run dev`: press `F2` on wave 5 with the pistol firing; FPS readout stays ≥ 55 for 20 s. If not, profile (Chrome Performance) and remove per-frame allocations in `EnemyManager.update`, `steer` callers and `PickupManager.update` (reuse vectors, iterate `children.entries` with index loops).
-- [ ] **Step 3: Run** `npm run build && npx vitest run` — expect PASS.
+- [ ] **Step 2: Measure** in `pnpm dev`: press `F2` on wave 5 with the pistol firing; FPS readout stays ≥ 55 for 20 s. If not, profile (Chrome Performance) and remove per-frame allocations in `EnemyManager.update`, `steer` callers and `PickupManager.update` (reuse vectors, iterate `children.entries` with index loops).
+- [ ] **Step 3: Run** `pnpm build && pnpm exec vitest run` — expect PASS.
 - [ ] **Step 4: Commit** `perf: hold 60fps with 150 enemies`.
 
 ---

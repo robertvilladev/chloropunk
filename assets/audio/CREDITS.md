@@ -9,7 +9,7 @@ Both tracks are licensed [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0
 
 The NLV source page also offers OGA-BY; the Spring page also offers CC-BY 3.0, CC-BY-SA and OGA-BY. We use CC-BY 4.0 for both. NLV asks (as a courtesy) to be told when the track is used.
 
-Re-encode recipe (ffmpeg, e.g. a one-off `npx ffmpeg-static`, not a project dependency):
+Re-encode recipe (ffmpeg, e.g. a one-off `pnpm dlx ffmpeg-static`, not a project dependency):
 
 ```
 ffmpeg -ss 45.1 -i cyebrcunk.wav -t 228.9 -af "afade=t=in:d=0.03,afade=t=out:st=226.9:d=2" -c:a libvorbis -q:a 4 nlv-cyberpunk.ogg
