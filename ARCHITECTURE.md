@@ -8,7 +8,7 @@ src/
   scenes/               Boot, Menu, Loadout, Game (+ UIScene HUD, PauseScene overlay), Victory, LevelUp, Shop, GameOver; ui.ts themed widget kit (button, panel, tierChip, statTile, scanlines), fonts.ts font-load gate
   managers/             Player, Input, World, Weapon, Enemy, Pickup
   entities/             enemyBehaviors.ts, weaponBehaviors.ts (pure movement/targeting geometry)
-  core/                 pure logic: rng, waves (spawn schedule; spawn points just off-screen via offscreenPoint, edgePoint for an arena no bigger than the view), edgeArrow (HUD arrows for off-screen telegraphs), progression (XP/levels), run (newRun),
+  core/                 pure logic: rng, waves (spawn schedule; spawn points just off-screen via offscreenPoint, edgePoint for an arena no bigger than the view; CATCH_UP far-enemy speed-up), edgeArrow (HUD arrows for off-screen telegraphs), progression (XP/levels), run (newRun),
                         stats (computeStats), weapons (tier stats, prices), inventory (slots, merge, sell),
                         shop (offers, reroll, lock), levelup (picks), time, settings (reduced shake, master/music/SFX volume), music (track per state, duck/crossfade constants, volume step), voices (SFX voice limit, pitch/volume variation, pickup streak pitch), menuNav (keyboard selection), depth (y-sort, facing), labels (tier names, clock, truncate),
                         sim (headless balance simulator; sim.targets = reference builds, balance targets, threat-budget wave authoring, dev `runAtWave`), autopilot (dev kiting input),

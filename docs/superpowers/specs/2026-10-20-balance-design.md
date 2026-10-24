@@ -52,7 +52,7 @@ What the owner felt as "scrap stranded under enemies" is real on screen. Economi
 
 **Model**, stepped at 30 Hz:
 
-- **Arrivals:** schedule events plus the 0.6 s telegraph. Each enemy starts `spawnDist` px away and walks straight in. Was 330 (arena-edge spawns on the 800×600 arena); **480 since A3** (2026-10-24): waves spawn on a ring 50 px outside the camera frame ([arena addendum](2026-10-23-arena-map-addendum.md) §2.3), measured as the mean player-to-enemy distance at spawn over seed 1–3 autopilot playtests (run log `spawnDist`; the ring alone is ~457 from a standing player).
+- **Arrivals:** schedule events plus the 0.6 s telegraph. Each enemy starts `spawnDist` px away and walks straight in. Was 330 (arena-edge spawns on the 800×600 arena); **480 since A3** (2026-10-24): waves spawn on a ring 50 px outside the camera frame ([arena addendum](2026-10-23-arena-map-addendum.md) §2.3), measured as the mean player-to-enemy distance at spawn over seed 1–3 autopilot playtests (run log `spawnDist`; the ring alone is ~457 from a standing player). Enemies farther than 360 px walk 2× (`CATCH_UP` in `core/waves.ts`, not dashes), and the sim's `walkIn` models it, so arrivals match the old edge spawns.
 - **Targeting:** each weapon fires on its cooldown at the oldest enemy in range. Oldest stands in for nearest, since everyone walks the same line.
 - **Hits:** a fraction `aim` = 0.7 of shots land. Each landing shot does average damage, crits included.
 - **Targets per attack:**
@@ -173,7 +173,7 @@ Spawn rate: 0.8 enemies/s in wave 1, 1.3 in wave 5, 2.1 in wave 9 and 2.3 in wav
 
 ## 7. Known misses and risks
 
-- **A3 spawn distance (2026-10-24).** At `spawnDist` 480 the typical build kills less near each wave's end, runs short of scrap and dies in wave 8 (w7 19% HP). `sim.test.ts` lists these as known misses until the economy pass. Sim probes: +25% scrap or −20% prices removes the death but makes waves 8–9 too easy, and starters then kill 11/16 in wave 1; wave length is spec-fixed. Tune with the owner's A3 run logs.
+- **A3 spawn distance (2026-10-24).** At `spawnDist` 480 alone the typical build ran short of scrap and died in wave 8; the far-enemy catch-up (§3) clears that. Left: the blade starter kills 12/16 in wave 1 (target 13), because a standing-still melee player waits for the last group (the owner's real blade run also got 12/16).
 
 - **Wave 8 is a little easy** (100% HP left). It is the only failed target at the calibrated centre. Leave it for the playtest.
 - **Wave 10 kills the typical build** without a boss. Its targets are written with the M4 boss.
