@@ -7,7 +7,7 @@
 A **production-ready foundation** for your Brotato-inspired roguelike game with:
 
 ### Core Infrastructure
-- ✅ **Vite 5.4** - Fast build tool with HMR (< 1s hot reload)
+- ✅ **Vite 8** - Fast build tool with HMR (< 1s hot reload)
 - ✅ **TypeScript** - Full type safety with strict mode
 - ✅ **Phaser 3.90** - Latest stable game framework
 - ✅ **bitECS** - Installed for future ECS architecture

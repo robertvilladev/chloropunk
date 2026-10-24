@@ -22,12 +22,12 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
-    "@vitest/coverage-v8": "^4.0.14",
+    "@vitest/coverage-v8": "^5.0.5",
     "jsdom": "^27.2.0",
     "terser": "^5.44.1",
     "typescript": "~5.9.3",
-    "vite": "^5.4.11",
-    "vitest": "^4.0.14"
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
   },
   "main": "index.js",
   "dependencies": {

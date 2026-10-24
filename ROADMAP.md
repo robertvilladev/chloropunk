@@ -26,6 +26,7 @@ Spec: [§4 run loop, §5 systems](docs/superpowers/specs/2026-10-18-mvp-roguelik
 - ✅ Cleanup: dead files and deps removed, `theme.ts` tokens, CI green
 - ✅ (proposed) Deploy: Vercel Git integration (Vite preset, `pnpm build` → `dist/`); `main` is protected by a GitHub ruleset requiring PRs and the CI `build-and-test` check
 - ✅ (proposed) pnpm instead of npm: `pnpm-lock.yaml` imported from the npm lockfile (same versions), CI on `pnpm install --frozen-lockfile` + Node 24, npm blocked via `engines.npm` + `engine-strict`
+- ✅ (proposed) Vite 5 → 8 and Vitest 4 → 5: tests and the game now share one Vite (Vitest 4 had pulled in its own Vite 7); esbuild is gone, so `pnpm-workspace.yaml` (its build approval) is deleted
 
 ## M2 — Build-crafting ✅
 Spec: [§4 steps 1, 4, 5; §5 stats/weapons/items](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md)
