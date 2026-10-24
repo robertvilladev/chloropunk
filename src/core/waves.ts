@@ -31,6 +31,13 @@ export function advanceCursor(
   return cursor;
 }
 
+/**
+ * Enemies farther than `dist` px from the player walk `mult`× faster, so the
+ * off-screen spawn ring (~480 px out) arrives about as fast as the old 800x600
+ * edge spawns did. Dashes and backing away are not sped up.
+ */
+export const CATCH_UP = { dist: 360, mult: 2 } as const;
+
 /** Spawns are skipped while this many enemies are alive (balance design §5). */
 export const MAX_ALIVE = 40;
 
