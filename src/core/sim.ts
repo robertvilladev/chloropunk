@@ -58,7 +58,7 @@ export interface SimParams {
 export const DEFAULT_PARAMS: SimParams = {
   dt: 1 / 30,
   aim: 0.7,
-  spawnDist: 330, // mean distance from arena centre to the spawn rectangle
+  spawnDist: 480, // measured mean player-to-enemy px at spawn (A3 off-screen ring, seed 1-3 autopilot playtests)
   contactDist: 30,
   contactRate: 0.25,
   telegraph: 0.6,
