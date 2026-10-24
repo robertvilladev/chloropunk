@@ -64,14 +64,57 @@ export function edgePoint(
   const w = width - 2 * inset;
   const h = height - 2 * inset;
   const per = 2 * (w + h);
-  const at = (t: number): Vector2 => {
-    t = ((t % per) + per) % per;
-    if (t < w) return { x: inset + t, y: inset };
-    if ((t -= w) < h) return { x: inset + w, y: inset + t };
-    if ((t -= h) < w) return { x: inset + w - t, y: inset + h };
-    return { x: inset, y: inset + h - (t - w) };
-  };
-  const p = at(u * per);
+  const p = rectWalk(inset, inset, w, h, u * per);
   if (Math.hypot(p.x - player.x, p.y - player.y) >= minDist) return p;
-  return at(u * per + per / 2);
+  return rectWalk(inset, inset, w, h, u * per + per / 2);
+}
+
+/** Point `t` px clockwise along a rectangle's perimeter from its top-left corner (wraps). */
+function rectWalk(x: number, y: number, w: number, h: number, t: number): Vector2 {
+  const per = 2 * (w + h);
+  t = ((t % per) + per) % per;
+  if (t < w) return { x: x + t, y };
+  if ((t -= w) < h) return { x: x + w, y: y + t };
+  if ((t -= h) < w) return { x: x + w - t, y: y + h };
+  return { x, y: y + h - (t - w) };
+}
+
+/** The camera's visible rect in world px (Phaser's `worldView` fits). */
+export type ViewRect = { x: number; y: number; width: number; height: number };
+
+/**
+ * Wave spawn point just off-screen (arena addendum §2.3): map u in [0,1) onto
+ * the view grown by `margin`, clamped into the arena `inset` px from its walls.
+ * A point the clamp pulls back within `margin` of the view, or that sits
+ * within `minDist` of the player, uses the opposite side of the ring instead.
+ * An arena no bigger than the ring uses edgePoint, so `?arena=small` keeps the
+ * old edge spawns. One input value, so callers draw a fixed RNG count.
+ */
+export function offscreenPoint(
+  u: number,
+  player: Vector2,
+  view: ViewRect,
+  arena: { w: number; h: number },
+  margin: number,
+  inset: number,
+  minDist: number
+): Vector2 {
+  const x0 = view.x - margin;
+  const y0 = view.y - margin;
+  const w = view.width + 2 * margin;
+  const h = view.height + 2 * margin;
+  const fallback = () => edgePoint(u, player, arena.w, arena.h, inset, minDist);
+  if (x0 <= inset && y0 <= inset && x0 + w >= arena.w - inset && y0 + h >= arena.h - inset) return fallback();
+  const per = 2 * (w + h);
+  for (const t of [u * per, u * per + per / 2]) {
+    const r = rectWalk(x0, y0, w, h, t);
+    const p = {
+      x: Math.min(Math.max(r.x, inset), arena.w - inset),
+      y: Math.min(Math.max(r.y, inset), arena.h - inset),
+    };
+    const off = p.x <= x0 || p.x >= x0 + w || p.y <= y0 || p.y >= y0 + h;
+    if (off && Math.hypot(p.x - player.x, p.y - player.y) >= minDist) return p;
+  }
+  // ponytail: unreachable on the 1600x1200 map (tested); edgePoint may land on-screen in odd arena sizes
+  return fallback();
 }
