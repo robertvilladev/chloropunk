@@ -1,6 +1,6 @@
 # Chloropunk — Roadmap to MVP
 
-**MVP =** a full run of 10 waves ending in a boss, with build-crafting choices (level-ups, shop) and readable, punchy feedback in a coherent cyberpunk pixel-art look.
+**MVP =** a full run of 10 waves ending in a boss, with build-crafting choices (level-ups, shop) and readable, punchy feedback in a coherent cyberpunk look (vector art since 2026-10-24, [addendum §4](docs/superpowers/specs/2026-10-23-arena-map-addendum.md#4-art-refresh-direction-revised-2026-10-24)).
 Binding source of intent: [MVP spec](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md). Plans: [`docs/superpowers/plans/`](docs/superpowers/plans/).
 
 Status: ✅ done · 🚧 in progress · ⬜ planned. "(proposed)" = inferred by us, not named in the spec.
@@ -85,13 +85,16 @@ Spec: [arena map addendum](docs/superpowers/specs/2026-10-23-arena-map-addendum.
 - ✅ A4 Rooftop decor, visual only: one hand-made layout in `assets/data/arena.json` (4 vents, the CHLOROPUNK billboard, an off-centre helipad, 3 puddles, 3 floor zones, rail segments along the edge), checked by `core/arena` (inside the arena, clear of the 160 px start circle) and baked once into one texture per arena size (`art/arena`); `?arena=small` keeps the plain grid. Pink only on the billboard (telegraph colour); decor palette Night violet (owner pick 2026-10-24 out of violet / toxic teal / graphite, shown in game at wave 4), dim indigo tokens in `THEME_CSS.decor`; greyscale check: decor stays darker than every actor, bolt and scrap. Helipad at (1050, 776). Every enemy, scrap and telegraph checked over a vent, a puddle and the helipad on WebGL and Canvas; 150 peas 62–69 fps in the hidden pane, the same with the floor hidden; seed-1 playtest won wave 10. Owner approved the look 2026-10-24 — [plan](docs/superpowers/plans/2026-10-23-arena-4-rooftop.md)
 - ⬜ A5 Small solid obstacles + enemy avoidance/separation — [plan](docs/superpowers/plans/2026-10-23-arena-5-obstacles.md)
 
-## Art refresh ⬜
-- ⬜ Finer sprites for the fighter, 5 enemies, scrap and the boss; designed and approved in Claude Design, then swapped by texture key — [plan](docs/superpowers/plans/2026-10-23-art-refresh.md)
+## Art refresh 🚧
+- 🚧 Vector redesign (owner 2026-10-24: not pixel art; Brotato-inspired, own designs, keyline outline), designed in the [Chloropunk Sprites canvas](https://claude.ai/artifact/TnsQjaTcJEYoShEC5AyMXM), swapped by texture key — [plan](docs/superpowers/plans/2026-10-23-art-refresh.md)
+  - ✅ Canvas: direction (keyline), fighter + 5 enemies (techy pea and potato), scrap (power bolt), three boss concepts — approved 2026-10-24
+  - ⬜ Canvas: weapons + projectiles, animations, full boss sheets
+  - ⬜ PR 1 vector pipeline + cast + scrap + bigger hit areas · ⬜ PR 2 weapons (after A5) · ⬜ PR 3 animations · ⬜ PR 4 boss sheets (for M4b)
 
 ## M4 — Boss & run end ⬜
-Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md). Plans: [M4a run end](docs/superpowers/plans/2026-10-23-m4-run-end.md), [M4b boss](docs/superpowers/plans/2026-10-23-m4-boss.md) (after A5 and the boss art). Boss design: [arena map addendum §3](docs/superpowers/specs/2026-10-23-arena-map-addendum.md#3-boss-the-compost-colossus-working-name).
+Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md). Plans: [M4a run end](docs/superpowers/plans/2026-10-23-m4-run-end.md), [M4b boss](docs/superpowers/plans/2026-10-23-m4-boss.md) (after A5 and the boss art). Boss design: [arena map addendum §3](docs/superpowers/specs/2026-10-23-arena-map-addendum.md#3-boss-three-looks-one-fight-revised-2026-10-24).
 
-- ⬜ Wave 10 boss (Compost Colossus, a humanoid made of the five vegetables): no timer, 3 attack patterns, pea spawns as support
+- ⬜ Wave 10 boss, one of three looks picked per run (Harvester-9, The Onion King, The Greenhouse; same fight): no timer, 3 attack patterns, pea spawns as support
 - ⬜ Victory / defeat run summary (wave reached, kills, damage dealt, build) with "one more run"; replaces the "RUN COMPLETE" stopgap
 - ✅ Pause menu (resume, settings, quit run) — moved forward from M4 by the owner: Esc/P or window blur opens `PauseScene`; settings has the reduced-shake toggle and master / music / SFX volume; quit asks for confirmation
 - ⬜ Best-wave high-score record
@@ -138,4 +141,5 @@ Named by the spec as non-goals / later:
 - (proposed, owner 2026-10-24) Enemy variety after Brotato-style play: spawn some groups as tight clusters, not every enemy straight at the player (wanderers, flankers, chargers that pause), tune enemy size and how far out they appear
 - Endless mode (waves generated at runtime from the threat budget), difficulty tiers
 - Opt-in online upload of run logs to **Postgres** (owner, 2026-10-21: local-first now, upload later). Plan: the versioned RunLog JSON is the contract; finished runs POST to a small endpoint; a `runs` table with indexed columns (data hash, version, starter, wave reached, date) + the full log as JSONB; per-wave medians via SQL; registration later links accounts to the anonymous player id. Needs a spec amendment (spec §2 lists online features as a non-goal) — [balance design §9](docs/superpowers/specs/2026-10-20-balance-design.md#9-measuring-real-games-proposed)
-- Swapping Claude-authored sprites for sheets from a pixel-art generator (PixelLab, Retro Diffusion) or an artist — no code change needed, sprites are used by key
+- (proposed, owner 2026-10-24) Scrap tiers: a kill's scrap splits into several smaller pieces of tiered value, so collecting feels like harvesting; needs a rethink of drop values (enemies drop 1–3 today)
+- Swapping Claude-authored sprites for an artist's sheets — no code change needed, sprites are used by key
