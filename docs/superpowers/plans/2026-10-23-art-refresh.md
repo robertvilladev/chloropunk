@@ -10,7 +10,17 @@
 
 **Spec:** [arena map addendum](../specs/2026-10-23-arena-map-addendum.md) §2.7, §3 (boss parts), §4; MVP spec §6 (art pipeline, palette). Existing design system: https://claude.ai/artifact/9DHSn6f62spjQLXLqsCQee, screens: https://claude.ai/artifact/273SegSV2CBPS1HX96Yr17, logo canvas: https://claude.ai/artifact/NsAx5gUQWJPCVBDHxirktd
 
+## State of `main` this plan starts from (2026-10-24)
+
+- Arena: 1600×1200 rooftop with a follow camera; the floor uses the **Night violet** decor tokens (`THEME_CSS.decor`, dim indigo/violet) baked by `src/art/arena.ts`. Pink is reserved for spawn telegraphs on the floor.
+- Sprites unchanged since M3 (`src/art/actors.ts`, `pickups.ts`, `textures.ts`, `body.ts`). Leave `src/art/arena.ts` to the arena work (A5 may touch it).
+- Resolution options for the direction board (2026-10-24): today 16×16×3, **A 24×24×2**, **B 32×32×1.5** (session's lead), **C 48×48×1** (implies PNG sheets). The owner picks in Phase A.
+- The hosted design system names the boss *The Onion King* and still says "16×16 drawn at 3×": update both (Compost Colossus; the chosen resolution) as part of Phase A, once the owner OKs editing the design system.
+
 ## Global Constraints
+
+- pnpm only; branch `feat/art-refresh`; Conventional Commits; fresh worktree: `pnpm install`.
+- Sprites must read **brighter than the Night violet floor** and must not use violet/indigo as a main body colour (that hue now means "floor"). Boards show sprites on the real baked floor, not plain graphite.
 
 - Palette and roles unchanged (`theme.ts`, `src/art/palette.ts`): fighter pink hood + cyan visor; enemies keep their death-burst colours from `enemies.json`.
 - Same texture keys (`player`, `enemy_pea`, `enemy_pepper`, `enemy_potato`, `enemy_carrot`, `enemy_tomato`, `pickup_scrap`) and frame names; new: `boss` (frames `idle0`, `idle1`, `hit`, `volley`, `charge`, `lob`).
@@ -31,7 +41,7 @@
 
 ### Phase A — Design in Claude Design (owner gate)
 
-- [ ] **Step 1:** Create a Design artifact "Chloropunk Sprites" from the Design type, using the existing design system. Boards: (1) direction: resolution options side by side at real game size on the graphite floor (today 16×16@3× vs 32×32@1.5× vs 48×48@1×), (2) fighter + 5 enemies, frames walk0/walk1/hit, (3) scrap, (4) the Compost Colossus: idle, hit and the three attack poses, assembled from the enemy parts (addendum §3).
+- [ ] **Step 1:** Create a Design artifact "Chloropunk Sprites" from the Design type, using the existing design system. Boards: (1) direction: resolution options side by side at real game size on the graphite floor (today 16×16@3× vs A 24×24@2× vs B 32×32@1.5× vs C 48×48@1×, on the Night violet floor), (2) fighter + 5 enemies, frames walk0/walk1/hit, (3) scrap, (4) the Compost Colossus: idle, hit and the three attack poses, assembled from the enemy parts (addendum §3).
 - [ ] **Step 2:** Owner review; iterate until approved. Record the chosen resolution and the artifact link in the addendum §4.
 - [ ] **Step 3:** Export: either grid data (if a grid resolution was chosen) or PNG frames (if sheets). Commit them under `src/art/` (grids) or `public/sprites/` (PNG).
 
