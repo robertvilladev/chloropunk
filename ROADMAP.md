@@ -76,7 +76,7 @@ Spec: [§4, §5 waves, §9 numbers](docs/superpowers/specs/2026-10-18-mvp-roguel
 Spec: [arena map addendum](docs/superpowers/specs/2026-10-23-arena-map-addendum.md) (owner decisions 2026-10-23; [design page](https://claude.ai/artifact/Joe6YTuK7XMsoCTbkyFs56)). One PR each, in order.
 
 - ✅ A1 Arena size split from the 800×600 design space, no visible change: `ARENA` in `src/config/constants.ts`, guarded by `src/config/arena.guard.test.ts` — [plan](docs/superpowers/plans/2026-10-23-arena-1-split.md)
-- ✅ A2 Arena 1600×1200 with a follow camera (GameScene only, zoom 2, clamped); the fighter starts at the arena centre; the wave banner and low-HP vignette moved to UIScene; dev `?arena=small` keeps 800×600. Enemies still spawn at the map edges until A3, so waves play easier (seed-1 playtest: won wave 10, vs dying at wave 6–8 before). Owner playtest of waves 1–3 on both sizes pending — [plan](docs/superpowers/plans/2026-10-23-arena-2-camera.md)
+- ✅ A2 Arena 1600×1200 with a follow camera (GameScene only, zoom 2, clamped); the fighter starts at the arena centre; the wave banner and low-HP vignette moved to UIScene; dev `?arena=small` keeps 800×600. Enemies still spawn at the map edges until A3, so waves play easier (seed-1 playtest: won wave 10, vs dying at wave 6–8 before). Owner played both sizes (2026-10-24): camera and big arena work; spawns too far and too few kills, so scrap can't keep up with shop prices (full run: ~90 scrap earned, 4–17 kills a wave, 40 alive at every wave end from wave 6). A3 fixes the spawn distance; tune the economy after it — [plan](docs/superpowers/plans/2026-10-23-arena-2-camera.md)
 
 ## M4 — Boss & run end ⬜
 Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md)
