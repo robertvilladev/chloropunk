@@ -37,7 +37,7 @@ export const SCENE_KEYS = {
   GAME: "GameScene",
   SHOP: "ShopScene",
   UI: "UIScene",
-  GAME_OVER: "GameOverScene",
+  SUMMARY: "SummaryScene",
   VICTORY: "VictoryScene",
   LEVEL_UP: "LevelUpScene",
   LOADOUT: "LoadoutScene",

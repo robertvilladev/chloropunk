@@ -1,11 +1,11 @@
 import { BootScene } from "@/scenes/BootScene";
 import { GameScene } from "@/scenes/GameScene";
-import { GameOverScene } from "@/scenes/GameOverScene";
 import { LevelUpScene } from "@/scenes/LevelUpScene";
 import { LoadoutScene } from "@/scenes/LoadoutScene";
 import { MenuScene } from "@/scenes/MenuScene";
 import { PauseScene } from "@/scenes/PauseScene";
 import { ShopScene } from "@/scenes/ShopScene";
+import { SummaryScene } from "@/scenes/SummaryScene";
 import { UIScene } from "@/scenes/UIScene";
 import { VictoryScene } from "@/scenes/VictoryScene";
 import Phaser from "phaser";
@@ -54,7 +54,7 @@ export const phaserConfig: Phaser.Types.Core.GameConfig = {
     GameScene,
     ShopScene,
     UIScene,
-    GameOverScene,
+    SummaryScene,
     VictoryScene,
     LevelUpScene,
     LoadoutScene,
