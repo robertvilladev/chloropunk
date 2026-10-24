@@ -10,6 +10,15 @@ export function applyView(cam: Phaser.Cameras.Scene2D.Camera): void {
   cam.setZoom(RENDER_SCALE).centerOn(GAME_CONFIG.WIDTH / 2, GAME_CONFIG.HEIGHT / 2);
 }
 
+/** GameScene only: keep applyView's zoom, clamp to the arena and follow the target (centred first, so no lerp in from 0,0). */
+export function followView(
+  cam: Phaser.Cameras.Scene2D.Camera,
+  target: Phaser.GameObjects.Components.Transform,
+  arena: { w: number; h: number }
+): void {
+  cam.setBounds(0, 0, arena.w, arena.h).centerOn(target.x, target.y).startFollow(target, true, 0.12, 0.12);
+}
+
 /** Text renders to its own canvas, so zoom alone would blur it: rasterise every Text at RENDER_SCALE. */
 export function installCrispText(P: typeof Phaser): void {
   const f = P.GameObjects.GameObjectFactory.prototype;

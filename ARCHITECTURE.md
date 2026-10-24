@@ -15,10 +15,10 @@ src/
                         runlog (versioned per-run log: wave/shop/level-up records, localStorage store of the last 50, summarise + fitParams for `npm run runs`)
 scripts/runs.mjs        `npm run runs -- <file|folder>` wrapper: runs src/core/runlog.report.test.ts under Vitest with RUNS_PATH set
 scripts/playtest.mjs    `npm run playtest`: Vite + Playwright Chromium autopilot run, saves localStorage `vv.runs` to runs/playtest-<seed>.json
-  config/constants.ts  ARENA {w,h} = playfield (physics bounds, spawns, y-sort, autopilot); GAME_CONFIG.WIDTH/HEIGHT = 800×600 design space for layout only (arena.guard.test.ts)
-  config/view.ts       RENDER_SCALE = 2: canvas is 1600×1200, each scene's main camera is zoomed 2× onto the 800×600 design space (applyView, wired in gameConfig postBoot); installCrispText renders all Text at 2×. Scenes keep 800×600 coordinates, so use GAME_CONFIG.WIDTH/HEIGHT (not camera/scale size) and no setScrollFactor(0)
+  config/constants.ts  ARENA {w,h} = playfield, 1600×1200 (physics bounds, spawns, y-sort, autopilot; dev `?arena=small` = 800×600, config/arena.ts); GAME_CONFIG.WIDTH/HEIGHT = 800×600 design space for layout only (arena.guard.test.ts)
+  config/view.ts       RENDER_SCALE = 2: canvas is 1600×1200, each scene's main camera is zoomed 2× onto the 800×600 design space (applyView, wired in gameConfig postBoot), except GameScene's, which then follows the fighter inside the arena (followView); installCrispText renders all Text at 2×. Scenes keep 800×600 coordinates, so use GAME_CONFIG.WIDTH/HEIGHT (not camera/scale size) and no setScrollFactor(0): screen-fixed things go in UIScene
   fx/glow.ts            isWebGL() guard + applyGlow() (single camera bloom, WebGL only); renderer picked via ?renderer=canvas|webgl (config/renderer.ts)
-  fx/Juice.ts           all hit/kill feedback (numbers, flash, shake, bursts, vignette, banners) and their SFX
+  fx/Juice.ts           world-space hit/kill feedback (numbers, flash, shake, bursts, blasts) and their SFX; the wave banner and low-HP vignette live in UIScene
   fx/sfx.ts             initSfx (BootScene) + sfx(name): ZzFX buffers played on Phaser's WebAudio context through an SFX gain node; dropped while audio is locked/suspended
   fx/music.ts           initMusic (BootScene) + setMusic(state) / duckMusic(on): one streamed <audio> per track routed through a music gain node on Phaser's context; crossfades, ducks, waits for the autoplay unlock, pauses on blur; MUSIC_CREDITS for the menu overlay
   fx/sounds.ts          every SFX as a ZzFX parameter array + voice rule (one data file); fx/zzfx.ts = vendored ZzFX sample generator (MIT)

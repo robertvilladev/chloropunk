@@ -11,7 +11,7 @@ Status: ✅ done · 🚧 in progress · ⬜ planned. "(proposed)" = inferred by 
 | M2 Build-crafting | ✅ done — merged in PR #16 | [M2 plan](docs/superpowers/plans/2026-10-18-m2-build-crafting.md) |
 | M3 Look | ✅ done — merged in PR #17 | [M3 plan](docs/superpowers/plans/2026-10-18-m3-look.md) |
 | Balance & progression | ✅ applied (PR #22; waves 1–3 playtested, 4–9 by sim only) | [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) |
-| Arena map (A1–A5) | 🚧 A1 done (owner-approved 2026-10-23) | [arena addendum](docs/superpowers/specs/2026-10-23-arena-map-addendum.md) §5 |
+| Arena map (A1–A5) | 🚧 A1–A2 done (owner-approved 2026-10-23) | [arena addendum](docs/superpowers/specs/2026-10-23-arena-map-addendum.md) §5 |
 | M4 Boss & run end | ⬜ planned | not written |
 
 ## M1 — Waves & feel ✅
@@ -76,6 +76,7 @@ Spec: [§4, §5 waves, §9 numbers](docs/superpowers/specs/2026-10-18-mvp-roguel
 Spec: [arena map addendum](docs/superpowers/specs/2026-10-23-arena-map-addendum.md) (owner decisions 2026-10-23; [design page](https://claude.ai/artifact/Joe6YTuK7XMsoCTbkyFs56)). One PR each, in order.
 
 - ✅ A1 Arena size split from the 800×600 design space, no visible change: `ARENA` in `src/config/constants.ts`, guarded by `src/config/arena.guard.test.ts` — [plan](docs/superpowers/plans/2026-10-23-arena-1-split.md)
+- ✅ A2 Arena 1600×1200 with a follow camera (GameScene only, zoom 2, clamped); the fighter starts at the arena centre; the wave banner and low-HP vignette moved to UIScene; dev `?arena=small` keeps 800×600. Enemies still spawn at the map edges until A3, so waves play easier (seed-1 playtest: won wave 10, vs dying at wave 6–8 before). Owner played both sizes (2026-10-24): camera and big arena work; spawns too far and too few kills, so scrap can't keep up with shop prices (full run: ~90 scrap earned, 4–17 kills a wave, 40 alive at every wave end from wave 6). A3 fixes the spawn distance; tune the economy after it — [plan](docs/superpowers/plans/2026-10-23-arena-2-camera.md)
 
 ## M4 — Boss & run end ⬜
 Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md)
@@ -92,7 +93,7 @@ Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-
 From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) and the [M2 outcome](docs/superpowers/plans/2026-10-18-m2-build-crafting.md):
 
 - **Balance:** see [Balance & progression](#balance--progression-); wave 10 (boss) targets come with M4
-- **Perf:** measured in M3 (visible pane, 6 tier-2 weapons, 90–150 peas): 72 fps (the display's refresh) on WebGL with and without bloom and on Canvas, steady 13.9 ms frames; not measured on a slower machine.
+- **Perf:** measured in M3 (visible pane, 6 tier-2 weapons, 90–150 peas): 72 fps (the display's refresh) on WebGL with and without bloom and on Canvas, steady 13.9 ms frames; not measured on a slower machine. A2 (2026-10-24, follow camera, 1600×1200, ~130–150 peas): 117–140 fps on WebGL and Canvas.
 - **Canvas renderer (pre-M3):** death bursts use `particleTint` and the player hit flash uses `setTint`, which Phaser's Canvas renderer doesn't draw (bursts white, no hit tint) — unverified in a browser.
 - **Feel:** no enemy-to-enemy separation
 - **Weapons (M2 review):** drone hit map is keyed by pooled enemy sprites (a recycled enemy can be drone-immune ≤0.5 s); weapon textures and the starter list are hardcoded in `BootScene`/`LoadoutScene` (move colour + `starter` into `weapons.json`); pierce assumes enemies line up in the sim (pistol has pierce 1 since the balance pass)
