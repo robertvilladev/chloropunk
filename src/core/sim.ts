@@ -19,7 +19,7 @@ import { addWeapon } from "./inventory";
 import { addXp } from "./progression";
 import { rerollCost } from "./shop";
 import { computeStats, damageTaken } from "./stats";
-import { MAX_ALIVE, buildSpawnSchedule, scaleEnemy, waveDuration } from "./waves";
+import { CATCH_UP, MAX_ALIVE, buildSpawnSchedule, scaleEnemy, waveDuration } from "./waves";
 import { CRIT_MULT, waveScale, weaponStats } from "./weapons";
 
 export interface SimData {
@@ -101,6 +101,14 @@ interface Foe {
   born: number;
 }
 
+/** Distance left after walking straight in for `t` s from `from` px, with the CATCH_UP speed-up while far. */
+export function walkIn(from: number, speed: number, t: number): number {
+  const far = Math.max(0, from - CATCH_UP.dist);
+  const tFar = far / (speed * CATCH_UP.mult);
+  if (t <= tFar) return from - speed * CATCH_UP.mult * t;
+  return from - far - speed * (t - tFar);
+}
+
 export function simulateWave(
   build: Build,
   wave: number,
@@ -130,7 +138,7 @@ export function simulateWave(
   let hp = stats.maxHp;
   let taken = 0;
   let arrivalHp = 0;
-  const dist = (f: Foe, t: number) => Math.max(p.contactDist, p.spawnDist - f.speed * (t - f.born));
+  const dist = (f: Foe, t: number) => Math.max(p.contactDist, walkIn(p.spawnDist, f.speed, t - f.born));
   const hitDamage = (raw: number) => damageTaken(raw, stats.armor) * (1 - stats.dodge / 100);
 
   for (let t = 0; t < duration; t += p.dt) {
