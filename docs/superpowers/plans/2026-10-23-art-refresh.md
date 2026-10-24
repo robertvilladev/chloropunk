@@ -14,8 +14,8 @@
 
 - Arena: 1600×1200 rooftop with a follow camera; the floor uses the **Night violet** decor tokens (`THEME_CSS.decor`, dim indigo/violet) baked by `src/art/arena.ts`. Pink is reserved for spawn telegraphs on the floor.
 - Sprites unchanged since M3 (`src/art/actors.ts`, `pickups.ts`, `textures.ts`, `body.ts`). Leave `src/art/arena.ts` to the arena work (A5 may touch it).
-- Owner-accepted resolution options for the direction board (2026-10-24): today 16×16×3, **A 24×24×2**, **B 32×32×1.5** (session's lead), **C 48×48×1** (implies PNG sheets). The owner picks in Phase A.
-- The hosted design system names the boss *The Onion King* and still says "16×16 drawn at 3×": update both (Compost Colossus; the chosen resolution) as part of Phase A — approved by the owner.
+- Resolution options for the direction board (2026-10-24): today 16×16×3, **A 24×24×2**, **B 32×32×1.5** (session's lead), **C 48×48×1** (implies PNG sheets). The owner picks in Phase A.
+- The hosted design system names the boss *The Onion King* and still says "16×16 drawn at 3×": update both (Compost Colossus; the chosen resolution) as part of Phase A, once the owner OKs editing the design system.
 
 ## Global Constraints
 
