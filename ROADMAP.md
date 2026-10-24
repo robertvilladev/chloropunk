@@ -12,7 +12,7 @@ Status: ✅ done · 🚧 in progress · ⬜ planned. "(proposed)" = inferred by 
 | M3 Look | ✅ done — merged in PR #17 | [M3 plan](docs/superpowers/plans/2026-10-18-m3-look.md) |
 | Balance & progression | ✅ applied (PR #22; waves 1–3 playtested, 4–9 by sim only) | [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) |
 | Arena map (A1–A5) | 🚧 A1–A4 done (owner-approved 2026-10-23/24) | [arena addendum](docs/superpowers/specs/2026-10-23-arena-map-addendum.md) §5 |
-| M4 Boss & run end | ⬜ planned | not written |
+| M4 Boss & run end | 🚧 M4a run end done; M4b boss planned | [M4a](docs/superpowers/plans/2026-10-23-m4-run-end.md), [M4b](docs/superpowers/plans/2026-10-23-m4-boss.md) |
 
 ## M1 — Waves & feel ✅
 Spec: [§4 run loop, §5 systems](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md)
