@@ -161,3 +161,17 @@ export interface RunState {
   levelMods: Mods; // summed level-up picks
   lockedOffers: Offer[];
 }
+
+/** Rooftop decor kinds (assets/data/arena.json); drawn by src/art/arena.ts. */
+export type PropKind = "vent" | "sign" | "pad" | "puddle" | "rail" | "zone" | "crate";
+
+/** One decor prop in arena px (top-left x/y). `solid` is reserved for A5 obstacles. */
+export interface ArenaProp {
+  kind: PropKind;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  label?: string;
+  solid?: boolean;
+}
