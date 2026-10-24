@@ -2,7 +2,7 @@ import type { SpawnEvent, Vector2, WaveDef, WaveScaling } from "@/types";
 import wavesData from "@assets/data/waves.json";
 
 export function waveDuration(wave: number): number {
-  return Math.min(20 + 4 * (wave - 1), 60);
+  return Math.min(32 + 2 * (wave - 1), 60); // wave-length addendum (2026-10-24)
 }
 
 export function buildSpawnSchedule(def: WaveDef): SpawnEvent[] {
