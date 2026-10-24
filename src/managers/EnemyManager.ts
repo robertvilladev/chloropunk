@@ -1,4 +1,5 @@
-import { bodyOffset } from "@/art/body";
+import { fitCircle } from "@/art/body";
+import type { SpriteKey } from "@/art/vector";
 import { ARENA, DEPTH, HIT_SIZE } from "@/config/constants";
 import type { Rng } from "@/core/rng";
 import { actorDepth, facingFlip } from "@/core/depth";
@@ -19,7 +20,7 @@ type Sprite = Phaser.Physics.Arcade.Sprite;
 const TELEGRAPH_S = 0.6;
 const EDGE_INSET = 40;
 const MIN_PLAYER_DIST = 160;
-const SPAWN_MARGIN = 50; // px outside the view: enemy radius <= 20 + the 24 px group spread
+export const SPAWN_MARGIN = 50; // px outside the view: largest enemy radius (potato 26) + the 24 px group spread
 const MAX_ENEMIES = 250;
 const MAX_BOLTS = 100;
 const KNOCK_DECAY = 8; // per second
@@ -272,8 +273,7 @@ export class EnemyManager {
     enemy.clearTint();
     enemy.enableBody(true, x, y, true, true);
     enemy.setDepth(actorDepth(y)).setCollideWorldBounds(true);
-    const off = bodyOffset(def.sprite, def.radius);
-    (enemy.body as Phaser.Physics.Arcade.Body).setCircle(def.radius, off.x, off.y);
+    fitCircle(enemy, def.sprite as SpriteKey, def.radius);
     enemy.anims.resume();
     enemy.play(`${def.sprite}_walk`, true);
     enemy.anims.setProgress(Math.random()); // cosmetic: keeps the seeded rng stream untouched

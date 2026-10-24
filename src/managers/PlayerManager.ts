@@ -1,4 +1,4 @@
-import { boxOffset } from "@/art/body";
+import { fitBox } from "@/art/body";
 import { ARENA, GAME_CONFIG } from "@/config/constants";
 import { THEME } from "@/config/theme";
 import { actorDepth, facingFlip } from "@/core/depth";
@@ -51,8 +51,7 @@ export class PlayerManager {
 
     // Set player physics properties
     this.player.setCollideWorldBounds(true);
-    const off = boxOffset("player", PLAYER_BODY, PLAYER_BODY);
-    (this.player.body as Phaser.Physics.Arcade.Body).setSize(PLAYER_BODY, PLAYER_BODY).setOffset(off.x, off.y);
+    fitBox(this.player, "player", PLAYER_BODY, PLAYER_BODY);
     this.player.play("player_walk");
     this.player.setDepth(actorDepth(this.player.y));
 

@@ -1,5 +1,5 @@
 import { SCENE_KEYS, GAME_CONFIG } from "@/config/constants";
-import { buildActorTextures, buildFxTextures, buildPickupTextures, registerAnimations } from "@/art/textures";
+import { buildFxTextures, buildSpriteTextures, preloadSprites, registerAnimations } from "@/art/textures";
 import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import { loadSettings } from "@/core/settings";
 import { initMusic } from "@/fx/music";
@@ -20,13 +20,13 @@ export class BootScene extends Phaser.Scene {
     // Create loading bar
     this.createLoadingBar();
 
+    preloadSprites(this);
     this.loadPlaceholderAssets();
   }
 
   create() {
     console.log("✓ BootScene: Assets loaded");
-    buildActorTextures(this);
-    buildPickupTextures(this);
+    buildSpriteTextures(this);
     buildFxTextures(this);
     registerAnimations(this);
     this.sound.volume = loadSettings().masterVolume;
@@ -123,7 +123,7 @@ export class BootScene extends Phaser.Scene {
     g.destroy();
   }
 
-  /** Enemy bolt and spawn telegraph (enemy bodies are pixel art, see src/art/textures.ts). */
+  /** Enemy bolt and spawn telegraph (enemy bodies are vector art, see src/art/vector.ts). */
   private createEnemyTextures(
     g: Phaser.GameObjects.Graphics,
     bake: (key: string, w: number, h: number, color: number, draw: (x: number, y: number, pad: number) => void) => void,

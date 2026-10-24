@@ -1,44 +1,29 @@
-import { ACTORS } from "./actors";
-import { gridBounds } from "./grid";
+import { SPRITE_META, type SpriteKey } from "./vector";
 
-export const PIXEL = 3;
-/** 16x3 wide; the extra 6 px of height holds the baked shadow. */
-export const ACTOR_FRAME = { w: 48, h: 54 };
-/** Row (frame px) just below the lowest opaque row of every frame. */
-export const FEET_Y = 48;
+/** Textures are baked at 2x design px and drawn at 1/ART_SCALE, so edges stay sharp at camera zoom 2. */
+export const ART_SCALE = 2;
 
-/** Frame y of a grid's first row once its lowest opaque row sits at FEET_Y - 1. */
-export const gridTop = (y1: number): number => FEET_Y - (y1 + 1) * PIXEL;
-
-const find = (key: string) => {
-  const a = ACTORS.find((t) => t.key === key);
-  if (!a) throw new Error(`unknown actor ${key}`);
-  return a;
-};
-
-/** Whole-px x shift that centres walk0's opaque bounds on the frame (applied to all three frames). */
-export function actorShiftX(key: string): number {
-  const b = gridBounds(find(key).walk0);
-  return Math.round(ACTOR_FRAME.w / 2 - ((b.x0 + b.x1 + 1) * PIXEL) / 2);
+/** Frame size in texture px. */
+export function frameSize(key: SpriteKey): { w: number; h: number } {
+  const { w, h } = SPRITE_META[key];
+  return { w: w * ART_SCALE, h: h * ART_SCALE };
 }
 
-/** Frame-px centre of walk0's opaque bounds. */
-function artCentre(key: string): { cx: number; cy: number } {
-  const b = gridBounds(find(key).walk0);
-  return {
-    cx: ((b.x0 + b.x1 + 1) * PIXEL) / 2 + actorShiftX(key),
-    cy: gridTop(b.y1) + ((b.y0 + b.y1 + 1) * PIXEL) / 2,
-  };
+// Arcade bodies take sizes and offsets in texture px and scale them with the sprite, so `radius`/`w`/`h`
+// stay in design px here. Both set the scale too: a recycled pool sprite may carry another key's state.
+
+/** Circle of `radius` design px centred on the sprite's body centre. */
+export function fitCircle(s: Phaser.Physics.Arcade.Sprite, key: SpriteKey, radius: number): void {
+  const { cx, cy } = SPRITE_META[key];
+  const r = radius * ART_SCALE;
+  s.setScale(1 / ART_SCALE);
+  (s.body as Phaser.Physics.Arcade.Body).setCircle(r, cx * ART_SCALE - r, cy * ART_SCALE - r);
 }
 
-/** `setCircle(radius, x, y)` offset that centres the circle on the opaque bounds of walk0. */
-export function bodyOffset(key: string, radius: number): { x: number; y: number } {
-  const { cx, cy } = artCentre(key);
-  return { x: Math.floor(cx - radius), y: Math.round(cy - radius) };
-}
-
-/** `setSize(w, h)` + `setOffset(x, y)` offset that centres a w x h box on the opaque bounds of walk0. */
-export function boxOffset(key: string, w: number, h: number): { x: number; y: number } {
-  const { cx, cy } = artCentre(key);
-  return { x: Math.floor(cx - w / 2), y: Math.round(cy - h / 2) };
+/** w x h design px box centred on the sprite's body centre. */
+export function fitBox(s: Phaser.Physics.Arcade.Sprite, key: SpriteKey, w: number, h: number): void {
+  const { cx, cy } = SPRITE_META[key];
+  const [bw, bh] = [w * ART_SCALE, h * ART_SCALE];
+  s.setScale(1 / ART_SCALE);
+  (s.body as Phaser.Physics.Arcade.Body).setSize(bw, bh).setOffset(cx * ART_SCALE - bw / 2, cy * ART_SCALE - bh / 2);
 }

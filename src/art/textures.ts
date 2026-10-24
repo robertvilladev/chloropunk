@@ -1,69 +1,51 @@
 import Phaser from "phaser";
-import { ACTORS } from "./actors";
-import { ACTOR_FRAME, actorShiftX, FEET_Y, gridTop, PIXEL } from "./body";
-import { gridBounds, type Grid } from "./grid";
-import { PALETTE } from "./palette";
-import { PICKUPS } from "./pickups";
+import { ART_SCALE, frameSize } from "./body";
+import { FRAMES, SPRITE_META, svg, type SpriteKey } from "./vector";
 import { THEME } from "@/config/theme";
 
-export { ACTOR_FRAME };
-const PICKUP_PX = 24;
-const FRAMES = ["walk0", "walk1", "hit"] as const;
+const KEYS = Object.keys(SPRITE_META) as SpriteKey[];
+/** Menu/loadout fighter, drawn up to 4x design size: baked at 8x so it stays sharp. */
+const PORTRAIT_SCALE = 4;
 
-function paint(ctx: CanvasRenderingContext2D, g: Grid, ox: number, oy: number): void {
-  g.forEach((row, y) => {
-    for (let x = 0; x < row.length; x++) {
-      if (row[x] === ".") continue;
-      ctx.fillStyle = PALETTE[row[x]];
-      ctx.fillRect(ox + x * PIXEL, oy + y * PIXEL, PIXEL, PIXEL);
-    }
-  });
+/** Base64 because Phaser's loader decodes every data: URL with atob; the SVG strings are plain ASCII. */
+export const svgUri = (s: string): string => "data:image/svg+xml;base64," + btoa(s);
+
+/** Loader keys queued by preloadSprites: every key@frame, then player_portrait. */
+export function spriteFrameKeys(): string[] {
+  return [...KEYS.flatMap((k) => FRAMES[k].map((f) => `${k}@${f}`)), "player_portrait"];
 }
 
-/** One CanvasTexture per actor, frames walk0/walk1/hit side by side, baked shadow under the feet. */
-export function buildActorTextures(scene: Phaser.Scene): void {
-  const { w, h } = ACTOR_FRAME;
-  for (const a of ACTORS) {
-    if (scene.textures.exists(a.key)) continue;
-    const tex = scene.textures.createCanvas(a.key, w * FRAMES.length, h);
-    if (!tex) continue;
-    const ctx = tex.getContext();
-    const dx = actorShiftX(a.key);
-    FRAMES.forEach((name, i) => {
-      const g = a[name];
-      ctx.fillStyle = "rgba(0,0,0,0.35)";
-      ctx.beginPath();
-      ctx.ellipse(i * w + w / 2, FEET_Y, 18, 4.5, 0, 0, Math.PI * 2);
-      ctx.fill();
-      paint(ctx, g, i * w + dx, gridTop(gridBounds(g).y1));
-      tex.add(name, 0, i * w, 0, w, h);
-    });
-    tex.refresh();
-  }
+/** Queue every frame as an SVG image at 2x design px (the svg width/height), plus the 8x portrait. */
+export function preloadSprites(scene: Phaser.Scene): void {
+  for (const k of KEYS) for (const f of FRAMES[k]) scene.load.svg(`${k}@${f}`, svgUri(svg(k, f)));
+  scene.load.svg("player_portrait", svgUri(svg("player", "walk0")), { scale: PORTRAIT_SCALE });
 }
 
-/** pickup_scrap: frames "0"/"1", 24x24, with a faint lighter halo ring around the nut. */
-export function buildPickupTextures(scene: Phaser.Scene): void {
-  for (const p of PICKUPS) {
-    if (scene.textures.exists(p.key)) continue;
-    const tex = scene.textures.createCanvas(p.key, PICKUP_PX * p.frames.length, PICKUP_PX);
+/** One CanvasTexture per key, frames side by side (walk0/walk1/hit, scrap 0/1), shadow baked under actors. */
+export function buildSpriteTextures(scene: Phaser.Scene): void {
+  for (const k of KEYS) {
+    if (scene.textures.exists(k)) continue;
+    const { w, h } = frameSize(k);
+    const tex = scene.textures.createCanvas(k, w * FRAMES[k].length, h);
     if (!tex) continue;
     const ctx = tex.getContext();
-    p.frames.forEach((g, i) => {
-      const ox = i * PICKUP_PX;
-      ctx.globalAlpha = 0.4;
-      ctx.fillStyle = PALETTE.w;
-      g.forEach((row, y) => {
-        for (let x = 0; x < row.length; x++) {
-          if (row[x] !== ".") ctx.fillRect(ox + x * PIXEL - 1, y * PIXEL - 1, PIXEL + 2, PIXEL + 2);
-        }
-      });
-      ctx.globalAlpha = 1;
-      paint(ctx, g, ox, 0);
-      tex.add(String(i), 0, ox, 0, PICKUP_PX, PICKUP_PX);
+    const rx = SPRITE_META[k].w * 0.36 * ART_SCALE;
+    FRAMES[k].forEach((f, i) => {
+      const src = `${k}@${f}`;
+      if (k !== "pickup_scrap") {
+        ctx.fillStyle = "rgba(0,0,0,0.35)";
+        ctx.beginPath();
+        ctx.ellipse(i * w + w / 2, SPRITE_META[k].feet * ART_SCALE, rx, rx / 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.drawImage(scene.textures.get(src).getSourceImage() as CanvasImageSource, i * w, 0, w, h);
+      tex.add(f, 0, i * w, 0, w, h);
+      scene.textures.remove(src);
     });
     tex.refresh();
+    tex.setFilter(Phaser.Textures.FilterMode.LINEAR);
   }
+  scene.textures.get("player_portrait").setFilter(Phaser.Textures.FilterMode.LINEAR);
 }
 
 /** vignette: 800x600, transparent centre, danger-coloured edge (alpha 0.7 -> 0 over 90px). Canvas-safe. */
@@ -90,11 +72,11 @@ export function buildFxTextures(scene: Phaser.Scene): void {
 
 export function registerAnimations(scene: Phaser.Scene): void {
   const anims = scene.anims;
-  for (const a of ACTORS) {
-    if (anims.exists(`${a.key}_walk`)) continue;
+  for (const key of KEYS) {
+    if (key === "pickup_scrap" || anims.exists(`${key}_walk`)) continue;
     anims.create({
-      key: `${a.key}_walk`,
-      frames: [{ key: a.key, frame: "walk0" }, { key: a.key, frame: "walk1" }],
+      key: `${key}_walk`,
+      frames: [{ key, frame: "walk0" }, { key, frame: "walk1" }],
       frameRate: 6,
       repeat: -1,
     });

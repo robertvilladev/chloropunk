@@ -62,7 +62,7 @@ export class MenuScene extends Phaser.Scene {
       THEME_CSS.textMuted
     ).setLineSpacing(2);
 
-    this.add.image(636, 340, "player", "walk0").setScale(4);
+    this.add.image(636, 340, "player_portrait").setScale(0.5); // 384 px texture -> 192 design px
     text(this, 16, H - 12, `v${pkg.version} // MVP`, 16, THEME_CSS.faint, "pixel").setOrigin(0, 1);
     text(this, W - 112, H - 12, "MUSIC: NLV · SPRING (CC-BY 4.0)", 16, THEME_CSS.faint, "pixel").setOrigin(1, 1);
     button(this, W - 52, H - 20, "CREDITS", () => this.showCredits(), false, true, { size: 11, w: 84, h: 26 });

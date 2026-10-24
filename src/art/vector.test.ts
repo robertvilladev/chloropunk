@@ -32,6 +32,10 @@ describe("vector sprites", () => {
     }
   });
 
+  it("is plain ASCII (btoa in svgUri)", () => {
+    for (const { k, f, s } of all) expect(/^[ -~]*$/.test(s), `${k}@${f}`).toBe(true);
+  });
+
   it("has no external references", () => {
     for (const { s } of all) {
       expect(s).not.toContain("href=");
