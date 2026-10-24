@@ -1,4 +1,4 @@
-import { scaleEnemy } from "@/core/waves";
+import { CATCH_UP, scaleEnemy } from "@/core/waves";
 import type { EnemyBehavior, EnemyDef, Vector2 } from "@/types";
 
 export interface EnemyState {
@@ -72,6 +72,7 @@ export function steer(
     }
   }
   // chaser, tank and exploder all just walk at the player
+  if (dir === 1 && state.phase === "move" && dist > CATCH_UP.dist) speed *= CATCH_UP.mult;
 
   out.vx = ux * speed * dir;
   out.vy = uy * speed * dir;
