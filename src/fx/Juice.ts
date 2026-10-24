@@ -1,13 +1,10 @@
-import { DEPTH, GAME_CONFIG } from "@/config/constants";
+import { DEPTH } from "@/config/constants";
 import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import { loadSettings } from "@/core/settings";
-import { waveBoost } from "@/core/voices";
 import Phaser from "phaser";
 import { sfx } from "./sfx";
-import type { SoundName } from "./sounds";
 
 const MAX_NUMBERS = 40; // per pool (normal, crit)
-const LOW_HP = 0.25;
 const MAX_BLASTS = 8;
 const SHAKES = {
   hit: { ms: 120, intensity: 0.006 },
@@ -15,7 +12,7 @@ const SHAKES = {
 };
 
 /**
- * Juice - all hit/kill feedback effects (visual and sound). Scenes and managers only call this.
+ * Juice - hit/kill feedback in world space (visual and sound). Screen-fixed effects (banner, low-HP vignette) live in UIScene.
  */
 export class Juice {
   private scene: Phaser.Scene;
@@ -26,18 +23,10 @@ export class Juice {
   private burst: Phaser.GameObjects.Particles.ParticleEmitter;
   private blasts: Phaser.GameObjects.Arc[] = [];
   private nextBlast = 0;
-  private vignette: Phaser.GameObjects.Image;
-  private vignetteTween?: Phaser.Tweens.Tween;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
     this.refreshSettings();
-    this.vignette = scene.add
-      .image(0, 0, "vignette")
-      .setOrigin(0)
-      .setDisplaySize(GAME_CONFIG.WIDTH, GAME_CONFIG.HEIGHT)
-      .setDepth(DEPTH.UI - 1)
-      .setAlpha(0);
     this.burst = scene.add
       .particles(0, 0, "pixel", {
         emitting: false,
@@ -128,55 +117,6 @@ export class Juice {
       alpha: 0,
       duration: 200,
       onComplete: () => c.setVisible(false),
-    });
-  }
-
-  lowHp(ratio: number): void {
-    if (ratio >= LOW_HP || ratio <= 0) {
-      this.vignetteTween?.stop();
-      this.vignetteTween = undefined;
-      this.vignette.setAlpha(0);
-    } else if (!this.vignetteTween) {
-      sfx("lowHp");
-      this.vignetteTween = this.scene.tweens.add({
-        targets: this.vignette,
-        alpha: { from: 0.35, to: 1 },
-        duration: 450,
-        yoyo: true,
-        repeat: -1,
-      });
-    }
-  }
-
-  /** Wave banner + its sound, a little louder and higher each wave. */
-  banner(text: string, wave: number, sound: SoundName = "waveStart"): void {
-    const boost = waveBoost(wave);
-    sfx(sound, boost.rate, boost.gain);
-    // design space, not scene.scale: the canvas is rendered at 2x (config/view.ts)
-    const { WIDTH: w, HEIGHT: h } = GAME_CONFIG;
-    // Pink/cyan RGB-split shadows behind the lime face
-    const layers: [number, string][] = [
-      [-3, THEME_CSS.tier[1]],
-      [3, THEME_CSS.pink],
-      [0, THEME_CSS.lime],
-    ];
-    const texts = layers.map(([dx, color]) =>
-      this.scene.add
-        .text(w / 2 + dx, h / 3, text, {
-          fontFamily: FONTS.display,
-          fontSize: "64px",
-          color,
-        })
-        .setOrigin(0.5)
-        .setDepth(DEPTH.NUMBERS)
-    );
-    this.scene.tweens.add({
-      targets: texts,
-      alpha: 0,
-      y: h / 3 - 20,
-      delay: 500,
-      duration: 400,
-      onComplete: () => texts.forEach((t) => t.destroy()),
     });
   }
 }
