@@ -128,7 +128,7 @@ export class GameScene extends Phaser.Scene {
 
     // 4. Initialize enemy system and start this wave's spawn schedule
     this.roundDuration = waveDuration(this.run.wave);
-    this.enemyManager = new EnemyManager(this);
+    this.enemyManager = new EnemyManager(this, this.worldManager.getSolidRects());
     this.enemyManager.create();
     this.enemyManager.startWave(this.run.wave, this.rng);
 
