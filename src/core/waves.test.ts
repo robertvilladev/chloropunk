@@ -12,9 +12,11 @@ import {
 } from "./waves";
 
 describe("waveDuration", () => {
-  it("grows 4s per wave and caps at 60", () => {
-    expect(waveDuration(1)).toBe(20);
-    expect(waveDuration(5)).toBe(36);
+  it("starts at 32 s, grows 2 s per wave and caps at 60", () => {
+    expect(waveDuration(1)).toBe(32);
+    expect(waveDuration(5)).toBe(40);
+    expect(waveDuration(9)).toBe(48);
+    expect(waveDuration(15)).toBe(60);
     expect(waveDuration(20)).toBe(60);
   });
 });
@@ -25,7 +27,7 @@ describe("buildSpawnSchedule", () => {
       wave: 1,
       groups: [{ enemy: "pea", count: 3, every: 2, start: 0 }],
     });
-    expect(s.map((e) => e.time)).toEqual([0, 2, 4, 6, 8, 10, 12, 14, 16, 18]);
+    expect(s.map((e) => e.time)).toEqual([0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30]); // 32 s wave
     expect(s.every((e) => e.count === 3 && e.enemy === "pea")).toBe(true);
   });
 
