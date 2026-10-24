@@ -155,7 +155,7 @@ and readable, and is revisited after the loop is fun.
 - Danger `#ff6b3d` (orange-red, kept apart from pink). Rarity: grey `#a9b0b8`, cyan `#3ad8ff`, pink `#ff4f9a`, amber `#ffb13b`.
 - Display font **Bungee**, UI font **IBM Plex Mono**, in-game numbers **VT323**.
 - Motifs: radius 0, hard 4px pink offset shadow under primary elements, tier chips on cards, RGB-split on the logo and wave banner only, a lime slime-drip edge on the main menu, barely-visible scanlines in menus.
-- Sprites: 16×16 pixel grids drawn at 3×, fighter in a pink hood with cyan visor; flames/fuses `#ffd23f`.
+- Sprites: 16×16 pixel grids drawn at 3× (to be refined: [arena map addendum §4](2026-10-23-arena-map-addendum.md)), fighter in a pink hood with cyan visor; flames/fuses `#ffd23f`.
 
 **Design system in Claude Design (decided).** Claude builds the design system
 (palette, type, frames, button styles) and mockups of the key screens (HUD,
