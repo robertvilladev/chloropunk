@@ -105,7 +105,7 @@ Done 2026-10-24: direction (keyline), cast, scrap (power bolt), boss proposals. 
 - Consumes: `svg`, `FRAMES`, `SPRITE_META` (Task 1), `frameSize`, `ART_SCALE` (Task 2).
 - Produces: `svgUri(s: string): string` (`data:image/svg+xml;base64,` + `btoa`; ruled in PR 1, see Outcome); `preloadSprites(scene: Phaser.Scene): void` (queues `scene.load.svg(\`${key}@${frame}\`, svgUri(...))` for every key × frame, plus `player_portrait` = player `walk0` with `scale: 4` → 8× design); `buildSpriteTextures(scene): void` (one CanvasTexture per key, frames side by side, frame names as today, shadow ellipse rx 0.36·w, ry rx/4 at `feet` under actors only, `setFilter(LINEAR)`, temp `key@frame` textures removed). `registerAnimations` unchanged in behaviour.
 
-- [x] **Step 1: Write the failing test** `textures.test.ts`: `svgUri` round-trips (`decodeURIComponent(uri.split(",")[1]) === s`); `spriteFrameKeys()` (exported helper) lists `player@walk0 … pickup_scrap@1` (20 entries) plus `player_portrait`.
+- [x] **Step 1: Write the failing test** `textures.test.ts`: `svgUri` round-trips (`atob(uri.split(",")[1]) === s`); `spriteFrameKeys()` (exported helper) lists `player@walk0 … pickup_scrap@1` (20 entries) plus `player_portrait` (21).
 - [x] **Step 2:** Run → FAIL.
 - [x] **Step 3:** Implement; `BootScene.preload` calls `preloadSprites(this)`, `create` calls `buildSpriteTextures(this)` instead of `buildActorTextures`/`buildPickupTextures`. Menu: `add.image(636, 340, "player_portrait").setScale(0.5)` (384 px texture → 192 design px, as today); loadout: `setScale(1 / 3)` (→ 128). If Phaser's loader rejects `data:` URLs (it fetches SVG via XHR), load each string into an `Image` instead, `textures.addImage` it on `onload`, and await all of them next to `loadFonts` before `scene.start(MENU)`.
 - [x] **Step 4:** Tests PASS; `pnpm build` clean.
@@ -124,12 +124,14 @@ Done 2026-10-24: direction (keyline), cast, scrap (power bolt), boss proposals. 
 
 ### PR 1 outcome (2026-10-25)
 
-- Shipped: `vector.ts` (fighter, 5 enemies, power-bolt scrap; byte-identical to the canvas `vector.js` except ink = `THEME_CSS.deep`), `body.ts` `fitCircle`/`fitBox`, `textures.ts` SVG preload + bake, `player_portrait` at 8x, radii pea 12 / carrot 15 / tomato 17 / potato 26. Pixel files deleted. 204 tests pass, `pnpm build` clean.
+- Shipped: `vector.ts` (fighter, 5 enemies, power-bolt scrap; byte-identical to the canvas `vector.js` except ink = `THEME_CSS.deep`), `body.ts` `fitCircle`/`fitBox`, `textures.ts` SVG preload + bake, `player_portrait` at 8x, radii pea 12 / carrot 15 / tomato 17 / potato 26. Pixel files deleted. 208 tests pass, `pnpm build` clean.
 - Rulings: Tasks 2 and 3 landed in one commit (the new body fit only works with the 2x textures). `svgUri` is base64, because Phaser marks every `data:` URL base64 and `atob`-decodes it (the URL-encoded form crashed boot), so the SVGs must stay ASCII (tested). The `Image` loader fallback was not needed.
 - Browser (WebGL + `?renderer=canvas`): menu, loadout and a wave with all five enemies render, no console errors; the hit frame (white, `><`) shows on Canvas; greyscale silhouettes read.
 - 150 peas (F2): in-app browser WebGL 61–66 fps. Headless Chrome on the GPU: WebGL 52–59 (main 58–60), Canvas 57–60 (main 59–60). Headless WebGL misses 60 on main too; recheck on the owner's screen.
 - Boot to menu (dev server, warm): WebGL about 1.0–1.1 s vs main 0.7–0.8 s, Canvas about 0.5–0.55 s vs 0.3 s: roughly +250–300 ms, inside the 500 ms budget.
 - Balance (`pnpm playtest --seed 1 --runs 3`, autopilot): all 3 runs won wave 10 on both main and the branch, so no wave drop. Contact damage taken, summed over waves: 162 (main) vs 127 (branch). Wave 9–10 kill%: 22/18 vs 17/15 (medians, within run noise).
+- Final review fixes: a frame that fails to load throws at boot (no silent missing texture); shadows lifted so they never clip at the frame bottom; depth sorts by the feet (`feetOffset`), since frame heights now differ per actor.
+- Deferred (review minors): carrot hitbox sits 4 design px off its art when facing left (`cx` 22 of 48, body offset not mirrored on flip); possible 1-texel bleed between side-by-side frames under LINEAR (not seen in screenshots); a re-entered BootScene would leave the temp `key@frame` textures in memory.
 - Carry-overs: the player hurt flash is still `setTint` (invisible on Canvas) until PR 3; weapons and projectiles stay placeholder shapes until PR 2.
 
 ---

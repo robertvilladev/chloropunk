@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { spriteFrameKeys, svgUri } from "./textures";
+import { buildSpriteTextures, shadowEllipse, spriteFrameKeys, svgUri } from "./textures";
+import { frameSize } from "./body";
+import { SPRITE_META, type SpriteKey } from "./vector";
 
 // textures.ts only uses Phaser through the scene it is given (plus one filter-mode constant)
 vi.mock("phaser", () => ({ default: { Textures: { FilterMode: { LINEAR: 0 } } } }));
@@ -23,5 +25,26 @@ describe("spriteFrameKeys", () => {
     expect(keys).toContain("pickup_scrap@1");
     expect(keys.at(-1)).toBe("player_portrait");
     expect(new Set(keys).size).toBe(21);
+  });
+});
+
+describe("buildSpriteTextures", () => {
+  it("throws when a sprite frame failed to load", () => {
+    const canvas = { getContext: () => ({}), add() {}, refresh() {}, setFilter() {} };
+    const scene = { textures: { exists: () => false, createCanvas: () => canvas, get: () => ({}), remove() {} } };
+    expect(() => buildSpriteTextures(scene as unknown as Phaser.Scene)).toThrow(/player@walk0 failed to load/);
+  });
+});
+
+describe("shadowEllipse", () => {
+  it("keeps every actor shadow whole inside its frame, under the feet", () => {
+    for (const k of Object.keys(SPRITE_META) as SpriteKey[]) {
+      if (k === "pickup_scrap") continue;
+      const s = shadowEllipse(k);
+      expect(s.cy + s.ry, k).toBeLessThanOrEqual(frameSize(k).h);
+      expect(s.rx, k).toBeCloseTo(SPRITE_META[k].w * 0.36 * 2);
+      expect(s.ry, k).toBeCloseTo(s.rx / 4);
+      expect(SPRITE_META[k].feet * 2 - s.cy, k).toBeLessThanOrEqual(s.ry);
+    }
   });
 });

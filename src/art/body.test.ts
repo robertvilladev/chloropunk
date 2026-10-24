@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { ART_SCALE, fitBox, fitCircle, frameSize } from "./body";
+import { ART_SCALE, feetOffset, fitBox, fitCircle, frameSize } from "./body";
 import { SPRITE_META, type SpriteKey } from "./vector";
 import enemies from "@assets/data/enemies.json";
 import { SPAWN_MARGIN } from "@/managers/EnemyManager";
@@ -76,5 +76,13 @@ describe("hit areas", () => {
   it("SPAWN_MARGIN covers the largest enemy plus the group spread", () => {
     const max = Math.max(...Object.values(enemies).map((e) => e.radius));
     expect(SPAWN_MARGIN).toBeGreaterThanOrEqual(max + 24);
+  });
+});
+
+describe("feetOffset", () => {
+  it("is the design px from the sprite centre down to the feet", () => {
+    expect(feetOffset("enemy_pea")).toBe(16);
+    expect(feetOffset("enemy_potato")).toBe(28);
+    expect(feetOffset("player")).toBe(22);
   });
 });

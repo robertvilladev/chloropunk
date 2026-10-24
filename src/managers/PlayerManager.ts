@@ -1,4 +1,4 @@
-import { fitBox } from "@/art/body";
+import { feetOffset, fitBox } from "@/art/body";
 import { ARENA, GAME_CONFIG } from "@/config/constants";
 import { THEME } from "@/config/theme";
 import { actorDepth, facingFlip } from "@/core/depth";
@@ -8,6 +8,7 @@ import type { Stats } from "@/types";
 
 const DODGE_IFRAMES_MS = 500;
 const PLAYER_BODY = 32; // pre-M3 32x32 square body
+const PLAYER_FEET = feetOffset("player");
 import Phaser from "phaser";
 
 /**
@@ -53,7 +54,7 @@ export class PlayerManager {
     this.player.setCollideWorldBounds(true);
     fitBox(this.player, "player", PLAYER_BODY, PLAYER_BODY);
     this.player.play("player_walk");
-    this.player.setDepth(actorDepth(this.player.y));
+    this.player.setDepth(actorDepth(this.player.y + PLAYER_FEET));
 
     console.log("✓ PlayerManager: Player created");
   }
@@ -70,7 +71,7 @@ export class PlayerManager {
     // Set velocity
     body.setVelocity(velocityX * speed, velocityY * speed);
     this.player.flipX = facingFlip(velocityX * speed, this.player.flipX);
-    const d = actorDepth(this.player.y);
+    const d = actorDepth(this.player.y + PLAYER_FEET);
     if (Math.round(d * 100) !== Math.round(this.player.depth * 100)) this.player.setDepth(d);
 
     // Normalize diagonal movement

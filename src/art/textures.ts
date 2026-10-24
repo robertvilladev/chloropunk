@@ -21,6 +21,12 @@ export function preloadSprites(scene: Phaser.Scene): void {
   scene.load.svg("player_portrait", svgUri(svg("player", "walk0")), { scale: PORTRAIT_SCALE });
 }
 
+/** Baked shadow in texture px: rx 0.36 w, ry rx/4, centred on the feet but lifted so it never clips at the frame bottom. */
+export function shadowEllipse(key: SpriteKey): { cy: number; rx: number; ry: number } {
+  const rx = SPRITE_META[key].w * 0.36 * ART_SCALE, ry = rx / 4;
+  return { cy: Math.min(SPRITE_META[key].feet * ART_SCALE, frameSize(key).h - ry), rx, ry };
+}
+
 /** One CanvasTexture per key, frames side by side (walk0/walk1/hit, scrap 0/1), shadow baked under actors. */
 export function buildSpriteTextures(scene: Phaser.Scene): void {
   for (const k of KEYS) {
@@ -29,13 +35,15 @@ export function buildSpriteTextures(scene: Phaser.Scene): void {
     const tex = scene.textures.createCanvas(k, w * FRAMES[k].length, h);
     if (!tex) continue;
     const ctx = tex.getContext();
-    const rx = SPRITE_META[k].w * 0.36 * ART_SCALE;
+    const sh = shadowEllipse(k);
     FRAMES[k].forEach((f, i) => {
       const src = `${k}@${f}`;
+      // A frame the browser could not decode is dropped by the loader: fail at boot, not with a missing texture
+      if (!scene.textures.exists(src)) throw new Error(`sprite ${src} failed to load`);
       if (k !== "pickup_scrap") {
         ctx.fillStyle = "rgba(0,0,0,0.35)";
         ctx.beginPath();
-        ctx.ellipse(i * w + w / 2, SPRITE_META[k].feet * ART_SCALE, rx, rx / 4, 0, 0, Math.PI * 2);
+        ctx.ellipse(i * w + w / 2, sh.cy, sh.rx, sh.ry, 0, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.drawImage(scene.textures.get(src).getSourceImage() as CanvasImageSource, i * w, 0, w, h);
@@ -45,6 +53,7 @@ export function buildSpriteTextures(scene: Phaser.Scene): void {
     tex.refresh();
     tex.setFilter(Phaser.Textures.FilterMode.LINEAR);
   }
+  if (!scene.textures.exists("player_portrait")) throw new Error("sprite player_portrait failed to load");
   scene.textures.get("player_portrait").setFilter(Phaser.Textures.FilterMode.LINEAR);
 }
 

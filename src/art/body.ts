@@ -9,6 +9,12 @@ export function frameSize(key: SpriteKey): { w: number; h: number } {
   return { w: w * ART_SCALE, h: h * ART_SCALE };
 }
 
+/** Design px from the sprite centre (origin 0.5) down to the feet: depth sorts by the feet, not the centre. */
+export function feetOffset(key: SpriteKey): number {
+  const { h, feet } = SPRITE_META[key];
+  return feet - h / 2;
+}
+
 // Arcade bodies take sizes and offsets in texture px and scale them with the sprite, so `radius`/`w`/`h`
 // stay in design px here. Both set the scale too: a recycled pool sprite may carry another key's state.
 

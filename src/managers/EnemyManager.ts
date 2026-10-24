@@ -1,4 +1,4 @@
-import { fitCircle } from "@/art/body";
+import { feetOffset, fitCircle } from "@/art/body";
 import type { SpriteKey } from "@/art/vector";
 import { ARENA, DEPTH, HIT_SIZE } from "@/config/constants";
 import type { Rng } from "@/core/rng";
@@ -272,7 +272,7 @@ export class EnemyManager {
     enemy.setFlipX(false);
     enemy.clearTint();
     enemy.enableBody(true, x, y, true, true);
-    enemy.setDepth(actorDepth(y)).setCollideWorldBounds(true);
+    enemy.setDepth(actorDepth(y + feetOffset(def.sprite as SpriteKey))).setCollideWorldBounds(true);
     fitCircle(enemy, def.sprite as SpriteKey, def.radius);
     enemy.anims.resume();
     enemy.play(`${def.sprite}_walk`, true);
@@ -295,7 +295,7 @@ export class EnemyManager {
       steer(def.behavior, state, enemy, player, dt, this.params.get(def.id)!, out);
       enemy.setVelocity(out.vx + knock.x, out.vy + knock.y);
       enemy.flipX = facingFlip(out.vx + knock.x, enemy.flipX);
-      const d = actorDepth(enemy.y);
+      const d = actorDepth(enemy.y + feetOffset(def.sprite as SpriteKey));
       if (Math.round(d * 100) !== Math.round(enemy.depth * 100)) enemy.setDepth(d); // only re-sort on a visible change
       knock.x *= decay;
       knock.y *= decay;

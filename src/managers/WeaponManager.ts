@@ -1,3 +1,4 @@
+import { feetOffset } from "@/art/body";
 import { DEPTH, HIT_SIZE } from "@/config/constants";
 import { actorDepth } from "@/core/depth";
 import { THEME } from "@/config/theme";
@@ -104,7 +105,7 @@ export class WeaponManager {
     const dt = dtMs / 1000;
     this.clock += dt;
     const slot = this.slot;
-    const depth = actorDepth(player.y) + 0.01; // just in front of the owner
+    const depth = actorDepth(player.y + feetOffset("player")) + 0.01; // just in front of the owner
     for (let i = 0; i < this.equipped.length; i++) {
       const w = this.equipped[i];
       if (Math.round(depth * 100) !== Math.round(w.sprite.depth * 100)) w.sprite.setDepth(depth);
