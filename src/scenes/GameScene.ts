@@ -408,6 +408,7 @@ export class GameScene extends Phaser.Scene {
     Object.assign(this.waveLog, {
       duration: this.roundDuration - this.roundTimeRemaining,
       spawned: this.enemyManager.spawned,
+      spawnDist: this.enemyManager.spawnDistSum / Math.max(1, this.enemyManager.spawned),
       killed: this.enemiesKilled,
       aliveAtEnd: this.enemyManager.getEnemyCount(),
       shots: t.shots,
