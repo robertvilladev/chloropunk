@@ -57,11 +57,11 @@ Sprites are authored as text grids, one palette letter per pixel (`.` = transpar
 - `palette.ts` - letter -> hex (`PALETTE`); `grid.ts` - `parseGrid`, `gridBounds`, `validateActor`.
 - `actors.ts` - `ACTORS`: each actor has `walk0`, `walk1` (legs swapped, or body bobbed) and `hit` (white flash, `>_<` face, one row lower). Always draw facing right; flipping is runtime.
 - `pickups.ts` - 8x8 two-frame pickups.
-- To add an actor: append an `ActorArt` to `ACTORS`; `npx vitest run src/art` validates it (width/rows, letters, bounds, hit differs from walk0).
+- To add an actor: append an `ActorArt` to `ACTORS`; `pnpm exec vitest run src/art` validates it (width/rows, letters, bounds, hit differs from walk0).
 
 ## Audio
 
-**SFX are code, not files.** Each one is a [ZzFX](https://killedbyapixel.github.io/ZzFX/) parameter array in `src/fx/sounds.ts`, played with `sfx("name")` from `src/fx/sfx.ts` ([audio addendum](docs/superpowers/specs/2026-10-23-audio-addendum.md)). To add or retune one, design it in the ZzFX page, paste the array (keep index 1, randomness, at `0`) and pick a voice limit (`max` copies at once, `gapMs` between starts) and `pitchVar` (random pitch spread per play). The house style is filtered (negative last value = low-pass) saw/triangle tones with light bitcrush; menus use the same family, quieter. `npx vitest run src/fx` checks that every sound renders short and unclipped.
+**SFX are code, not files.** Each one is a [ZzFX](https://killedbyapixel.github.io/ZzFX/) parameter array in `src/fx/sounds.ts`, played with `sfx("name")` from `src/fx/sfx.ts` ([audio addendum](docs/superpowers/specs/2026-10-23-audio-addendum.md)). To add or retune one, design it in the ZzFX page, paste the array (keep index 1, randomness, at `0`) and pick a voice limit (`max` copies at once, `gapMs` between starts) and `pitchVar` (random pitch spread per play). The house style is filtered (negative last value = low-pass) saw/triangle tones with light bitcrush; menus use the same family, quieter. `pnpm exec vitest run src/fx` checks that every sound renders short and unclipped.
 
 **Music is streamed OGG files** in `assets/audio/`, each listed in `assets/audio/CREDITS.md` (title, author, source, licence, changes) and in `MUSIC_CREDITS` (`src/fx/music.ts`, shown on the menu). They are imported as URLs and played by `<audio>` elements routed into Phaser's AudioContext, not loaded with `this.load.audio` (that would decode ~120 MB per 5-minute track). To add a track: drop the OGG in, add it to `SRC`/`TRIM` in `src/fx/music.ts` and to `TrackId`/`TRACK_FOR` in `src/core/music.ts`, and credit it. Encode with OGG Vorbis ~q4, trim silence, and never commit WAVs.
 
@@ -81,11 +81,11 @@ Sprites are authored as text grids, one palette letter per pixel (`.` = transpar
 ### TypeScript Error: "Cannot find module"
 1. Check you're using `@assets/` not `@/assets/`
 2. Restart VS Code (Ctrl+Shift+P → "Reload Window")
-3. Run `npm run type-check` to verify
+3. Run `pnpm type-check` to verify
 
 ### Vite Build Error
 1. Make sure `vite.config.ts` has the `@assets` alias
-2. Restart dev server (`Ctrl+C` then `npm run dev`)
+2. Restart dev server (`Ctrl+C` then `pnpm dev`)
 
 ### JSON not typed correctly
 Check `src/types/json.d.ts` has declarations for your JSON files.

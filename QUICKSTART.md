@@ -213,7 +213,7 @@ Save the file. Vite will hot-reload. Go to the game and press WASD or arrows - y
 ## 🆘 Common Issues
 
 ### "Cannot find module '@/config/constants'"
-- Make sure you ran `npm install`
+- Make sure you ran `pnpm install`
 - Restart VS Code to reload TypeScript
 - Check `vite.config.ts` has path aliases
 
@@ -224,7 +224,7 @@ Save the file. Vite will hot-reload. Go to the game and press WASD or arrows - y
 
 ### Changes not showing
 - Vite hot reload is automatic
-- If stuck, stop server (Ctrl+C) and run `npm run dev` again
+- If stuck, stop server (Ctrl+C) and run `pnpm dev` again
 - Hard refresh browser (Ctrl+Shift+R)
 
 ### Physics debug not showing

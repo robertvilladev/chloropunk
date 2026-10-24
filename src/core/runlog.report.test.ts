@@ -1,8 +1,8 @@
 /**
- * `npm run runs -- <file or folder>`: per-wave medians from exported run logs
+ * `pnpm runs <file or folder>`: per-wave medians from exported run logs
  * (runs.json from F4) next to the sim's prediction for the same builds, the
  * balance targets on the measured rows, and the sim params fitted from them.
- * Skipped by plain `npm test`.
+ * Skipped by plain `pnpm test`.
  */
 import { it } from "vitest";
 import { DATA_HASH, arenaOf, fitParams, median, summarise, type RunLog, type WaveRow } from "./runlog";

@@ -1,7 +1,7 @@
 // Headless full-run playtest (balance design §9): starts Vite, plays /?seed=N&autopilot in
 // Chromium at 3x, takes the first level-up pick, buys nothing, and writes the run log
-// (localStorage `vv.runs`) to runs/playtest-<seed>.json. Feed it to `npm run runs -- runs`.
-//   npm run playtest -- [--seed 1] [--runs 1] [--wave N --build typical] [--headed]
+// (localStorage `vv.runs`) to runs/playtest-<seed>.json. Feed it to `pnpm runs runs`.
+//   pnpm playtest [--seed 1] [--runs 1] [--wave N --build typical] [--headed]
 import { mkdirSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { chromium } from "@playwright/test";

@@ -25,7 +25,7 @@
 - 60 fps with ~150 enemies + projectiles: pooled objects, no per-frame allocations in hot loops.
 - Don't regress PR #13: reset per-run fields in `create()`, `disableBody`/`enableBody` for pooled sprites, remove scene event listeners on shutdown.
 - UI uses `THEME`/`THEME_CSS` colours (lime = actions/good, pink = state/owned, danger `#ff6b3d`, tier colours for rarity). Layouts are functional placeholders; M3 restyles them per the mockups.
-- CI (`npm run build`, `npm run test:coverage`) stays green.
+- CI (`pnpm build`, `pnpm test:coverage`) stays green.
 
 ## Review Focus
 
@@ -52,13 +52,13 @@
   - `enemyBehaviors.test.ts` → `dasher keeps its dash direction`: start a dash with player at `(100,0)`, then move the player to `(0,100)` mid-dash; `vx ≈ 320, vy ≈ 0` until `dashTime` ends.
   - `waves.test.ts` → `edgePoint is on the inset rectangle`: for `u` in `[0, 0.1, …, 0.9]` with player far away, each point has `x ∈ {40, 760}` or `y ∈ {40, 560}`.
   - `waves.test.ts` → `edgePoint keeps minDist`: for 50 `u` values and player positions on a 9×9 grid over 800×600 (`inset 40`, `minDist 160`), every result is ≥ 160 from the player.
-- [ ] **Step 2: Run** `npx vitest run src/entities/enemyBehaviors.test.ts src/core/waves.test.ts` — expect FAIL.
+- [ ] **Step 2: Run** `pnpm exec vitest run src/entities/enemyBehaviors.test.ts src/core/waves.test.ts` — expect FAIL.
 - [ ] **Step 3: Implement** the three interface changes. Perf items in the same step:
   - `Juice.deathBurst(x, y, color)` uses one `scene.add.particles(0, 0, "pixel", { emitting: false, speed: 80, lifespan: 350, alpha: { start: 1, end: 0 } })` emitter: set `particleTint = color`, then `explode(8, x, y)`. Depth `DEPTH.ENEMIES + 1` (fixes bursts under actors).
   - `GameScene` caches burst colours in a `Map<string, number>` built once in `create()` from `enemies.json` (`HexStringToColor` no longer per kill).
   - `GameScene.update` reads the player sprite once per frame and passes it (it is a `Vector2`) instead of calling `getPosition()` three times.
   - `Juice.damageNumber` keeps two pools (normal 24 px text colour, crit 36 px lime), styled once at creation, so a hit only calls `setText`.
-- [ ] **Step 4: Run** `npx tsc --noEmit && npx vitest run` — expect PASS. `npm run dev`: peppers dash in a straight line; walking into a tomato during i-frames drops nothing; F2 still holds ≥ 55 fps.
+- [ ] **Step 4: Run** `pnpm exec tsc --noEmit && pnpm exec vitest run` — expect PASS. `pnpm dev`: peppers dash in a straight line; walking into a tomato during i-frames drops nothing; F2 still holds ≥ 55 fps.
 - [ ] **Step 5: Commit** `fix: m1 carry-overs (dash lock, tomato farming, fixed spawn draws, pooled bursts)`.
 
 ### Task 2: Stats, items and run state
@@ -102,9 +102,9 @@
 - [ ] **Step 1: Write failing tests**:
   - `stats.test.ts`: `base stats with nothing owned` → equals `BASE_STATS`; `items stack`: `items: ["visor","visor"]` → `crit 10`; `levelMods add`: `levelMods {armor: 3}` + `hoodie` → `armor 5, speed −3`; `clamps stacked trade-offs` (Review Focus 1): 10× `glass` + `levelMods {speed: −80, attackSpeed: −90, dodge: 200}` → `maxHp 1, speed −50, attackSpeed −50, dodge 60`; `damageTaken`: `(10, 0) → 10`, `(10, 15) → 5`, `(10, −15) → 20`, `(1, 100) → 1`; `statDiff`: adding `overclock` → `[["maxHp", −5], ["attackSpeed", 18]]`; `items.json is valid`: 15 entries, `id` matches key, every mod key is a `StatKey`, rarity 1–4, price > 0.
   - `run.test.ts` (Review Focus 5): two `newRun(1, "pistol")` results share no array/object (`!==` on `weapons`, `items`, `levelMods`, `lockedOffers`); pushing to one leaves the other empty.
-- [ ] **Step 2: Run** `npx vitest run src/core/stats.test.ts src/core/run.test.ts` — expect FAIL.
+- [ ] **Step 2: Run** `pnpm exec vitest run src/core/stats.test.ts src/core/run.test.ts` — expect FAIL.
 - [ ] **Step 3: Implement** the modules and types, write `items.json`, wire `computeStats(run)` into `GameScene.create()` (player, pickup radius, harvesting), `GameScene.init` falls back to `newRun(seed, "pistol")`. The old `WeaponManager` stays as is until Task 3 (call `create(combatRng, 0)`). `getPlayerStats()` drops `speed`/`damage` and adds `stats: Stats`; the HUD stats panel shows `HP`, `Armor`, `Dodge`, `Dmg %`, `Atk spd %`, `Crit %`, `Speed` from it.
-- [ ] **Step 4: Run** `npx tsc --noEmit && npx vitest run` — expect PASS; `npm run dev`: a run plays wave 1 → shop (empty) → wave 2.
+- [ ] **Step 4: Run** `pnpm exec tsc --noEmit && pnpm exec vitest run` — expect PASS; `pnpm dev`: a run plays wave 1 → shop (empty) → wave 2.
 - [ ] **Step 5: Commit** `feat: computeStats, items and build run state`.
 
 ### Task 3: Weapon data, weapon stats and projectile weapons
@@ -136,9 +136,9 @@
 - [ ] **Step 1: Write failing tests**:
   - `weapons.test.ts`: `tier 1 pistol, base stats` → `{damage 12, cooldown 0.9, range 320, critChance 0.05}`; `scaling and damage %`: pistol t2 with `ranged 4, damage 50` → `damage 33`; `cooldown floor` (Review Focus 1): blade t4 with `attackSpeed 1000` → `cooldown 0.1`, and with `attackSpeed −50` → `1.4`; `weaponPrice`: pistol t1 wave 1 → 15, t3 wave 6 → 90; `sellPrice` pistol t1 wave 1 → 7; `weapons.json is valid`: 6 entries, `id` matches key, all six behaviours appear once, `damage`/`cooldown` have 4 entries, damage strictly increasing.
   - `weaponBehaviors.test.ts`: `nearestInRange` picks the closer of two, returns `null` when all are beyond range; `slotOffset(0, 4)` ≈ `(28, 0)`, `slotOffset(1, 4)` ≈ `(0, 28)`; `spreadAngles(0, 5, 40, [])` → `[−20°, −10°, 0, 10°, 20°]` in radians, `pellets 1` → `[0]`; `inArc` true at 30° off-facing within range, false at 90° with `arcDeg 120`, false beyond range; `onBeam` true for a point 4 px off the line inside length, false 20 px off, false behind the origin.
-- [ ] **Step 2: Run** `npx vitest run src/core/weapons.test.ts src/entities/weaponBehaviors.test.ts` — expect FAIL.
+- [ ] **Step 2: Run** `pnpm exec vitest run src/core/weapons.test.ts src/entities/weaponBehaviors.test.ts` — expect FAIL.
 - [ ] **Step 3: Implement** the modules, `weapons.json`, and the `WeaponManager` rewrite for the three behaviours above (`beam`, `melee-arc`, `orbital` log once and don't fire until Task 4). `GameScene` passes `run.weapons`; `clear()` runs in `onRoundComplete` next to `enemyManager.clearAll()`.
-- [ ] **Step 4: Run** `npx tsc --noEmit && npx vitest run` — expect PASS; `npm run dev` with `run.weapons` set from the console to pistol + shotgun + rocket: each fires from its own slot at the nearest enemy in range; rockets blast.
+- [ ] **Step 4: Run** `pnpm exec tsc --noEmit && pnpm exec vitest run` — expect PASS; `pnpm dev` with `run.weapons` set from the console to pistol + shotgun + rocket: each fires from its own slot at the nearest enemy in range; rockets blast.
 - [ ] **Step 5: Commit** `feat: weapon data, tiers and projectile weapons`.
 
 ### Task 4: Beam, melee-arc and orbital weapons
@@ -154,8 +154,8 @@
 - No per-frame allocations: reuse scratch vectors and the `Graphics` objects.
 
 - [ ] **Step 1: Implement** the three behaviours.
-- [ ] **Step 2: Run** `npx tsc --noEmit && npx vitest run` — expect PASS.
-- [ ] **Step 3: Manual check** `npm run dev` with 6 weapons set from the console (one of each): laser pierces a line of peas, blade hits only the front arc and knocks back, drones circle and tick enemies, no enemy takes more than one hit per drone per cooldown. Then F2 (150 peas) on wave 5 with all 6: F3 readout ≥ 55 fps for 20 s.
+- [ ] **Step 2: Run** `pnpm exec tsc --noEmit && pnpm exec vitest run` — expect PASS.
+- [ ] **Step 3: Manual check** `pnpm dev` with 6 weapons set from the console (one of each): laser pierces a line of peas, blade hits only the front arc and knocks back, drones circle and tick enemies, no enemy takes more than one hit per drone per cooldown. Then F2 (150 peas) on wave 5 with all 6: F3 readout ≥ 55 fps for 20 s.
 - [ ] **Step 4: Commit** `feat: beam, melee-arc and orbital weapons`.
 
 ### Task 5: Inventory and shop rules
@@ -191,9 +191,9 @@
   - `rng.test.ts`: `pick([])` throws (Review Focus 4).
   - `inventory.test.ts`: `add with a free slot` (duplicate pistol t1 → 2 copies); `merge when full` (6 weapons incl. pistol t1, buy pistol t1 → `merge`, still 6, one pistol t2); `blocked when full and no match` and `blocked when full and match is tier 4`; `no chain merge` (full with pistol t1 + pistol t2, buying pistol t1 → one pistol t2 + one pistol t2, no t3); `combinePairs` on `[p1, p1, p1, s1, s1]` → `[[0,1],[3,4]]`; `combine rejects mismatched tiers`; `sellWeapon` adds `sellPrice` and removes it; `cannot sell the last weapon` → returns 0, weapons unchanged.
   - `shop.test.ts`: `rarityWeights(1, 0)` → `[1,0,0,0]`; wave 10 sums to 1 with all four > 0; luck 100 gives a larger `p4` than luck 0 at wave 10; luck 1000 → `p1 0`, sum 1; luck −200 → wave 10 `[1,0,0,0]`. `rerollCost(1, 0..2)` → `1, 3, 5`; `rerollCost(6, 0)` → 4. `rollOffer` with a fake rng forcing tier 4 and the item branch returns `ghost`; with item defs stripped of rarity 3 and a forced tier 3, returns a rarity-2 item (Review Focus 4). `openShop` keeps two locked offers in slots 0–1 with their old price and rolls slots 2–3. `refused reroll changes nothing` (Review Focus 3): scrap below cost → returns false, same offers, same `scrap`, and a spy rng's `next` is not called. `reroll keeps locked slots and refills bought ones`. `exact-cost buy succeeds` → scrap 0; `poor buy changes nothing`. `locked weapon that became unbuyable` (Review Focus 2): lock a `shotgun` t1 offer, close, fill `run.weapons` to 6 non-shotguns, reopen → slot 0 is that offer, `offerStatus` → `blocked`, `buy` → `blocked` and scrap unchanged, `toggleLock` still works. `closeShop` stores only locked non-empty offers.
-- [ ] **Step 2: Run** `npx vitest run src/core` — expect FAIL.
+- [ ] **Step 2: Run** `pnpm exec vitest run src/core` — expect FAIL.
 - [ ] **Step 3: Implement** `inventory.ts`, `shop.ts`, the `pick` guard. Defs default to the JSON imports and are injectable for tests (last optional parameter).
-- [ ] **Step 4: Run** `npx vitest run src/core` — expect PASS.
+- [ ] **Step 4: Run** `pnpm exec vitest run src/core` — expect PASS.
 - [ ] **Step 5: Commit** `feat: shop rolls, reroll, lock, merge and sell rules`.
 
 ### Task 6: Shop scene
@@ -210,8 +210,8 @@
 - `NEXT WAVE` → `closeShop` → `scene.start(GAME, { run })`.
 
 - [ ] **Step 1: Implement** the scene.
-- [ ] **Step 2: Run** `npx tsc --noEmit && npx vitest run` — expect PASS.
-- [ ] **Step 3: Manual check** `npm run dev` (use `?seed=123`): buy an item and see the stats panel change; reroll twice and see the cost go 1→3→5 on wave 2; lock an offer, play the wave, see it in slot 1 of the next shop; buy a duplicate weapon and combine it; with 6 weapons a matching buy merges and a non-matching one shows `NO SLOT`; sell a weapon; do the whole visit with the keyboard only.
+- [ ] **Step 2: Run** `pnpm exec tsc --noEmit && pnpm exec vitest run` — expect PASS.
+- [ ] **Step 3: Manual check** `pnpm dev` (use `?seed=123`): buy an item and see the stats panel change; reroll twice and see the cost go 1→3→5 on wave 2; lock an offer, play the wave, see it in slot 1 of the next shop; buy a duplicate weapon and combine it; with 6 weapons a matching buy merges and a non-matching one shows `NO SLOT`; sell a weapon; do the whole visit with the keyboard only.
 - [ ] **Step 4: Commit** `feat: shop with offers, reroll, lock, sell and combine`.
 
 ### Task 7: Level-up picks
@@ -228,9 +228,9 @@
 - `LevelUpScene` (`init({ run })`): title `LEVEL UP` with `n left`; 4 cards (stat label, `+amount`, tier chip); hover/focus shows the `statDiff` preview; `Digit1`–`Digit4` or click picks; `KeyR` / button rerolls for `rerollCost(run.wave, rerolls)` scrap (refused when short; `rerolls` resets after each pick). RNG `createRng(run.seed + run.wave * 1013 + run.pendingLevelUps)`. After a pick: `pendingLevelUps > 0` → `scene.restart({ run })`, else `scene.start(SHOP, { run })`.
 
 - [ ] **Step 1: Write failing tests** in `src/core/levelup.test.ts`: `rolls 4 distinct stats` (100 seeds); `wave 1 rolls are tier 1`; `amount matches upgrades.json for the tier`; `applyUpgrade accumulates` (two `armor` t1 picks → `levelMods.armor 2`, `computeStats(...).armor 2`); `three pending levels give exactly three picks` (Review Focus 5): starting at `pendingLevelUps 3`, apply until 0 → 3 calls, and a 4th leaves it at 0; `upgrades.json is valid` (every key a `StatKey`, 4 increasing amounts, no `pickupRadius`).
-- [ ] **Step 2: Run** `npx vitest run src/core/levelup.test.ts` — expect FAIL.
+- [ ] **Step 2: Run** `pnpm exec vitest run src/core/levelup.test.ts` — expect FAIL.
 - [ ] **Step 3: Implement** `levelup.ts`, `upgrades.json`, `LevelUpScene`, the Victory routing.
-- [ ] **Step 4: Run** `npx tsc --noEmit && npx vitest run` — expect PASS; `npm run dev`: gain 2 levels in wave 1–2 → two picks in a row, then the shop; reroll costs scrap; keyboard-only works.
+- [ ] **Step 4: Run** `pnpm exec tsc --noEmit && pnpm exec vitest run` — expect PASS; `pnpm dev`: gain 2 levels in wave 1–2 → two picks in a row, then the shop; reroll costs scrap; keyboard-only works.
 - [ ] **Step 5: Commit** `feat: level-up picks`.
 
 ### Task 8: Starting-weapon pick
@@ -244,7 +244,7 @@
 - Offers exactly `pistol`, `shotgun`, `blade` as 3 cards (name, tags, tier-1 damage/cooldown/range). `Digit1`–`Digit3` or click → `scene.start(GAME, { run: newRun(seed, id) })` with `seed` = `?seed` if a non-zero integer, else `Date.now()`; log `Run seed: n`.
 
 - [ ] **Step 1: Implement** the scene and routing.
-- [ ] **Step 2: Run** `npx tsc --noEmit && npx vitest run` — expect PASS; `npm run dev`: each of the 3 picks starts a run with that weapon; ESC → menu → START gives a fresh run (no items, one weapon).
+- [ ] **Step 2: Run** `pnpm exec tsc --noEmit && pnpm exec vitest run` — expect PASS; `pnpm dev`: each of the 3 picks starts a run with that weapon; ESC → menu → START gives a fresh run (no items, one weapon).
 - [ ] **Step 3: Commit** `feat: starting weapon pick`.
 
 ### Task 9: Full-run check and outcome
@@ -253,7 +253,7 @@
 - Modify: this plan (append `## M2 outcome and carry-overs`), any tuning in `assets/data/*.json`
 
 - [ ] **Step 1: Play** two full runs to wave 10 with `?seed=1` and `?seed=2` (different starting weapons). Check: the shop offers different things per seed; at least two distinct builds feel viable; no shop where one offer is always the obvious pick (tune prices/mods in JSON only); same seed + same choices reproduce the same first shop.
-- [ ] **Step 2: Run** `npm run build && npm run test:coverage` — expect PASS.
+- [ ] **Step 2: Run** `pnpm build && pnpm test:coverage` — expect PASS.
 - [ ] **Step 3: Write** the outcome section: what shipped, fps measured with 6 weapons, and the deferred list (from reviews plus the remaining M1 robustness items: `rng.int` with `max<min`, `buildSpawnSchedule` with `every<=0`, F3 capture, `debugSpawn` RNG, no enemy separation).
 - [ ] **Step 4: Commit** `docs: record m2 outcome and carry-overs`.
 
