@@ -6,6 +6,15 @@ Phaser 3.90 + TypeScript (strict) + Vite + Vitest. Read [README.md](README.md), 
 
 Use `pnpm` for everything (`pnpm install`, `pnpm add -D x`, `pnpm <script>`, `pnpm exec <bin>`, one-off tools with `pnpm dlx`); never `npm`/`npx`/`yarn`, and never commit a `package-lock.json`. Script args go straight after the name: `pnpm runs runs`, `pnpm playtest --seed 2` (no `--`). Dependency build scripts must be approved in `pnpm-workspace.yaml` (`allowBuilds`).
 
+- A fresh worktree has no `node_modules`: run `pnpm install` first.
+- Dev server for the preview tool: `.claude/launch.json` (git-ignored, one per worktree) with `"runtimeExecutable": "pnpm"`, `"runtimeArgs": ["dev", "--port", "<N>", "--strictPort"]` and `"port": <N>`. Pick a port no other worktree uses; `--strictPort` stops Vite from silently moving to a port another session's server owns.
+
+## Branches and commits
+
+- Branches: `<type>/<kebab-slug>`, e.g. `feat/arena-spawning`, `fix/shop-reroll`, `docs/roadmap-a3`. Types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `perf`, `ci`. No `claude/` (or other tool) prefix.
+- A session worktree created by the app starts on `<app prefix>/<name>`: rename it before the first push (`git branch -m feat/<slug>`).
+- Commits: [Conventional Commits](https://www.conventionalcommits.org/) with the same types (`feat: far enemies catch up`). PRs target `main`.
+
 ## Docs are part of the work
 
 Every agent working here must check the docs before finishing and update them when the change touches them:
