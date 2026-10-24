@@ -5,7 +5,7 @@
  * Skipped by plain `npm test`.
  */
 import { it } from "vitest";
-import { DATA_HASH, fitParams, median, summarise, type RunLog, type WaveRow } from "./runlog";
+import { DATA_HASH, arenaOf, fitParams, median, summarise, type RunLog, type WaveRow } from "./runlog";
 import { DEFAULT_PARAMS, simulateWave, type SimParams } from "./sim";
 import { checkRows } from "./sim.targets";
 
@@ -70,12 +70,12 @@ it.runIf(!!RUNS_PATH)("run-log report", async () => {
   const logs = await read(RUNS_PATH!);
   const out: string[] = [`${logs.length} logs read from ${RUNS_PATH}`];
   for (const s of summarise(logs)) {
-    const runs = logs.filter((l) => l.dataHash === s.dataHash);
+    const runs = logs.filter((l) => l.dataHash === s.dataHash && arenaOf(l) === s.arena);
     const live = s.dataHash === DATA_HASH;
     const fitted = fitParams(runs);
     const fit = { ...DEFAULT_PARAMS, aim: fitted?.aim || DEFAULT_PARAMS.aim, contactRate: fitted?.contactRate || DEFAULT_PARAMS.contactRate, spawnDist: fitted?.spawnDist || DEFAULT_PARAMS.spawnDist };
     out.push(
-      `\n## data ${s.dataHash}${live ? " (current)" : " (old data: no sim columns)"} · ${s.runs} runs`,
+      `\n## data ${s.dataHash}${live ? " (current)" : " (old data: no sim columns)"} · arena ${s.arena} · ${s.runs} runs`,
       `fitted: aim ${fitted ? fitted.aim.toFixed(2) : "-"}, contactRate ${fitted ? fitted.contactRate.toFixed(2) : "-"}, spawnDist ${fitted?.spawnDist ? Math.round(fitted.spawnDist) : "-"} (sim defaults ${DEFAULT_PARAMS.aim}, ${DEFAULT_PARAMS.contactRate}, ${DEFAULT_PARAMS.spawnDist}); "fit" columns rerun the sim with them`,
       "medians across runs; sim = same builds through simulateWave; aim = Σhits ÷ Σshots",
       table(s.rows, live ? runs : null, fit),

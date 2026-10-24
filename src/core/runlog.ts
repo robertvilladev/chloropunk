@@ -77,6 +77,7 @@ export interface RunLog {
   dataHash: string; // of assets/data, so old balance versions never mix
   seed: number;
   starter: string;
+  arena?: { w: number; h: number }; // playfield size (dev ?arena=small = 800x600); logs before A3 lack it
   result: { wave: number; outcome: Outcome; time: number } | null;
   waves: WaveLog[];
   shops: ShopLog[];
@@ -204,6 +205,8 @@ export interface WaveRow {
 
 export interface Summary {
   dataHash: string;
+  arena: string; // "1600x1200", or "?" for logs without it
+
   runs: number;
   rows: WaveRow[];
 }
@@ -220,12 +223,18 @@ export function dedupe(logs: RunLog[]): RunLog[] {
   return [...new Map(logs.map((l) => [l.id, l])).values()];
 }
 
-/** Per-wave rows, one summary per data hash (newest data first). */
+/** Playfield label for grouping ("?" for logs from before A3). */
+export const arenaOf = (l: RunLog): string => (l.arena ? `${l.arena.w}x${l.arena.h}` : "?");
+
+/** Per-wave rows, one summary per data hash and arena size (newest data first). */
 export function summarise(logs: RunLog[]): Summary[] {
-  const byHash = new Map<string, RunLog[]>();
-  for (const l of dedupe(logs)) byHash.set(l.dataHash, [...(byHash.get(l.dataHash) ?? []), l]);
-  return [...byHash]
-    .map(([dataHash, runs]) => ({ dataHash, runs: runs.length, rows: waveRows(runs) }))
+  const groups = new Map<string, RunLog[]>();
+  for (const l of dedupe(logs)) {
+    const k = `${l.dataHash} ${arenaOf(l)}`;
+    groups.set(k, [...(groups.get(k) ?? []), l]);
+  }
+  return [...groups.values()]
+    .map((runs) => ({ dataHash: runs[0].dataHash, arena: arenaOf(runs[0]), runs: runs.length, rows: waveRows(runs) }))
     .sort((a, b) => (a.dataHash === DATA_HASH ? -1 : b.dataHash === DATA_HASH ? 1 : 0));
 }
 

@@ -72,6 +72,12 @@ describe("runlog", () => {
     expect(fitParams([])).toBeNull();
   });
 
+  it("summarises each arena size apart", () => {
+    const small = { ...fakeRun("s"), arena: { w: 800, h: 600 } };
+    const big = { ...fakeRun("b"), arena: { w: 1600, h: 1200 } };
+    expect(summarise([small, big, fakeRun("old")]).map((s) => `${s.arena} ${s.runs}`).sort()).toEqual(["1600x1200 1", "800x600 1", "? 1"]);
+  });
+
   it("median", () => {
     expect(median([3, 1, 2])).toBe(2);
     expect(median([4, 1, 2, 3])).toBe(2.5);

@@ -117,6 +117,7 @@ export class GameScene extends Phaser.Scene {
 
     // 3. Create player
     this.stats = computeStats(this.run);
+    this.run.log.arena = { ...ARENA };
     this.waveLog = startWave(this.run.log, this.run, this.stats);
     this.touching = false;
     this.rng = createRng(this.run.seed + this.run.wave);
