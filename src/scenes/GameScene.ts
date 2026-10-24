@@ -16,7 +16,7 @@ import { PickupManager } from "@/managers/PickupManager";
 import { PlayerManager } from "@/managers/PlayerManager";
 import { WeaponManager } from "@/managers/WeaponManager";
 import { WorldManager } from "@/managers/WorldManager";
-import type { EnemyDef, RunState, Stats } from "@/types";
+import type { EnemyDef, RunState, Stats, Vector2 } from "@/types";
 import enemyDefs from "@assets/data/enemies.json";
 import wavesData from "@assets/data/waves.json";
 import { applyGlow } from "@/fx/glow";
@@ -562,6 +562,11 @@ export class GameScene extends Phaser.Scene {
   /**
    * Current player stats for the HUD
    */
+  /** Pending spawn telegraphs in world px (UIScene draws arrows for off-screen ones). */
+  getTelegraphs(): readonly Vector2[] {
+    return this.enemyManager.telegraphs;
+  }
+
   getPlayerStats() {
     // Level/XP including this wave's pickups (committed at wave end)
     const xp = addXp(this.run, this.waveEarned);

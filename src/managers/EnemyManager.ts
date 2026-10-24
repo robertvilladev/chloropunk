@@ -104,6 +104,11 @@ export class EnemyManager {
     this.updateBolts();
   }
 
+  /** Telegraphs waiting to spawn (HUD's off-screen arrows). */
+  get telegraphs(): readonly Vector2[] {
+    return this.pending;
+  }
+
   /** Dev: spawn `count` of an enemy at random arena points (silent no-op past the pool cap). */
   debugSpawn(id: string, count: number): void {
     const def = (enemyDefs as Record<string, EnemyDef>)[id];
