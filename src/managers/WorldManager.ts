@@ -1,4 +1,4 @@
-import { DEPTH, GAME_CONFIG } from "@/config/constants";
+import { ARENA, DEPTH } from "@/config/constants";
 import { THEME } from "@/config/theme";
 import Phaser from "phaser";
 
@@ -18,8 +18,7 @@ export class WorldManager {
    */
   create(): void {
     // Set world bounds (arena size)
-    const width = GAME_CONFIG.WIDTH;
-    const height = GAME_CONFIG.HEIGHT;
+    const { w: width, h: height } = ARENA;
 
     this.scene.physics.world.setBounds(0, 0, width, height);
 
@@ -35,7 +34,7 @@ export class WorldManager {
    * Create background visuals
    */
   private createBackground(): void {
-    const { WIDTH: width, HEIGHT: height } = GAME_CONFIG;
+    const { w: width, h: height } = ARENA;
     const g = this.scene.add.graphics().setDepth(DEPTH.BACKGROUND);
     g.fillStyle(THEME.bg).fillRect(0, 0, width, height);
     g.lineStyle(1, THEME.line, 0.25);
@@ -49,8 +48,8 @@ export class WorldManager {
    */
   getDimensions(): { width: number; height: number } {
     return {
-      width: GAME_CONFIG.WIDTH,
-      height: GAME_CONFIG.HEIGHT,
+      width: ARENA.w,
+      height: ARENA.h,
     };
   }
 

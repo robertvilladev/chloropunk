@@ -1,10 +1,13 @@
 import { GAME_CONFIG } from "@/config/constants";
 import { pickupDepth } from "@/core/depth";
+import { streakRate } from "@/core/voices";
+import { sfx } from "@/fx/sfx";
 import type { Vector2 } from "@/types";
 import Phaser from "phaser";
 
 type Sprite = Phaser.Physics.Arcade.Sprite;
 const PICKUP_SIZE = 16;
+const STREAK_MS = 400; // pickups closer together than this raise the pickup sound's pitch
 
 /**
  * PickupManager - pooled scrap pickups. Each scrap is worth `value` scrap
@@ -13,6 +16,8 @@ const PICKUP_SIZE = 16;
 export class PickupManager {
   private scene: Phaser.Scene;
   private group: Phaser.Physics.Arcade.Group;
+  private streak = 0;
+  private lastPickup = -Infinity;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -58,6 +63,10 @@ export class PickupManager {
     if (!s.active) return;
     const value = s.getData("value") as number;
     s.disableBody(true, true);
+    const now = this.scene.time.now;
+    this.streak = now - this.lastPickup < STREAK_MS ? this.streak + 1 : 0;
+    this.lastPickup = now;
+    sfx("pickup", streakRate(this.streak));
     this.scene.events.emit("scrapCollected", value);
   }
 

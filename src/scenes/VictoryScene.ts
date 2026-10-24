@@ -1,4 +1,5 @@
 import wavesData from "@assets/data/waves.json";
+import { duckMusic } from "@/fx/music";
 import { SCENE_KEYS, GAME_CONFIG } from "@/config/constants";
 import { endRun, saveRun } from "@/core/runlog";
 import type { RunState } from "@/types";
@@ -22,6 +23,7 @@ export class VictoryScene extends Phaser.Scene {
     this.scrapEarned = data.scrapEarned || 0;
   }
   create() {
+    duckMusic(true);
     const { WIDTH: width, HEIGHT: height } = GAME_CONFIG;
     const cx = width / 2;
     this.cameras.main.setBackgroundColor(THEME.bg);

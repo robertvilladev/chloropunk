@@ -1,5 +1,5 @@
 import { bodyOffset } from "@/art/body";
-import { DEPTH, GAME_CONFIG, HIT_SIZE } from "@/config/constants";
+import { ARENA, DEPTH, HIT_SIZE } from "@/config/constants";
 import type { Rng } from "@/core/rng";
 import { actorDepth, facingFlip } from "@/core/depth";
 import { MAX_ALIVE, advanceCursor, buildSpawnSchedule, edgePoint } from "@/core/waves";
@@ -106,8 +106,8 @@ export class EnemyManager {
     for (let i = 0; def && i < count; i++) {
       this.spawnEnemy(
         def,
-        this.rng.int(EDGE_INSET, GAME_CONFIG.WIDTH - EDGE_INSET),
-        this.rng.int(EDGE_INSET, GAME_CONFIG.HEIGHT - EDGE_INSET)
+        this.rng.int(EDGE_INSET, ARENA.w - EDGE_INSET),
+        this.rng.int(EDGE_INSET, ARENA.h - EDGE_INSET)
       );
     }
   }
@@ -221,8 +221,8 @@ export class EnemyManager {
     return edgePoint(
       this.rng.next(),
       player,
-      GAME_CONFIG.WIDTH,
-      GAME_CONFIG.HEIGHT,
+      ARENA.w,
+      ARENA.h,
       EDGE_INSET,
       MIN_PLAYER_DIST
     );
@@ -317,8 +317,8 @@ export class EnemyManager {
       if (
         b.x < -BOLT_MARGIN ||
         b.y < -BOLT_MARGIN ||
-        b.x > GAME_CONFIG.WIDTH + BOLT_MARGIN ||
-        b.y > GAME_CONFIG.HEIGHT + BOLT_MARGIN
+        b.x > ARENA.w + BOLT_MARGIN ||
+        b.y > ARENA.h + BOLT_MARGIN
       ) {
         this.removeBolt(b);
       }

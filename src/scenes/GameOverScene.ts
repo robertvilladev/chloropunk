@@ -1,5 +1,7 @@
 import { SCENE_KEYS, GAME_CONFIG } from "@/config/constants";
+import { duckMusic } from "@/fx/music";
 import { THEME, THEME_CSS } from "@/config/theme";
+import { sfx } from "@/fx/sfx";
 import { button, panel, scanlines, text } from "./ui";
 import Phaser from "phaser";
 
@@ -19,10 +21,12 @@ export class GameOverScene extends Phaser.Scene {
   }
 
   create() {
+    duckMusic(true);
     const { WIDTH: width, HEIGHT: height } = GAME_CONFIG;
     const cx = width / 2;
     const accent = this.complete ? THEME.lime : THEME.danger;
     this.cameras.main.setBackgroundColor(THEME.bg);
+    sfx(this.complete ? "runComplete" : "gameOver");
     scanlines(this);
     const pw = 460, ph = 330;
     panel(this, cx - pw / 2, height / 2 - ph / 2, pw, ph, { border: accent, shadow: true });

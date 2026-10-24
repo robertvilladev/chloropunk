@@ -1,6 +1,7 @@
 import { DEPTH, GAME_CONFIG } from "@/config/constants";
 import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import { tierLabel } from "@/core/labels";
+import { sfx } from "@/fx/sfx";
 import type { Tier } from "@/types";
 import Phaser from "phaser";
 
@@ -37,12 +38,17 @@ export function button(
   const c = scene.add.container(x, y, [...parts, face, t]).setSize(w, h);
   if (enabled) {
     c.setInteractive({ useHandCursor: true });
-    c.on("pointerdown", onClick);
+    c.on("pointerdown", () => {
+      sfx("uiConfirm");
+      onClick();
+    });
     const move = (d: number) => {
       face.setPosition(d, d);
       t.setPosition(d, d);
     };
-    c.on("pointerover", () => {
+    // PauseScene emits pointerover without a pointer to draw keyboard focus; it plays its own blip
+    c.on("pointerover", (p?: Phaser.Input.Pointer) => {
+      if (p) sfx("uiMove");
       move(-2);
       face.setFillStyle(primary ? THEME.pink300 : THEME.line);
     });
@@ -115,7 +121,9 @@ export function scanlines(scene: Phaser.Scene): Phaser.GameObjects.Image {
 export function onKeys(scene: Phaser.Scene, handler: (e: KeyboardEvent) => void): void {
   const kb = scene.input.keyboard!;
   const h = (e: KeyboardEvent) => {
-    if (!e.repeat) handler(e);
+    if (e.repeat) return;
+    if (e.code === "Escape") sfx("uiBack");
+    handler(e);
   };
   kb.on("keydown", h);
   scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => kb.off("keydown", h));

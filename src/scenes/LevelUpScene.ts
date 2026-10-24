@@ -1,4 +1,5 @@
 import { SCENE_KEYS } from "@/config/constants";
+import { setMusic } from "@/fx/music";
 import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import { applyUpgrade, rollUpgrades, type UpgradeChoice } from "@/core/levelup";
 import { createRng, type Rng } from "@/core/rng";
@@ -7,6 +8,7 @@ import { STAT_LABELS, computeStats, statDiff } from "@/core/stats";
 import type { RunState } from "@/types";
 import Phaser from "phaser";
 import { truncate } from "@/core/labels";
+import { sfx } from "@/fx/sfx";
 import { button, onKeys, panel, text, tierTab } from "./ui";
 
 /**
@@ -30,6 +32,7 @@ export class LevelUpScene extends Phaser.Scene {
   }
 
   create(data: { run: RunState; total?: number }) {
+    setMusic("game"); // between waves: keeps the game track, lifts the round-complete duck
     this.run = data.run;
     this.total = data.total ?? this.run.pendingLevelUps;
     this.rerolls = 0;
@@ -38,12 +41,14 @@ export class LevelUpScene extends Phaser.Scene {
     this.choices = this.roll();
     this.offered = [...this.choices];
     this.cameras.main.setBackgroundColor(THEME.bg);
+    sfx("levelUp"); // once per level: the scene restarts for each pending level-up
     onKeys(this, (e) => {
       const digit = /^Digit([1-4])$/.exec(e.code);
       if (digit) this.pick(Number(digit[1]) - 1);
       else if (e.code === "KeyR") this.reroll();
       else if (e.code === "ArrowLeft" || e.code === "ArrowRight") {
         this.focus = (this.focus + (e.code === "ArrowLeft" ? 3 : 1)) % 4;
+        sfx("uiMove");
         this.render();
         this.preview(this.choices[this.focus]);
       }
@@ -68,6 +73,7 @@ export class LevelUpScene extends Phaser.Scene {
   private reroll(): void {
     const cost = rerollCost(this.run.wave, this.rerolls);
     if (this.run.scrap < cost) {
+      sfx("deny");
       this.diff.removeAll(true);
       this.info.setText("Not enough scrap to reroll").setColor(THEME_CSS.danger);
       return;

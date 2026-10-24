@@ -35,7 +35,7 @@ feedback and a coherent cyberpunk pixel-art look.
 **Non-goals (later, not MVP)**
 - Multiple playable characters (MVP has one character; the data model allows more).
 - Meta-progression / unlocks between runs, save files beyond a high score.
-- Mobile/touch controls, gamepad, localization, audio beyond a few SFX.
+- Mobile/touch controls, gamepad, localization, audio beyond a few SFX (which SFX, and the planned music loops: [audio addendum](2026-10-23-audio-addendum.md)).
 - Online anything (leaderboards, accounts).
 - Endless mode, difficulty tiers.
 

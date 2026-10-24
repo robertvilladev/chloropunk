@@ -11,6 +11,7 @@ Status: ✅ done · 🚧 in progress · ⬜ planned. "(proposed)" = inferred by 
 | M2 Build-crafting | ✅ done — merged in PR #16 | [M2 plan](docs/superpowers/plans/2026-10-18-m2-build-crafting.md) |
 | M3 Look | ✅ done — merged in PR #17 | [M3 plan](docs/superpowers/plans/2026-10-18-m3-look.md) |
 | Balance & progression | ✅ applied (PR #22; waves 1–3 playtested, 4–9 by sim only) | [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) |
+| Arena map (A1–A5) | 🚧 A1–A2 done (owner-approved 2026-10-23) | [arena addendum](docs/superpowers/specs/2026-10-23-arena-map-addendum.md) §5 |
 | M4 Boss & run end | ⬜ planned | not written |
 
 ## M1 — Waves & feel ✅
@@ -72,21 +73,28 @@ Spec: [§4, §5 waves, §9 numbers](docs/superpowers/specs/2026-10-18-mvp-roguel
 - ⬜ Playtest waves 4–9 (moving player) and recalibrate the sim's `aim`/`contactRate` with `pnpm runs` (fitted values)
 - ⬜ Collect real logs (owner + playtesters) and tune enemies per wave, scrap per wave and starter viability from them
 
+## Arena map 🚧
+Spec: [arena map addendum](docs/superpowers/specs/2026-10-23-arena-map-addendum.md) (owner decisions 2026-10-23; [design page](https://claude.ai/artifact/Joe6YTuK7XMsoCTbkyFs56)). One PR each, in order.
+
+- ✅ A1 Arena size split from the 800×600 design space, no visible change: `ARENA` in `src/config/constants.ts`, guarded by `src/config/arena.guard.test.ts` — [plan](docs/superpowers/plans/2026-10-23-arena-1-split.md)
+- ✅ A2 Arena 1600×1200 with a follow camera (GameScene only, zoom 2, clamped); the fighter starts at the arena centre; the wave banner and low-HP vignette moved to UIScene; dev `?arena=small` keeps 800×600. Enemies still spawn at the map edges until A3, so waves play easier (seed-1 playtest: won wave 10, vs dying at wave 6–8 before). Owner played both sizes (2026-10-24): camera and big arena work; spawns too far and too few kills, so scrap can't keep up with shop prices (full run: ~90 scrap earned, 4–17 kills a wave, 40 alive at every wave end from wave 6). A3 fixes the spawn distance; tune the economy after it — [plan](docs/superpowers/plans/2026-10-23-arena-2-camera.md)
+
 ## M4 — Boss & run end ⬜
 Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md)
 
 - ⬜ Wave 10 boss: no timer, 2–3 attack patterns, reduced-rate regular spawns as support
 - ⬜ Victory / defeat run summary (wave reached, kills, damage dealt, build) with "one more run"; replaces the "RUN COMPLETE" stopgap
-- ✅ Pause menu (resume, settings, quit run) — moved forward from M4 by the owner: Esc/P or window blur opens `PauseScene`; settings has the reduced-shake toggle; quit asks for confirmation. Volume setting still ⬜ (no audio yet)
+- ✅ Pause menu (resume, settings, quit run) — moved forward from M4 by the owner: Esc/P or window blur opens `PauseScene`; settings has the reduced-shake toggle and master / music / SFX volume; quit asks for confirmation
 - ⬜ Best-wave high-score record
-- ➡️ SFX/music: parked as an idea (see the parking lot), no longer in M4
+- ✅ SFX — back in scope by the owner (2026-10-23, [audio addendum](docs/superpowers/specs/2026-10-23-audio-addendum.md), [plan](docs/superpowers/plans/2026-10-23-sfx.md)): 16 procedural ZzFX sounds (hits, kills, hurt, low HP, blasts, waves, pickup streaks, level up, buy/deny, UI move/confirm/back, game over / run complete) on Phaser's AudioContext, voice limiting + pitch variation (`core/voices.ts`), SFX volume in pause settings. Every keyboard and mouse menu action blips once (move / confirm / back); every shop refusal and a level-up reroll without enough scrap play deny; Enter/Space now confirms the loadout pick. Verified in the browser (no console errors); level-up and run-complete sounds not triggered in that session
+- ✅ Music ([plan](docs/superpowers/plans/2026-10-23-music.md)): 2 CC-BY 4.0 synthwave loops (NLV on menu/loadout, Spring in waves/level-up/shop) streamed through a music bus on Phaser's AudioContext, 1.5 s crossfade on state change, duck to 30% under pause / round complete / game over, master + music volume in pause settings, credits in `assets/audio/CREDITS.md` and a menu CREDITS overlay. Verified in the browser (crossfade, duck, no duplicate tracks, settings persist); not yet listened to by the owner
 - ⬜ Final README pass
 
 ## Carry-overs / known issues
 From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) and the [M2 outcome](docs/superpowers/plans/2026-10-18-m2-build-crafting.md):
 
 - **Balance:** see [Balance & progression](#balance--progression-); wave 10 (boss) targets come with M4
-- **Perf:** measured in M3 (visible pane, 6 tier-2 weapons, 90–150 peas): 72 fps (the display's refresh) on WebGL with and without bloom and on Canvas, steady 13.9 ms frames; not measured on a slower machine.
+- **Perf:** measured in M3 (visible pane, 6 tier-2 weapons, 90–150 peas): 72 fps (the display's refresh) on WebGL with and without bloom and on Canvas, steady 13.9 ms frames; not measured on a slower machine. A2 (2026-10-24, follow camera, 1600×1200, ~130–150 peas): 117–140 fps on WebGL and Canvas.
 - **Canvas renderer (pre-M3):** death bursts use `particleTint` and the player hit flash uses `setTint`, which Phaser's Canvas renderer doesn't draw (bursts white, no hit tint) — unverified in a browser.
 - **Feel:** no enemy-to-enemy separation
 - **Weapons (M2 review):** drone hit map is keyed by pooled enemy sprites (a recycled enemy can be drone-immune ≤0.5 s); weapon textures and the starter list are hardcoded in `BootScene`/`LoadoutScene` (move colour + `starter` into `weapons.json`); pierce assumes enemies line up in the sim (pistol has pierce 1 since the balance pass)
@@ -102,6 +110,8 @@ From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) an
 
 - **M3 polish carry-overs:** weapon-slot row on the HUD is 36 px at stride 42 (mockup 40 px at 46); menu/loadout fighter has no shadow ellipse; loadout tag lines come from `behavior` (mockup says SINGLE TARGET / CONE); shop `OWNED ×n` is text not a chip, items list cut at 3 lines without ellipsis; level-up focus ring uses the tier colour; HUD XP bar is 140 px (mockup ~180); `theme.guard` only scans 6-digit hex; a recycled enemy's stale hit-frame timer can end a new hit frame early; `bodyOffset` rescans grids per spawn (memoise)
 - **UI:** the shop header says "WAVE 02 CLEARED" after wave 1 (it shows the next wave's number)
+- **SFX:** first listening pass by the owner (2026-10-23) applied: softer combat sounds (low-pass, less bitcrush), menu sounds redone in the game's palette with a very quiet hover, punkier wave/run-end stabs, and wave banners grow slightly each wave (`waveBoost`). Next: another listening pass
+- **Music (proposed):** neither track loops seamlessly (NLV fades out then restarts on its drop; Spring cuts from full level back to its start) and the levels were matched by meter (NLV trimmed to 0.7): the owner should listen. Safari before 18.4 can't play Ogg and gets no music; an M4A fallback is the fix if that matters. The autoplay-unlock path (music starting on the first click) couldn't be exercised in the preview, which allows autoplay
 - **Dev only:** after editing `assets/data/*.json` with a page open, Vite HMR logs one "Failed to load module script … application/json" console error; a fresh load is clean
 
 ## Ideas parking lot (post-MVP)
@@ -110,11 +120,7 @@ Named by the spec as non-goals / later:
 - Multiple playable characters (data model should allow it)
 - Meta-progression and unlocks; save files beyond a high score
 - Mobile/touch controls, gamepad, localization
-- Audio beyond a few SFX
-- **SFX / music** (moved out of M4 by the owner; owner leans towards ZzFX SFX plus one CC0 music loop). Options:
-  - ZzFX procedural SFX: ~1 KB, no files
-  - CC0 packs from Kenney.nl or OpenGameArt for SFX and a synthwave loop
-  - AI tools (ElevenLabs SFX, Suno/Udio music); check their licences first
+- Audio beyond two music loops and a few SFX
 - Online features: leaderboards, accounts
 - (proposed) Opt-in upload of finished run logs to a small endpoint (Postgres `runs` table), accounts linked to an anonymous player id — a spec change, needs the owner's call ([balance design §9.5](docs/superpowers/specs/2026-10-20-balance-design.md#95-path-to-a-server-proposed))
 - (proposed) 20-wave run: extend the balance model (bands for waves 11–20, longer reference builds, more AoE content for density) — [balance design §5](docs/superpowers/specs/2026-10-20-balance-design.md#5-the-model-approved)

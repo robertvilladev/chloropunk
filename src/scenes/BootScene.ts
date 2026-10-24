@@ -1,6 +1,9 @@
 import { SCENE_KEYS, GAME_CONFIG } from "@/config/constants";
 import { buildActorTextures, buildFxTextures, buildPickupTextures, registerAnimations } from "@/art/textures";
 import { FONTS, THEME, THEME_CSS } from "@/config/theme";
+import { loadSettings } from "@/core/settings";
+import { initMusic } from "@/fx/music";
+import { initSfx } from "@/fx/sfx";
 import { FONT_SPECS, loadFonts } from "./fonts";
 import Phaser from "phaser";
 
@@ -26,6 +29,9 @@ export class BootScene extends Phaser.Scene {
     buildPickupTextures(this);
     buildFxTextures(this);
     registerAnimations(this);
+    this.sound.volume = loadSettings().masterVolume;
+    initSfx(this.sound);
+    initMusic(this.sound);
 
     // Canvas text can't trigger webfont loads; wait (max 3s) so Bungee never falls back to Impact
     void loadFonts(document.fonts, FONT_SPECS, 3000).then(() => this.scene.start(SCENE_KEYS.MENU));

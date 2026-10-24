@@ -4,7 +4,7 @@ Phaser 3.90 + TypeScript (strict) + Vite + Vitest. Read [README.md](README.md), 
 
 ## Package manager: pnpm only
 
-Use `pnpm` for everything (`pnpm install`, `pnpm add -D x`, `pnpm <script>`, `pnpm exec <bin>`); never `npm`/`npx`/`yarn`, and never commit a `package-lock.json`. Script args go straight after the name: `pnpm runs runs`, `pnpm playtest --seed 2` (no `--`). Dependency build scripts must be approved in `pnpm-workspace.yaml` (`allowBuilds`).
+Use `pnpm` for everything (`pnpm install`, `pnpm add -D x`, `pnpm <script>`, `pnpm exec <bin>`, one-off tools with `pnpm dlx`); never `npm`/`npx`/`yarn`, and never commit a `package-lock.json`. Script args go straight after the name: `pnpm runs runs`, `pnpm playtest --seed 2` (no `--`). Dependency build scripts must be approved in `pnpm-workspace.yaml` (`allowBuilds`).
 
 ## Docs are part of the work
 

@@ -1,11 +1,16 @@
 import { GAME_CONFIG, SCENE_KEYS } from "@/config/constants";
 import { THEME, THEME_CSS } from "@/config/theme";
 import { stepIndex } from "@/core/menuNav";
-import { loadSettings, saveSettings } from "@/core/settings";
+import { nextVolume } from "@/core/music";
+import { loadSettings, saveSettings, type Settings } from "@/core/settings";
+import { duckMusic, setMusicVolume } from "@/fx/music";
+import { setSfxVolume, sfx } from "@/fx/sfx";
 import { button, onKeys, panel, scanlines, text } from "./ui";
 import Phaser from "phaser";
 
 type View = "main" | "settings" | "confirm";
+type VolumeKey = "masterVolume" | "musicVolume" | "sfxVolume";
+const PANEL_H = 400; // fits the 5-row settings view
 interface Item {
   label: string;
   run: () => void;
@@ -32,10 +37,11 @@ export class PauseScene extends Phaser.Scene {
     const { WIDTH: width, HEIGHT: height } = GAME_CONFIG;
     this.view = "main";
     this.scene.bringToTop();
+    duckMusic(true);
     // Dim the frozen arena; also swallows clicks so nothing underneath reacts
     this.add.rectangle(0, 0, width, height, THEME.bg, 0.7).setOrigin(0).setInteractive();
     scanlines(this);
-    const pw = 420, ph = 330;
+    const pw = 420, ph = PANEL_H;
     panel(this, width / 2 - pw / 2, height / 2 - ph / 2, pw, ph, { border: THEME.lime, shadow: true });
 
     onKeys(this, (e) => {
@@ -43,7 +49,10 @@ export class PauseScene extends Phaser.Scene {
       else if (e.code === "Escape") (this.view === "main" ? this.resume() : this.show("main"));
       else if (e.code === "ArrowUp" || e.code === "KeyW") this.moveFocus(-1);
       else if (e.code === "ArrowDown" || e.code === "KeyS") this.moveFocus(1);
-      else if (e.code === "Enter" || e.code === "Space") this.items[this.focus]?.run();
+      else if (e.code === "Enter" || e.code === "Space") {
+        sfx("uiConfirm");
+        this.items[this.focus]?.run();
+      }
     });
     this.show("main");
   }
@@ -53,7 +62,7 @@ export class PauseScene extends Phaser.Scene {
     this.body?.destroy();
     const { WIDTH: width, HEIGHT: height } = GAME_CONFIG;
     const cx = width / 2;
-    const top = height / 2 - 165;
+    const top = height / 2 - PANEL_H / 2;
     const parts: Phaser.GameObjects.GameObject[] = [];
     const add = <T extends Phaser.GameObjects.GameObject>(o: T): T => (parts.push(o), o);
 
@@ -67,9 +76,12 @@ export class PauseScene extends Phaser.Scene {
       ];
     } else if (view === "settings") {
       title = "SETTINGS";
-      const on = loadSettings().reducedShake;
+      const s = loadSettings();
       this.items = [
-        { label: `REDUCED SHAKE: ${on ? "ON" : "OFF"}`, run: () => this.toggleShake() },
+        { label: `REDUCED SHAKE: ${s.reducedShake ? "ON" : "OFF"}`, run: () => this.saveSetting({ reducedShake: !s.reducedShake }) },
+        { label: `MASTER VOLUME: ${Math.round(s.masterVolume * 100)}%`, run: () => this.cycleVolume("masterVolume") },
+        { label: `MUSIC VOLUME: ${Math.round(s.musicVolume * 100)}%`, run: () => this.cycleVolume("musicVolume") },
+        { label: `SFX VOLUME: ${Math.round(s.sfxVolume * 100)}%`, run: () => this.cycleVolume("sfxVolume") },
         { label: "BACK", run: () => this.show("main"), primary: true },
       ];
     } else {
@@ -85,7 +97,7 @@ export class PauseScene extends Phaser.Scene {
     if (sub) add(text(this, cx, top + 100, sub, 14, THEME_CSS.textMuted).setOrigin(0.5));
     this.buttons = this.items.map((it, i) =>
       add(
-        button(this, cx, top + 150 + i * 60, it.label, it.run, it.primary, true, {
+        button(this, cx, top + 150 + i * (this.items.length > 3 ? 48 : 60), it.label, it.run, it.primary, true, {
           size: it.primary ? 20 : 14,
           font: it.primary ? "display" : "ui",
           w: 260,
@@ -105,12 +117,23 @@ export class PauseScene extends Phaser.Scene {
 
   private moveFocus(dir: 1 | -1): void {
     this.focus = stepIndex(this.focus, this.items.length, dir);
+    sfx("uiMove");
     this.applyFocus();
   }
 
-  private toggleShake(): void {
-    const s = loadSettings();
-    saveSettings({ ...s, reducedShake: !s.reducedShake });
+  /** 0% → 100% in 20% steps, wrapping; master/SFX play a preview blip (music is ducked but audible). */
+  private cycleVolume(key: VolumeKey): void {
+    const next = nextVolume(loadSettings()[key]);
+    if (key === "masterVolume") this.sound.volume = next;
+    else if (key === "musicVolume") setMusicVolume(next);
+    else setSfxVolume(next);
+    this.saveSetting({ [key]: next });
+    if (key !== "musicVolume") sfx("pickup");
+  }
+
+  /** Save a settings change and redraw the settings view, keeping focus. */
+  private saveSetting(change: Partial<Settings>): void {
+    saveSettings({ ...loadSettings(), ...change });
     const keep = this.focus;
     this.show("settings");
     this.focus = keep;
@@ -118,6 +141,7 @@ export class PauseScene extends Phaser.Scene {
   }
 
   private resume(): void {
+    duckMusic(false);
     this.scene.resume(SCENE_KEYS.GAME);
     this.scene.resume(SCENE_KEYS.UI);
     this.scene.stop();

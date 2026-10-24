@@ -1,7 +1,10 @@
 import { DEPTH, SCENE_KEYS, GAME_CONFIG } from "@/config/constants";
 import wavesData from "@assets/data/waves.json";
-import { THEME, THEME_CSS } from "@/config/theme";
+import { FONTS, THEME, THEME_CSS } from "@/config/theme";
 import { formatClock } from "@/core/labels";
+import { waveBoost } from "@/core/voices";
+import { sfx } from "@/fx/sfx";
+import type { SoundName } from "@/fx/sounds";
 import type { GameScene } from "@/scenes/GameScene";
 import { panel, text } from "@/scenes/ui";
 import Phaser from "phaser";
@@ -17,6 +20,8 @@ export class UIScene extends Phaser.Scene {
   private hpFill!: Phaser.GameObjects.Rectangle;
   private hpValue!: Phaser.GameObjects.Text;
   private hpFlash?: Phaser.Tweens.Tween;
+  private vignette!: Phaser.GameObjects.Image;
+  private vignetteTween?: Phaser.Tweens.Tween;
   private xpFill!: Phaser.GameObjects.Rectangle;
   private levelText!: Phaser.GameObjects.Text;
   private waveText!: Phaser.GameObjects.Text;
@@ -38,8 +43,12 @@ export class UIScene extends Phaser.Scene {
     this.speedButtons = [];
     this.gameSpeed = 1;
     this.hpFlash = undefined;
+    this.vignetteTween = undefined;
     const w = GAME_CONFIG.WIDTH;
     const h = GAME_CONFIG.HEIGHT;
+
+    // Screen-fixed effects live here: GameScene's camera follows the fighter
+    this.vignette = this.add.image(0, 0, "vignette").setOrigin(0).setDisplaySize(w, h).setDepth(DEPTH.UI - 2).setAlpha(0);
 
     // Top-left: HP bar, then XP bar + level
     panel(this, 30, 16, 220, 24, { fill: THEME.surface2 }).setStrokeStyle(2, THEME.line).setDepth(DEPTH.UI);
@@ -87,13 +96,18 @@ export class UIScene extends Phaser.Scene {
       gameScene.events.on("playerHealthChanged", this.updateHealth, this);
       gameScene.events.on("timerUpdate", this.updateTimer, this);
       gameScene.events.on("scrapCollected", this.refresh, this);
+      gameScene.events.on("banner", this.banner, this);
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
         gameScene.events.off("playerHealthChanged", this.updateHealth, this);
         gameScene.events.off("timerUpdate", this.updateTimer, this);
         gameScene.events.off("scrapCollected", this.refresh, this);
+        gameScene.events.off("banner", this.banner, this);
         this.hpFlash?.stop();
       });
       this.refresh();
+      // This scene starts with each wave, after GameScene.create
+      const wave = (gameScene as GameScene).getPlayerStats().wave;
+      this.banner(`WAVE ${String(wave).padStart(2, "0")}`, wave);
     }
   }
 
@@ -182,6 +196,56 @@ export class UIScene extends Phaser.Scene {
       this.hpFlash = undefined;
       this.hpValue.setAlpha(1);
     }
+    this.lowHp(low && current > 0);
+  }
+
+  /** Pulsing danger vignette while HP is low. */
+  private lowHp(on: boolean): void {
+    if (!on) {
+      this.vignetteTween?.stop();
+      this.vignetteTween = undefined;
+      this.vignette.setAlpha(0);
+    } else if (!this.vignetteTween) {
+      sfx("lowHp");
+      this.vignetteTween = this.tweens.add({
+        targets: this.vignette,
+        alpha: { from: 0.35, to: 1 },
+        duration: 450,
+        yoyo: true,
+        repeat: -1,
+      });
+    }
+  }
+
+  /** Wave banner + its sound, a little louder and higher each wave. GameScene emits "banner" for the wave end. */
+  private banner(text: string, wave: number, sound: SoundName = "waveStart"): void {
+    const boost = waveBoost(wave);
+    sfx(sound, boost.rate, boost.gain);
+    const { WIDTH: w, HEIGHT: h } = GAME_CONFIG;
+    // Pink/cyan RGB-split shadows behind the lime face
+    const layers: [number, string][] = [
+      [-3, THEME_CSS.tier[1]],
+      [3, THEME_CSS.pink],
+      [0, THEME_CSS.lime],
+    ];
+    const texts = layers.map(([dx, color]) =>
+      this.add
+        .text(w / 2 + dx, h / 3, text, {
+          fontFamily: FONTS.display,
+          fontSize: "64px",
+          color,
+        })
+        .setOrigin(0.5)
+        .setDepth(DEPTH.UI - 1)
+    );
+    this.tweens.add({
+      targets: texts,
+      alpha: 0,
+      y: h / 3 - 20,
+      delay: 500,
+      duration: 400,
+      onComplete: () => texts.forEach((t) => t.destroy()),
+    });
   }
 
   /**

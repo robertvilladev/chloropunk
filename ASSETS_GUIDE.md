@@ -1,6 +1,6 @@
 # Importing Assets Guide
 
-> Only JSON data is in use today. Sprites are pixel grids in `src/art/` (data, not files; see below); audio assets are still to come (see [ROADMAP.md](ROADMAP.md)). `@ecs` and `@ui` aliases exist in `vite.config.ts` but their folders do not.
+> Only JSON data is in use today. Sprites are pixel grids in `src/art/` (data, not files; see below); SFX are ZzFX parameter arrays (see Audio below); music is two OGG files in `assets/audio/`. `@ecs` and `@ui` aliases exist in `vite.config.ts` but their folders do not.
 
 ## JSON Data Files
 
@@ -59,19 +59,11 @@ Sprites are authored as text grids, one palette letter per pixel (`.` = transpar
 - `pickups.ts` - 8x8 two-frame pickups.
 - To add an actor: append an `ActorArt` to `ACTORS`; `pnpm exec vitest run src/art` validates it (width/rows, letters, bounds, hit differs from walk0).
 
-## Audio Assets (Future)
+## Audio
 
-When you add sounds:
+**SFX are code, not files.** Each one is a [ZzFX](https://killedbyapixel.github.io/ZzFX/) parameter array in `src/fx/sounds.ts`, played with `sfx("name")` from `src/fx/sfx.ts` ([audio addendum](docs/superpowers/specs/2026-10-23-audio-addendum.md)). To add or retune one, design it in the ZzFX page, paste the array (keep index 1, randomness, at `0`) and pick a voice limit (`max` copies at once, `gapMs` between starts) and `pitchVar` (random pitch spread per play). The house style is filtered (negative last value = low-pass) saw/triangle tones with light bitcrush; menus use the same family, quieter. `pnpm exec vitest run src/fx` checks that every sound renders short and unclipped.
 
-```typescript
-// In BootScene.preload()
-this.load.image('player', 'assets/sprites/player.png');
-this.load.audio('shoot', 'assets/audio/shoot.mp3');
-
-// Use in scene
-this.add.sprite(x, y, 'player');
-this.sound.play('shoot');
-```
+**Music is streamed OGG files** in `assets/audio/`, each listed in `assets/audio/CREDITS.md` (title, author, source, licence, changes) and in `MUSIC_CREDITS` (`src/fx/music.ts`, shown on the menu). They are imported as URLs and played by `<audio>` elements routed into Phaser's AudioContext, not loaded with `this.load.audio` (that would decode ~120 MB per 5-minute track). To add a track: drop the OGG in, add it to `SRC`/`TRIM` in `src/fx/music.ts` and to `TrackId`/`TRACK_FOR` in `src/core/music.ts`, and credit it. Encode with OGG Vorbis ~q4, trim silence, and never commit WAVs.
 
 ## Path Aliases Reference
 

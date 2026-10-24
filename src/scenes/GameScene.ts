@@ -1,4 +1,5 @@
-import { GAME_CONFIG, SCENE_KEYS } from "@/config/constants";
+import { ARENA, SCENE_KEYS } from "@/config/constants";
+import { setMusic } from "@/fx/music";
 import { THEME_CSS } from "@/config/theme";
 import { createRng, type Rng } from "@/core/rng";
 import { autopilot } from "@/core/autopilot";
@@ -19,13 +20,14 @@ import type { EnemyDef, RunState, Stats } from "@/types";
 import enemyDefs from "@assets/data/enemies.json";
 import wavesData from "@assets/data/waves.json";
 import { applyGlow } from "@/fx/glow";
+import { followView } from "@/config/view";
 import { onKeys } from "@/scenes/ui";
 import Phaser from "phaser";
 
 // Dev autopilot (F8) survives scene restarts between waves; ?autopilot starts it on
 let autopilotOn = import.meta.env.DEV && new URLSearchParams(window.location.search).has("autopilot");
 
-const BANNER_MS = 900; // matches Juice.banner total duration
+const BANNER_MS = 900; // matches UIScene.banner total duration
 
 // Custom events emitted on this scene; listeners are removed on shutdown
 // because Phaser keeps scene.events listeners across restarts
@@ -41,6 +43,7 @@ const GAME_EVENTS = [
   "playerDodged",
   "timerUpdate",
   "runQuit",
+  "banner",
 ];
 
 /**
@@ -102,6 +105,7 @@ export class GameScene extends Phaser.Scene {
    * Initialize the game - create all managers and systems
    */
   create() {
+    setMusic("game");
     // 1. Create world/environment
     this.worldManager = new WorldManager(this);
     this.worldManager.create();
@@ -119,6 +123,7 @@ export class GameScene extends Phaser.Scene {
     this.combatRng = createRng(this.run.seed + this.run.wave + 7919);
     this.playerManager = new PlayerManager(this);
     this.playerManager.create(this.stats, this.combatRng);
+    followView(this.cameras.main, this.playerManager.getSprite(), ARENA);
 
     // 4. Initialize enemy system and start this wave's spawn schedule
     this.roundDuration = waveDuration(this.run.wave);
@@ -151,10 +156,8 @@ export class GameScene extends Phaser.Scene {
         this.enemyManager.damageEnemy(enemy, damage, crit);
       },
     });
-    this.juice.banner(`WAVE ${String(this.run.wave).padStart(2, "0")}`);
     this.events.on("enemyHit", this.onEnemyHit, this);
     this.events.on("playerHit", this.onPlayerHit, this);
-    this.events.on("playerHealthChanged", this.onHealthChanged, this);
     this.events.on("playerDodged", () => this.waveLog.dodged++);
 
     // 8. Set up collision detection
@@ -344,8 +347,8 @@ export class GameScene extends Phaser.Scene {
         this.playerManager.getSprite(),
         this.enemyManager.getEnemies(),
         scrap.filter((s) => s.active),
-        GAME_CONFIG.WIDTH,
-        GAME_CONFIG.HEIGHT
+        ARENA.w,
+        ARENA.h
       );
     const pilot = () => {
       this.inputManager.autopilot = autopilotOn ? steer : null;
@@ -449,7 +452,7 @@ export class GameScene extends Phaser.Scene {
     // wave is over (no drops, no blasts)
     this.enemyManager.clearAll();
     this.weaponManager.clear();
-    this.juice.banner("WAVE CLEARED");
+    this.events.emit("banner", "WAVE CLEARED", this.run.wave, "waveClear");
 
     // Leftover scrap is auto-collected
     const leftover = this.pickupManager.collectAll();
@@ -509,9 +512,6 @@ export class GameScene extends Phaser.Scene {
     this.juice.shake("hit");
   }
 
-  private onHealthChanged(health: number, maxHealth: number): void {
-    this.juice.lowHp(health / maxHealth);
-  }
 
   private onScrapCollected(value: number): void {
     this.waveLog.scrapLive += value;
