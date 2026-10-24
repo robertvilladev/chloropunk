@@ -61,7 +61,7 @@ Sprites are authored as text grids, one palette letter per pixel (`.` = transpar
 
 ## Rooftop layout (`assets/data/arena.json`)
 
-`{ w, h, props }` for the 1600×1200 arena: each prop is `{ kind, x, y, w, h, label? }` in arena px (top-left), kind one of `vent`, `sign`, `pad`, `puddle`, `rail`, `zone`, `crate` (`ArenaProp`, `src/types`). Decor only for now; `solid: true` is reserved for A5 obstacles. `src/art/arena.ts` bakes it once into `arena_floor_1600x1200` (zones under the grid, the rest on top). Rules (checked by `src/core/arena.test.ts`): props inside the arena and clear of the 160 px circle around the centre start; pink only for the billboard (`sign`), since pink is the telegraph colour. Any other arena size (`?arena=small`) gets the plain grid.
+`{ w, h, props }` for the 1600×1200 arena: each prop is `{ kind, x, y, w, h, label? }` in arena px (top-left), kind one of `vent`, `sign`, `pad`, `puddle`, `rail`, `zone`, `crate` (`ArenaProp`, `src/types`). Decor only for now; `solid: true` is reserved for A5 obstacles. `src/art/arena.ts` bakes it once into `arena_floor_1600x1200` (zones under the grid, the rest on top). Rules (checked by `src/core/arena.test.ts`): props inside the arena and clear of the 160 px circle around the centre start; pink only for the billboard (`sign`), since pink is the telegraph colour. Colours come from `THEME_CSS.decor` (Night violet, `#rrggbbaa` with alpha baked in); decor stays darker than anything that moves, and cyan/amber are reserved for projectiles. Any other arena size (`?arena=small`) gets the plain grid.
 
 ## Audio
 

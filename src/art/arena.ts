@@ -1,15 +1,10 @@
 import Phaser from "phaser";
-import { THEME_CSS, type DecorOption } from "@/config/theme";
+import { THEME_CSS } from "@/config/theme";
 import type { ArenaProp, PropKind } from "@/types";
 
 const GRID = 48;
 
-// TEMP (A4 Task 0): dev `?decor=a|b|c` picks a palette candidate; removed once the owner picks.
-const OPTION: DecorOption = ((): DecorOption => {
-  const q = import.meta.env.DEV ? new URLSearchParams(window.location.search).get("decor") : null;
-  return q === "a" || q === "b" || q === "c" ? q : "c";
-})();
-const D = THEME_CSS.decorOptions[OPTION];
+const D = THEME_CSS.decor;
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -47,21 +42,6 @@ function pad(c: Ctx, { x, y, w, h }: ArenaProp): void {
   const cx = x + w / 2;
   const cy = y + h / 2;
   const r = Math.min(w, h) / 2 - 2;
-  // hazard band: diagonal stripes clipped to the outer ring
-  c.save();
-  c.beginPath();
-  c.arc(cx, cy, r, 0, Math.PI * 2);
-  c.arc(cx, cy, r - 10, 0, Math.PI * 2, true);
-  c.clip();
-  c.strokeStyle = D.padStripe;
-  c.lineWidth = 4;
-  for (let t = -2 * r; t < 2 * r; t += 12) {
-    c.beginPath();
-    c.moveTo(cx + t, cy - r);
-    c.lineTo(cx + t + 2 * r, cy + r);
-    c.stroke();
-  }
-  c.restore();
   c.strokeStyle = D.padEdge;
   c.lineWidth = 2;
   c.beginPath();
