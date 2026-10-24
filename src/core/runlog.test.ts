@@ -25,12 +25,12 @@ function fakeRun(id: string, hash = DATA_HASH): RunLog {
   const run = newRun(1, "pistol");
   const log = { ...newRunLog(1, "pistol", new Date(0), id), dataHash: hash };
   const w1 = startWave(log, run, computeStats(run));
-  Object.assign(w1, { duration: 20, spawned: 12, killed: 10, peakAlive: 3, scrapDropped: 10, scrapLive: 7, scrapBanked: 3, shots: 25, hits: 20, hpEnd: 50, contactTime: 4, contactHits: 2 });
+  Object.assign(w1, { duration: 20, spawned: 12, spawnDist: 400, killed: 10, peakAlive: 3, scrapDropped: 10, scrapLive: 7, scrapBanked: 3, shots: 25, hits: 20, hpEnd: 50, contactTime: 4, contactHits: 2 });
   w1.taken.contact = 30;
   log.shops.push({ afterWave: 1, scrapBefore: 10, scrapAfter: 0, offers: [], bought: [{ kind: "item", id: "grip", tier: 1, price: 10 }], sold: [], combined: [], rerolls: 0, rerollSpent: 0, locked: [] });
   run.wave = 2;
   const w2 = startWave(log, run, computeStats(run));
-  Object.assign(w2, { duration: 9, spawned: 10, killed: 5, shots: 15, hits: 10, hpEnd: 0, deathTime: 9 });
+  Object.assign(w2, { duration: 9, spawned: 10, spawnDist: 500, killed: 5, shots: 15, hits: 10, hpEnd: 0, deathTime: 9 });
   endRun(log, "died");
   return log;
 }
@@ -58,15 +58,24 @@ describe("runlog", () => {
     expect(s.runs).toBe(2);
     expect(old.runs).toBe(1);
     const [w1, w2] = s.rows;
-    expect(w1).toMatchObject({ wave: 1, runs: 2, deaths: 0, peakAlive: 3, scrapDropped: 10, scrapLive: 7, scrapBanked: 3, buys: 1, aim: 0.8, hpEnd: 50, hpEndPct: 50 });
+    expect(w1).toMatchObject({ wave: 1, runs: 2, deaths: 0, peakAlive: 3, scrapDropped: 10, scrapLive: 7, scrapBanked: 3, buys: 1, aim: 0.8, hpEnd: 50, hpEndPct: 50, spawnDist: 400 });
     expect(w1.killPct).toBeCloseTo(83.3, 1);
     expect(w1.taken).toEqual({ contact: 30, bolt: 0, blast: 0 });
     expect(w2).toMatchObject({ wave: 2, deaths: 2, killPct: 50, buys: 0 });
   });
 
   it("fits aim and contact rate", () => {
-    expect(fitParams([fakeRun("a")])).toEqual({ aim: 30 / 40, contactRate: 0.5 });
+    expect(fitParams([fakeRun("a")])).toEqual({ aim: 30 / 40, contactRate: 0.5, spawnDist: (400 * 12 + 500 * 10) / 22 });
+    const old = fakeRun("old");
+    for (const w of old.waves) delete w.spawnDist; // logs from before A3
+    expect(fitParams([old])?.spawnDist).toBe(0);
     expect(fitParams([])).toBeNull();
+  });
+
+  it("summarises each arena size apart", () => {
+    const small = { ...fakeRun("s"), arena: { w: 800, h: 600 } };
+    const big = { ...fakeRun("b"), arena: { w: 1600, h: 1200 } };
+    expect(summarise([small, big, fakeRun("old")]).map((s) => `${s.arena} ${s.runs}`).sort()).toEqual(["1600x1200 1", "800x600 1", "? 1"]);
   });
 
   it("median", () => {

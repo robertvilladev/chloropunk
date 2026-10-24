@@ -16,7 +16,7 @@ import { PickupManager } from "@/managers/PickupManager";
 import { PlayerManager } from "@/managers/PlayerManager";
 import { WeaponManager } from "@/managers/WeaponManager";
 import { WorldManager } from "@/managers/WorldManager";
-import type { EnemyDef, RunState, Stats } from "@/types";
+import type { EnemyDef, RunState, Stats, Vector2 } from "@/types";
 import enemyDefs from "@assets/data/enemies.json";
 import wavesData from "@assets/data/waves.json";
 import { applyGlow } from "@/fx/glow";
@@ -117,6 +117,7 @@ export class GameScene extends Phaser.Scene {
 
     // 3. Create player
     this.stats = computeStats(this.run);
+    this.run.log.arena = { ...ARENA };
     this.waveLog = startWave(this.run.log, this.run, this.stats);
     this.touching = false;
     this.rng = createRng(this.run.seed + this.run.wave);
@@ -408,6 +409,7 @@ export class GameScene extends Phaser.Scene {
     Object.assign(this.waveLog, {
       duration: this.roundDuration - this.roundTimeRemaining,
       spawned: this.enemyManager.spawned,
+      spawnDist: this.enemyManager.spawnDistSum / Math.max(1, this.enemyManager.spawned),
       killed: this.enemiesKilled,
       aliveAtEnd: this.enemyManager.getEnemyCount(),
       shots: t.shots,
@@ -561,6 +563,11 @@ export class GameScene extends Phaser.Scene {
   /**
    * Current player stats for the HUD
    */
+  /** Pending spawn telegraphs in world px (UIScene draws arrows for off-screen ones). */
+  getTelegraphs(): readonly Vector2[] {
+    return this.enemyManager.telegraphs;
+  }
+
   getPlayerStats() {
     // Level/XP including this wave's pickups (committed at wave end)
     const xp = addXp(this.run, this.waveEarned);

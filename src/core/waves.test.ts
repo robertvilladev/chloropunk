@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
+import type { Vector2 } from "@/types";
 import enemies from "@assets/data/enemies.json";
 import wavesJson from "@assets/data/waves.json";
 import {
   buildSpawnSchedule,
   advanceCursor,
   edgePoint,
+  offscreenPoint,
   scaleEnemy,
   waveDuration,
 } from "./waves";
@@ -122,5 +124,57 @@ describe("edgePoint", () => {
         }
       }
     }
+  });
+});
+
+describe("offscreenPoint", () => {
+  const arena = { w: 1600, h: 1200 };
+  const M = 50;
+  // the camera clamps to the arena, like followView
+  const viewAt = (px: number, py: number) => ({
+    x: Math.min(Math.max(px - 400, 0), arena.w - 800),
+    y: Math.min(Math.max(py - 300, 0), arena.h - 600),
+    width: 800,
+    height: 600,
+  });
+  const offView = (p: Vector2, v: ReturnType<typeof viewAt>) =>
+    p.x <= v.x - M || p.x >= v.x + v.width + M || p.y <= v.y - M || p.y >= v.y + v.height + M;
+  const inArena = (p: Vector2) => p.x >= 40 && p.x <= arena.w - 40 && p.y >= 40 && p.y <= arena.h - 40;
+
+  it("lies a margin outside the view, inside the arena and >= minDist away, wherever the player stands", () => {
+    for (let gx = 0; gx <= 16; gx++) {
+      for (let gy = 0; gy <= 12; gy++) {
+        const player = { x: (gx / 16) * arena.w, y: (gy / 12) * arena.h };
+        const v = viewAt(player.x, player.y);
+        for (let i = 0; i < 40; i++) {
+          const p = offscreenPoint(i / 40, player, v, arena, M, 40, 160);
+          expect(offView(p, v)).toBe(true);
+          expect(inArena(p)).toBe(true);
+          expect(Math.hypot(p.x - player.x, p.y - player.y)).toBeGreaterThanOrEqual(160);
+        }
+      }
+    }
+  });
+
+  it("centred player: on the ring 50 px outside the view", () => {
+    const v = viewAt(800, 600);
+    const p = offscreenPoint(0.1, { x: 800, y: 600 }, v, arena, M, 40, 160);
+    expect(p).toEqual({ x: 350 + 0.1 * 3200, y: 250 }); // top side starts at the ring's top-left
+  });
+
+  it("arena no bigger than the view: same points as edgePoint", () => {
+    const small = { w: 800, h: 600 };
+    const v = { x: 0, y: 0, width: 800, height: 600 };
+    const player = { x: 400, y: 300 };
+    for (let i = 0; i < 20; i++) {
+      expect(offscreenPoint(i / 20, player, v, small, M, 40, 160)).toEqual(edgePoint(i / 20, player, 800, 600, 40, 160));
+    }
+  });
+
+  it("is deterministic for equal u", () => {
+    const v = viewAt(100, 100);
+    expect(offscreenPoint(0.37, { x: 100, y: 100 }, v, arena, M, 40, 160)).toEqual(
+      offscreenPoint(0.37, { x: 100, y: 100 }, v, arena, M, 40, 160)
+    );
   });
 });

@@ -1,6 +1,7 @@
 import { DEPTH, SCENE_KEYS, GAME_CONFIG } from "@/config/constants";
 import wavesData from "@assets/data/waves.json";
 import { FONTS, THEME, THEME_CSS } from "@/config/theme";
+import { edgeArrow } from "@/core/edgeArrow";
 import { formatClock } from "@/core/labels";
 import { waveBoost } from "@/core/voices";
 import { sfx } from "@/fx/sfx";
@@ -11,6 +12,8 @@ import Phaser from "phaser";
 
 const HP_W = 216; // inner width of the 220px HP bar (2px border)
 const XP_W = 140;
+const ARROWS = 12; // pooled off-screen telegraph arrows; more pending than this just go unmarked
+const ARROW_INSET = 12;
 
 /**
  * UIScene - Persistent UI overlay (HUD), per mockups/Hud.dc.html.
@@ -32,6 +35,7 @@ export class UIScene extends Phaser.Scene {
   private scrapValue!: Phaser.GameObjects.Text;
   private scrapLabel!: Phaser.GameObjects.Text;
   private speedButtons: Phaser.GameObjects.Container[] = [];
+  private arrows: Phaser.GameObjects.Triangle[] = [];
   private gameSpeed: number = 1;
 
   constructor() {
@@ -49,6 +53,10 @@ export class UIScene extends Phaser.Scene {
 
     // Screen-fixed effects live here: GameScene's camera follows the fighter
     this.vignette = this.add.image(0, 0, "vignette").setOrigin(0).setDisplaySize(w, h).setDepth(DEPTH.UI - 2).setAlpha(0);
+    // Arrows on the screen edge for spawn telegraphs outside the view, in the telegraph's colour
+    this.arrows = Array.from({ length: ARROWS }, () =>
+      this.add.triangle(0, 0, 0, 0, 14, 7, 0, 14, THEME.danger).setStrokeStyle(2, THEME.text, 0.35).setDepth(DEPTH.UI - 1).setVisible(false)
+    );
 
     // Top-left: HP bar, then XP bar + level
     panel(this, 30, 16, 220, 24, { fill: THEME.surface2 }).setStrokeStyle(2, THEME.line).setDepth(DEPTH.UI);
@@ -184,6 +192,18 @@ export class UIScene extends Phaser.Scene {
   /**
    * Update health display; under 25% the fill turns danger and the readout flashes
    */
+  update(): void {
+    const game = this.scene.get(SCENE_KEYS.GAME) as GameScene;
+    const view = game.cameras.main.worldView;
+    const pending = game.getTelegraphs();
+    let used = 0;
+    for (let i = 0; i < pending.length && used < ARROWS; i++) {
+      const a = edgeArrow(pending[i], view, ARROW_INSET);
+      if (a) this.arrows[used++].setPosition(a.x, a.y).setRotation(a.angle).setVisible(true);
+    }
+    for (; used < ARROWS; used++) this.arrows[used].setVisible(false);
+  }
+
   updateHealth(current: number, max: number) {
     const low = max > 0 && current / max < 0.25;
     this.hpFill.width = HP_W * Phaser.Math.Clamp(current / max, 0, 1);

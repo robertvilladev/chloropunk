@@ -64,7 +64,7 @@ feedback and a coherent cyberpunk pixel-art look.
 1. **Menu → Start run.** One character; player picks **1 of 3 starting weapons**.
 2. **Wave** (wave *n* lasts `20 + 4·(n−1)` s, capped at 60 s). **Wave 10 is the
    boss wave** *(builder's call)*: it has no timer and lasts until the boss or the
-   player dies. Regular enemies keep spawning at a reduced rate as support. Enemies spawn in groups at the arena edges (with a short telegraph
+   player dies. Regular enemies keep spawning at a reduced rate as support. Enemies spawn in groups at the arena edges *(amended 2026-10-23: just outside the camera frame, with arrows for off-screen telegraphs; [arena map addendum](2026-10-23-arena-map-addendum.md) §2.3)* (with a short telegraph
    marker before they appear), spawn rate and mix come from `waves.json`.
    Weapons auto-fire; the player only moves.
 3. **Drops.** Smashed vegetables drop **scrap** (currency) and give **XP**.

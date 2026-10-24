@@ -29,6 +29,7 @@ export interface WaveLog {
   wave: number;
   duration: number; // s of wave time played (shorter if died)
   spawned: number;
+  spawnDist?: number; // mean px from the player to each scheduled enemy as it spawns (logs before A3 lack it)
   killed: number;
   peakAlive: number;
   aliveAtEnd: number;
@@ -76,6 +77,7 @@ export interface RunLog {
   dataHash: string; // of assets/data, so old balance versions never mix
   seed: number;
   starter: string;
+  arena?: { w: number; h: number }; // playfield size (dev ?arena=small = 800x600); logs before A3 lack it
   result: { wave: number; outcome: Outcome; time: number } | null;
   waves: WaveLog[];
   shops: ShopLog[];
@@ -118,6 +120,7 @@ export function startWave(log: RunLog, run: Pick<RunState, "wave" | "weapons" | 
     wave: run.wave,
     duration: 0,
     spawned: 0,
+    spawnDist: 0,
     killed: 0,
     peakAlive: 0,
     aliveAtEnd: 0,
@@ -188,6 +191,7 @@ export interface WaveRow {
   killPct: number; // medians from here on, unless noted
   peakAlive: number;
   spawned: number;
+  spawnDist: number; // 0 when no log has it
   scrapDropped: number;
   scrapLive: number;
   scrapBanked: number;
@@ -201,6 +205,8 @@ export interface WaveRow {
 
 export interface Summary {
   dataHash: string;
+  arena: string; // "1600x1200", or "?" for logs without it
+
   runs: number;
   rows: WaveRow[];
 }
@@ -217,12 +223,18 @@ export function dedupe(logs: RunLog[]): RunLog[] {
   return [...new Map(logs.map((l) => [l.id, l])).values()];
 }
 
-/** Per-wave rows, one summary per data hash (newest data first). */
+/** Playfield label for grouping ("?" for logs from before A3). */
+export const arenaOf = (l: RunLog): string => (l.arena ? `${l.arena.w}x${l.arena.h}` : "?");
+
+/** Per-wave rows, one summary per data hash and arena size (newest data first). */
 export function summarise(logs: RunLog[]): Summary[] {
-  const byHash = new Map<string, RunLog[]>();
-  for (const l of dedupe(logs)) byHash.set(l.dataHash, [...(byHash.get(l.dataHash) ?? []), l]);
-  return [...byHash]
-    .map(([dataHash, runs]) => ({ dataHash, runs: runs.length, rows: waveRows(runs) }))
+  const groups = new Map<string, RunLog[]>();
+  for (const l of dedupe(logs)) {
+    const k = `${l.dataHash} ${arenaOf(l)}`;
+    groups.set(k, [...(groups.get(k) ?? []), l]);
+  }
+  return [...groups.values()]
+    .map((runs) => ({ dataHash: runs[0].dataHash, arena: arenaOf(runs[0]), runs: runs.length, rows: waveRows(runs) }))
     .sort((a, b) => (a.dataHash === DATA_HASH ? -1 : b.dataHash === DATA_HASH ? 1 : 0));
 }
 
@@ -242,6 +254,7 @@ function waveRows(runs: RunLog[]): WaveRow[] {
       killPct: med((w) => (100 * w.killed) / Math.max(1, w.spawned)),
       peakAlive: med((w) => w.peakAlive),
       spawned: med((w) => w.spawned),
+      spawnDist: median(ws.flatMap((w) => (w.spawnDist ? [w.spawnDist] : []))),
       scrapDropped: med((w) => w.scrapDropped),
       scrapLive: med((w) => w.scrapLive),
       scrapBanked: med((w) => w.scrapBanked),
@@ -257,11 +270,11 @@ function waveRows(runs: RunLog[]): WaveRow[] {
 }
 
 /**
- * Measured values for the sim's `aim` and `contactRate` (design §9.3).
+ * Measured values for the sim's `aim`, `contactRate` and `spawnDist` (design §9.3; spawnDist 0 = not logged).
  * ponytail: contactRate counts landed contact hits per second touching; dodged
  * hits and several enemies touching at once are not separated out.
  */
-export function fitParams(logs: RunLog[]): { aim: number; contactRate: number } | null {
+export function fitParams(logs: RunLog[]): { aim: number; contactRate: number; spawnDist: number } | null {
   const ws = dedupe(logs).flatMap((l) => l.waves);
   const shots = ws.reduce((s, w) => s + w.shots, 0);
   const touch = ws.reduce((s, w) => s + w.contactTime, 0);
@@ -269,5 +282,13 @@ export function fitParams(logs: RunLog[]): { aim: number; contactRate: number } 
   return {
     aim: ws.reduce((s, w) => s + w.hits, 0) / shots,
     contactRate: touch > 0 ? ws.reduce((s, w) => s + w.contactHits, 0) / touch : 0,
+    spawnDist: weightedSpawnDist(ws),
   };
+}
+
+/** Mean spawn distance over every logged spawn (0 when no wave logged it). */
+function weightedSpawnDist(ws: WaveLog[]): number {
+  const logged = ws.filter((w) => w.spawnDist);
+  const n = logged.reduce((s, w) => s + w.spawned, 0);
+  return n > 0 ? logged.reduce((s, w) => s + w.spawnDist! * w.spawned, 0) / n : 0;
 }

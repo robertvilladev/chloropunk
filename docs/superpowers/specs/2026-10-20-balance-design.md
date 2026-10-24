@@ -52,7 +52,7 @@ What the owner felt as "scrap stranded under enemies" is real on screen. Economi
 
 **Model**, stepped at 30 Hz:
 
-- **Arrivals:** schedule events plus the 0.6 s telegraph. Each enemy starts 330 px away, the mean distance from the arena centre to the spawn rectangle, and walks straight in.
+- **Arrivals:** schedule events plus the 0.6 s telegraph. Each enemy starts `spawnDist` px away and walks straight in. Was 330 (arena-edge spawns on the 800×600 arena); **480 since A3** (2026-10-24): waves spawn on a ring 50 px outside the camera frame ([arena addendum](2026-10-23-arena-map-addendum.md) §2.3), measured as the mean player-to-enemy distance at spawn over seed 1–3 autopilot playtests (run log `spawnDist`; the ring alone is ~457 from a standing player).
 - **Targeting:** each weapon fires on its cooldown at the oldest enemy in range. Oldest stands in for nearest, since everyone walks the same line.
 - **Hits:** a fraction `aim` = 0.7 of shots land. Each landing shot does average damage, crits included.
 - **Targets per attack:**
@@ -172,6 +172,8 @@ Starters that never shop:
 Spawn rate: 0.8 enemies/s in wave 1, 1.3 in wave 5, 2.1 in wave 9 and 2.3 in wave 10. Live goes 1.4 → 7.5 enemies/s, at 2–4× more HP per enemy.
 
 ## 7. Known misses and risks
+
+- **A3 spawn distance (2026-10-24).** At `spawnDist` 480 the typical build kills less near each wave's end, runs short of scrap and dies in wave 8 (w7 19% HP). `sim.test.ts` lists these as known misses until the economy pass. Sim probes: +25% scrap or −20% prices removes the death but makes waves 8–9 too easy, and starters then kill 11/16 in wave 1; wave length is spec-fixed. Tune with the owner's A3 run logs.
 
 - **Wave 8 is a little easy** (100% HP left). It is the only failed target at the calibrated centre. Leave it for the playtest.
 - **Wave 10 kills the typical build** without a boss. Its targets are written with the M4 boss.

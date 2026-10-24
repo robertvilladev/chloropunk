@@ -2,7 +2,7 @@ import { bodyOffset } from "@/art/body";
 import { ARENA, DEPTH, HIT_SIZE } from "@/config/constants";
 import type { Rng } from "@/core/rng";
 import { actorDepth, facingFlip } from "@/core/depth";
-import { MAX_ALIVE, advanceCursor, buildSpawnSchedule, edgePoint } from "@/core/waves";
+import { MAX_ALIVE, advanceCursor, buildSpawnSchedule, offscreenPoint } from "@/core/waves";
 import {
   createEnemyState,
   steer,
@@ -19,6 +19,7 @@ type Sprite = Phaser.Physics.Arcade.Sprite;
 const TELEGRAPH_S = 0.6;
 const EDGE_INSET = 40;
 const MIN_PLAYER_DIST = 160;
+const SPAWN_MARGIN = 50; // px outside the view: enemy radius <= 20 + the 24 px group spread
 const MAX_ENEMIES = 250;
 const MAX_BOLTS = 100;
 const KNOCK_DECAY = 8; // per second
@@ -52,6 +53,8 @@ export class EnemyManager {
   private rng!: Rng;
   /** Scheduled enemies spawned this wave (run log); dev spawns and capped drops excluded. */
   spawned = 0;
+  /** Sum of player→enemy px at spawn for those (run log `spawnDist` = this ÷ spawned). */
+  spawnDistSum = 0;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -80,6 +83,7 @@ export class EnemyManager {
     this.rng = rng;
     this.cursor = 0;
     this.spawned = 0;
+    this.spawnDistSum = 0;
     const waves = wavesData.waves;
     const def = waves.find((w) => w.wave === wave);
     if (!def) throw new Error(`No wave ${wave} defined`);
@@ -95,9 +99,14 @@ export class EnemyManager {
     const end = advanceCursor(sched, this.cursor, elapsedS);
     for (; this.cursor < end; this.cursor++) this.telegraph(sched[this.cursor], player);
 
-    this.updateTelegraphs(dt);
+    this.updateTelegraphs(dt, player);
     this.updateEnemies(dt, player);
     this.updateBolts();
+  }
+
+  /** Telegraphs waiting to spawn (HUD's off-screen arrows). */
+  get telegraphs(): readonly Vector2[] {
+    return this.pending;
   }
 
   /** Dev: spawn `count` of an enemy at random arena points (silent no-op past the pool cap). */
@@ -199,7 +208,7 @@ export class EnemyManager {
   private telegraph(ev: SpawnEvent, player: Vector2): void {
     const def = (enemyDefs as Record<string, EnemyDef>)[ev.enemy];
     if (!def) return;
-    const pos = this.pickEdgePoint(player);
+    const pos = this.pickSpawnPoint(player);
     const marker = this.markers.get(
       pos.x,
       pos.y,
@@ -216,19 +225,20 @@ export class EnemyManager {
     });
   }
 
-  /** Point on the rectangle EDGE_INSET px inside the arena, >= 160 px from the player (one RNG draw). */
-  private pickEdgePoint(player: Vector2): Vector2 {
-    return edgePoint(
+  /** Point just outside the camera view, inside the arena, >= 160 px from the player (one RNG draw). */
+  private pickSpawnPoint(player: Vector2): Vector2 {
+    return offscreenPoint(
       this.rng.next(),
       player,
-      ARENA.w,
-      ARENA.h,
+      this.scene.cameras.main.worldView,
+      ARENA,
+      SPAWN_MARGIN,
       EDGE_INSET,
       MIN_PLAYER_DIST
     );
   }
 
-  private updateTelegraphs(dt: number): void {
+  private updateTelegraphs(dt: number, player: Vector2): void {
     for (let i = this.pending.length - 1; i >= 0; i--) {
       const p = this.pending[i];
       p.left -= dt;
@@ -245,6 +255,7 @@ export class EnemyManager {
         if (this.enemies.countActive(true) < MAX_ALIVE) {
           this.spawnEnemy(p.def, x, y);
           this.spawned++;
+          this.spawnDistSum += Math.hypot(x - player.x, y - player.y);
         }
       }
       this.markers.killAndHide(p.marker);
