@@ -259,6 +259,15 @@ export class GameScene extends Phaser.Scene {
    * Set up collision detection between game entities
    */
   private setupCollisions(): void {
+    // Solid props block everything but player shots (those fly over)
+    const solids = this.worldManager.getSolids();
+    this.physics.add.collider(this.playerManager.getSprite(), solids);
+    this.physics.add.collider(this.enemyManager.getEnemyGroup(), solids);
+    this.physics.add.collider(this.pickupManager.getGroup(), solids);
+    this.physics.add.collider(this.enemyManager.getEnemyProjectileGroup(), solids, (bolt) =>
+      this.enemyManager.removeBolt(bolt as Phaser.Physics.Arcade.Sprite)
+    );
+
     // Player <-> Enemy collisions (player takes damage)
     this.physics.add.overlap(
       this.playerManager.getSprite(),
