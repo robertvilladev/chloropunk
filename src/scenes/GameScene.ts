@@ -20,6 +20,7 @@ import type { EnemyDef, RunState, Stats } from "@/types";
 import enemyDefs from "@assets/data/enemies.json";
 import wavesData from "@assets/data/waves.json";
 import { applyGlow } from "@/fx/glow";
+import { followView } from "@/config/view";
 import { onKeys } from "@/scenes/ui";
 import Phaser from "phaser";
 
@@ -121,6 +122,7 @@ export class GameScene extends Phaser.Scene {
     this.combatRng = createRng(this.run.seed + this.run.wave + 7919);
     this.playerManager = new PlayerManager(this);
     this.playerManager.create(this.stats, this.combatRng);
+    followView(this.cameras.main, this.playerManager.getSprite(), ARENA);
 
     // 4. Initialize enemy system and start this wave's spawn schedule
     this.roundDuration = waveDuration(this.run.wave);

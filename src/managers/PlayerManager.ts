@@ -1,5 +1,5 @@
 import { boxOffset } from "@/art/body";
-import { GAME_CONFIG } from "@/config/constants";
+import { ARENA, GAME_CONFIG } from "@/config/constants";
 import { THEME } from "@/config/theme";
 import { actorDepth, facingFlip } from "@/core/depth";
 import type { Rng } from "@/core/rng";
@@ -44,8 +44,8 @@ export class PlayerManager {
 
     // Create player sprite at center
     this.player = this.scene.physics.add.sprite(
-      GAME_CONFIG.PLAYER_START_X,
-      GAME_CONFIG.PLAYER_START_Y,
+      ARENA.w / 2,
+      ARENA.h / 2,
       "player"
     );
 
