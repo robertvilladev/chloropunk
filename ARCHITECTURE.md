@@ -22,7 +22,7 @@ scripts/playtest.mjs    `pnpm playtest`: Vite + Playwright Chromium autopilot ru
   fx/sfx.ts             initSfx (BootScene) + sfx(name): ZzFX buffers played on Phaser's WebAudio context through an SFX gain node; dropped while audio is locked/suspended
   fx/music.ts           initMusic (BootScene) + setMusic(state) / duckMusic(on): one streamed <audio> per track routed through a music gain node on Phaser's context; crossfades, ducks, waits for the autoplay unlock, pauses on blur; MUSIC_CREDITS for the menu overlay
   fx/sounds.ts          every SFX as a ZzFX parameter array + voice rule (one data file); fx/zzfx.ts = vendored ZzFX sample generator (MIT)
-  art/                  sprite grids (actors, pickups, palette), body.ts (pure hitbox offset), textures.ts bakes CanvasTextures + walk anims at boot; arena.ts bakes the floor (grid, rooftop decor from arena.json, lime edge) into one texture per arena size, shown by WorldManager as one image
+  art/                  vector.ts (sprites as SVG strings + SPRITE_META), body.ts (ART_SCALE, fitCircle/fitBox hit areas), textures.ts loads the SVGs at 2x and bakes CanvasTextures + walk anims at boot; arena.ts bakes the floor (grid, rooftop decor from arena.json, lime edge) into one texture per arena size, shown by WorldManager as one image
   types/, utils/        shared types, math helpers
 assets/data/            enemies.json, waves.json, weapons.json, character.json, items.json, upgrades.json, arena.json (rooftop decor layout)
 ```

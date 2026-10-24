@@ -1,6 +1,6 @@
 # Importing Assets Guide
 
-> Only JSON data is in use today. Sprites are pixel grids in `src/art/` (data, not files; see below); SFX are ZzFX parameter arrays (see Audio below); music is two OGG files in `assets/audio/`. `@ecs` and `@ui` aliases exist in `vite.config.ts` but their folders do not.
+> Only JSON data is in use today. Sprites are SVG strings in `src/art/vector.ts` (code, not files; see below); SFX are ZzFX parameter arrays (see Audio below); music is two OGG files in `assets/audio/`. `@ecs` and `@ui` aliases exist in `vite.config.ts` but their folders do not.
 
 ## JSON Data Files
 
@@ -50,14 +50,13 @@ export class EnemyManager {
 }
 ```
 
-## Sprite grids (`src/art/`)
+## Vector sprites (`src/art/`)
 
-Sprites are authored as text grids, one palette letter per pixel (`.` = transparent, at most 16x16), and rendered to textures at boot (`src/art/textures.ts`: one CanvasTexture per actor, 3x, frames `walk0`/`walk1`/`hit`, baked shadow; animations `<key>_walk`). Game code refers to sprites only by texture key.
+Sprites are SVG strings in design px (vector style, keyline outline: [addendum §4](docs/superpowers/specs/2026-10-23-arena-map-addendum.md)), ported from the [sprites canvas](https://claude.ai/artifact/TnsQjaTcJEYoShEC5AyMXM) file `project/vector.js`, which stays the source of truth: change the art there, then copy it into `vector.ts`. At boot `textures.ts` loads each frame as a base64 SVG at 2x, composes one CanvasTexture per key (frames `walk0`/`walk1`/`hit`, scrap `0`/`1`, baked shadow, LINEAR filter; animations `<key>_walk`) plus an 8x `player_portrait` for the menu and loadout. Sprites are drawn at scale 1/2 (`ART_SCALE`). Game code refers to sprites only by texture key.
 
-- `palette.ts` - letter -> hex (`PALETTE`); `grid.ts` - `parseGrid`, `gridBounds`, `validateActor`.
-- `actors.ts` - `ACTORS`: each actor has `walk0`, `walk1` (legs swapped, or body bobbed) and `hit` (white flash, `>_<` face, one row lower). Always draw facing right; flipping is runtime.
-- `pickups.ts` - 8x8 two-frame pickups.
-- To add an actor: append an `ActorArt` to `ACTORS`; `pnpm exec vitest run src/art` validates it (width/rows, letters, bounds, hit differs from walk0).
+- `vector.ts` - `svg(key, frame)`, `SPRITE_META` (frame size, feet row, body centre `cx`/`cy`), `FRAMES`. Always draw facing right; flipping is runtime. `hit` = the walk0 art all white with `><` eyes (baked, no tint, so it also shows on Canvas).
+- `body.ts` - `fitCircle` / `fitBox`: hit areas in design px, centred on `(cx, cy)`; radii live in `enemies.json`.
+- To add an actor: add it to `A` in `vector.ts` and to `FRAMES`; `pnpm exec vitest run src/art` checks size, parse, ids, ASCII, frames and the body fit.
 
 ## Rooftop layout (`assets/data/arena.json`)
 

@@ -103,7 +103,7 @@ Done 2026-10-24: direction (keyline), cast, scrap (power bolt), boss proposals. 
 
 **Interfaces:**
 - Consumes: `svg`, `FRAMES`, `SPRITE_META` (Task 1), `frameSize`, `ART_SCALE` (Task 2).
-- Produces: `svgUri(s: string): string` (`data:image/svg+xml;charset=utf-8,` + `encodeURIComponent`); `preloadSprites(scene: Phaser.Scene): void` (queues `scene.load.svg(\`${key}@${frame}\`, svgUri(...))` for every key × frame, plus `player_portrait` = player `walk0` with `scale: 4` → 8× design); `buildSpriteTextures(scene): void` (one CanvasTexture per key, frames side by side, frame names as today, shadow ellipse rx 0.36·w, ry rx/4 at `feet` under actors only, `setFilter(LINEAR)`, temp `key@frame` textures removed). `registerAnimations` unchanged in behaviour.
+- Produces: `svgUri(s: string): string` (`data:image/svg+xml;base64,` + `btoa`; ruled in PR 1, see Outcome); `preloadSprites(scene: Phaser.Scene): void` (queues `scene.load.svg(\`${key}@${frame}\`, svgUri(...))` for every key × frame, plus `player_portrait` = player `walk0` with `scale: 4` → 8× design); `buildSpriteTextures(scene): void` (one CanvasTexture per key, frames side by side, frame names as today, shadow ellipse rx 0.36·w, ry rx/4 at `feet` under actors only, `setFilter(LINEAR)`, temp `key@frame` textures removed). `registerAnimations` unchanged in behaviour.
 
 - [ ] **Step 1: Write the failing test** `textures.test.ts`: `svgUri` round-trips (`decodeURIComponent(uri.split(",")[1]) === s`); `spriteFrameKeys()` (exported helper) lists `player@walk0 … pickup_scrap@1` (20 entries) plus `player_portrait`.
 - [ ] **Step 2:** Run → FAIL.
