@@ -1,10 +1,11 @@
 import Phaser from "phaser";
 import { ART_SCALE, frameSize } from "./body";
 import { ICON_KEYS, ITEM_ICONS, STAT_ICONS, iconKey, iconSvg } from "./icons";
-import { ACTOR_KEYS, BOSS_KEYS, WEAPON_IDS, FRAMES, SPRITE_META, svg, type SpriteKey } from "./vector";
+import { ACTOR_KEYS, BOSS_KEYS, WEAPON_IDS, FRAMES, SPRITE_META, svg, type BossKey, type SpriteKey } from "./vector";
 import { THEME } from "@/config/theme";
 
-const KEYS = Object.keys(SPRITE_META) as SpriteKey[];
+/** Baked at boot. Bosses are not: a run shows one of the three, so M4b loads it with preloadBoss/buildBoss (about +250 ms at boot otherwise). */
+const KEYS = (Object.keys(SPRITE_META) as SpriteKey[]).filter((k) => !(BOSS_KEYS as readonly string[]).includes(k));
 /** Menu/loadout fighter, drawn up to 4x design size: baked at 8x so it stays sharp. */
 const PORTRAIT_SCALE = 4;
 
@@ -33,6 +34,18 @@ export function preloadSprites(scene: Phaser.Scene): void {
   for (const id of WEAPON_IDS) for (const t of [1, 2, 3, 4]) scene.load.svg(uiWeaponKey(id, t), svgUri(svg(`weapon_${id}`, `t${t}`)), ui);
 }
 
+/** Queue one boss's six frames (call in a scene's preload, then buildBoss in create). */
+export function preloadBoss(scene: Phaser.Scene, key: BossKey): void {
+  for (const f of FRAMES[key]) scene.load.svg(`${key}@${f}`, svgUri(svg(key, f)));
+}
+
+/** Bake a preloaded boss into its texture and register `<key>_idle` (idle0/idle1). */
+export function buildBoss(scene: Phaser.Scene, key: BossKey): void {
+  bakeKeys(scene, [key]);
+  if (!scene.anims.exists(`${key}_idle`))
+    scene.anims.create({ key: `${key}_idle`, frames: [{ key, frame: "idle0" }, { key, frame: "idle1" }], frameRate: 3, repeat: -1 });
+}
+
 /** Baked shadow in texture px: rx 0.36 w, ry rx/4, centred on the feet but lifted so it never clips at the frame bottom. */
 export function shadowEllipse(key: SpriteKey): { cy: number; rx: number; ry: number } {
   const rx = SPRITE_META[key].w * 0.36 * ART_SCALE, ry = rx / 4;
@@ -41,7 +54,18 @@ export function shadowEllipse(key: SpriteKey): { cy: number; rx: number; ry: num
 
 /** One CanvasTexture per key, frames side by side (walk0/walk1/hit, scrap 0/1, weapons t1..t4), shadow baked under actors and bosses. */
 export function buildSpriteTextures(scene: Phaser.Scene): void {
-  for (const k of KEYS) {
+  bakeKeys(scene, KEYS);
+  if (!scene.textures.exists("player_portrait")) throw new Error("sprite player_portrait failed to load");
+  scene.textures.get("player_portrait").setFilter(Phaser.Textures.FilterMode.LINEAR);
+  for (const k of [...ICON_KEYS, ...UI_WEAPON_KEYS]) {
+    if (!scene.textures.exists(k)) throw new Error(`sprite ${k} failed to load`);
+    scene.textures.get(k).setFilter(Phaser.Textures.FilterMode.LINEAR);
+  }
+}
+
+/** One CanvasTexture per key from its loaded key@frame SVGs (then dropped), shadow baked under actors and bosses. */
+function bakeKeys(scene: Phaser.Scene, keys: readonly SpriteKey[]): void {
+  for (const k of keys) {
     if (scene.textures.exists(k)) continue;
     const { w, h } = frameSize(k);
     const tex = scene.textures.createCanvas(k, w * FRAMES[k].length, h);
@@ -64,12 +88,6 @@ export function buildSpriteTextures(scene: Phaser.Scene): void {
     });
     tex.refresh();
     tex.setFilter(Phaser.Textures.FilterMode.LINEAR);
-  }
-  if (!scene.textures.exists("player_portrait")) throw new Error("sprite player_portrait failed to load");
-  scene.textures.get("player_portrait").setFilter(Phaser.Textures.FilterMode.LINEAR);
-  for (const k of [...ICON_KEYS, ...UI_WEAPON_KEYS]) {
-    if (!scene.textures.exists(k)) throw new Error(`sprite ${k} failed to load`);
-    scene.textures.get(k).setFilter(Phaser.Textures.FilterMode.LINEAR);
   }
 }
 
@@ -105,11 +123,6 @@ export function registerAnimations(scene: Phaser.Scene): void {
       frameRate: 6,
       repeat: -1,
     });
-  }
-  // bosses breathe between idle0 and idle1 (the 1.5 px settle); M4b swaps in the attack poses
-  for (const key of BOSS_KEYS) {
-    if (anims.exists(`${key}_idle`)) continue;
-    anims.create({ key: `${key}_idle`, frames: [{ key, frame: "idle0" }, { key, frame: "idle1" }], frameRate: 3, repeat: -1 });
   }
   if (!anims.exists("pickup_scrap_spin")) {
     anims.create({

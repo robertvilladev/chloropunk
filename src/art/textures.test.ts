@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { UI_WEAPON_KEYS, buildSpriteTextures, preloadSprites, shadowEllipse, spriteFrameKeys, svgUri } from "./textures";
+import { UI_WEAPON_KEYS, buildSpriteTextures, preloadSprites, shadowEllipse, spriteFrameKeys, svgUri, preloadBoss } from "./textures";
 import { frameSize } from "./body";
 import { ACTOR_KEYS, SPRITE_META, BOSS_KEYS } from "./vector";
 import { ICON_KEYS } from "./icons";
@@ -20,20 +20,20 @@ describe("svgUri", () => {
 describe("spriteFrameKeys", () => {
   it("lists every key@frame, the portrait, then the icons", () => {
     const keys = spriteFrameKeys();
-    expect(keys).toHaveLength(79 + 29 + 24);
+    expect(keys).toHaveLength(61 + 29 + 24);
     expect(keys[0]).toBe("player@walk0");
     expect(keys).toContain("enemy_potato@hit");
     expect(keys).toContain("pickup_scrap@1");
     expect(keys).toContain("weapon_rocket@t4");
     expect(keys).toContain("fx_beam@0");
     expect(keys).toContain("enemy_pepper@tell");
-    expect(keys).toContain("boss_onion@lob");
+    expect(keys.some((k) => k.startsWith("boss_")), "bosses load per run, not at boot").toBe(false);
     expect(keys).toContain("bproj_bulb@0");
-    expect(keys[78]).toBe("player_portrait");
-    expect(keys.slice(79, 79 + 29)).toEqual(ICON_KEYS);
-    expect(keys.slice(79 + 29)).toEqual(UI_WEAPON_KEYS);
+    expect(keys[60]).toBe("player_portrait");
+    expect(keys.slice(61, 61 + 29)).toEqual(ICON_KEYS);
+    expect(keys.slice(61 + 29)).toEqual(UI_WEAPON_KEYS);
     expect(UI_WEAPON_KEYS).toContain("ui_weapon_rocket_t4");
-    expect(new Set(keys).size).toBe(79 + 29 + 24);
+    expect(new Set(keys).size).toBe(61 + 29 + 24);
   });
 });
 
@@ -43,6 +43,14 @@ describe("preloadSprites", () => {
     const calls: [string, unknown][] = [];
     preloadSprites({ load: { svg: (k: string, _u: string, cfg?: unknown) => calls.push([k, cfg]) } } as unknown as Phaser.Scene);
     for (const k of [...ICON_KEYS, ...UI_WEAPON_KEYS]) expect(calls.find(([c]) => c === k)?.[1], k).toEqual({ scale: 2 });
+  });
+});
+
+describe("preloadBoss", () => {
+  it("queues the six frames of one boss only", () => {
+    const calls: string[] = [];
+    preloadBoss({ load: { svg: (k: string) => calls.push(k) } } as unknown as Phaser.Scene, "boss_onion");
+    expect(calls).toEqual(["idle0", "idle1", "hit", "volley", "charge", "lob"].map((f) => `boss_onion@${f}`));
   });
 });
 
