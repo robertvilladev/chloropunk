@@ -53,19 +53,23 @@ export class LevelUpScene extends Phaser.Scene {
     this.offered = [...this.choices];
     this.cameras.main.setBackgroundColor(THEME.bg);
     sfx("levelUp"); // once per level: the scene restarts for each pending level-up
-    onKeys(this, (e) => {
-      const digit = /^Digit([1-4])$/.exec(e.code);
-      if (digit) this.pick(Number(digit[1]) - 1);
-      else if (e.code === "KeyR") this.reroll();
-      else if (e.code === "ArrowLeft" || e.code === "ArrowRight") {
-        this.focus = (this.focus + (e.code === "ArrowLeft" ? 3 : 1)) % 4;
-        sfx("uiMove");
-        this.render();
-        this.preview(this.choices[this.focus]);
-      }
-    });
+    onKeys(this, (e) => this.onKey(e));
     this.ui = this.add.container(0, 0);
     this.render();
+  }
+
+  /** After a pick the screen is frozen (the stats already changed) until it moves on. */
+  private onKey(e: Pick<KeyboardEvent, "code">): void {
+    if (this.picked) return;
+    const digit = /^Digit([1-4])$/.exec(e.code);
+    if (digit) this.pick(Number(digit[1]) - 1);
+    else if (e.code === "KeyR") this.reroll();
+    else if (e.code === "ArrowLeft" || e.code === "ArrowRight") {
+      this.focus = (this.focus + (e.code === "ArrowLeft" ? 3 : 1)) % 4;
+      sfx("uiMove");
+      this.render();
+      this.preview(this.choices[this.focus]);
+    }
   }
 
   private roll(): UpgradeChoice[] {
@@ -84,6 +88,7 @@ export class LevelUpScene extends Phaser.Scene {
     };
     if (c.tier !== 4) return next();
     // Legendary (board U3): sound + effect, then move on once it has played
+    this.input.enabled = false; // REROLL button and card hovers too
     sfx(pickSound(c.tier, "uiConfirm"));
     legendaryPop(this, cardX(i), CARD_Y, CARD_W, CARD_H);
     this.time.delayedCall(LEGENDARY_MS, next);
@@ -106,6 +111,7 @@ export class LevelUpScene extends Phaser.Scene {
   }
 
   private preview(c: UpgradeChoice): void {
+    if (this.picked) return;
     const now = computeStats(this.run);
     const after = computeStats({
       ...this.run,

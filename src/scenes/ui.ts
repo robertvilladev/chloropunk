@@ -3,6 +3,8 @@ import { FONTS, THEME, THEME_CSS, numberStroke } from "@/config/theme";
 import { sfx } from "@/fx/sfx";
 import type { Tier } from "@/types";
 import { iconKey, type IconKind } from "@/art/icons";
+import { uiWeaponKey } from "@/art/textures";
+import { RENDER_SCALE } from "@/config/view";
 import Phaser from "phaser";
 
 export function text(
@@ -174,16 +176,16 @@ export function lockIcon(scene: Phaser.Scene, x: number, locked: boolean): Phase
 export interface IconArt { key: string; frame?: string; angle?: number }
 
 /** Icon art for a weapon (its sprite at the tier frame) or an item / stat icon. */
-export const weaponArt = (id: string, tier: Tier, angle = 0): IconArt => ({ key: `weapon_${id}`, frame: `t${tier}`, angle });
+export const weaponArt = (id: string, tier: Tier, angle = 0): IconArt => ({ key: uiWeaponKey(id, tier), angle });
 export const iconArt = (kind: IconKind, id: string): IconArt => ({ key: iconKey(kind, id) });
 
-/** Image of `art` scaled so its (rotated) bounds fit a `box` px square, centred on (x, y). */
+/** Image of `art` scaled so its (rotated) bounds fit a `box` px square, centred on (x, y); never past 1 texture px per device px. */
 export function fitImage(scene: Phaser.Scene, x: number, y: number, art: IconArt, box: number): Phaser.GameObjects.Image {
   const img = scene.add.image(x, y, art.key, art.frame).setAngle(art.angle ?? 0);
   const a = Phaser.Math.DegToRad(art.angle ?? 0);
   const bw = img.width * Math.abs(Math.cos(a)) + img.height * Math.abs(Math.sin(a));
   const bh = img.width * Math.abs(Math.sin(a)) + img.height * Math.abs(Math.cos(a));
-  return img.setScale(box / Math.max(bw, bh));
+  return img.setScale(Math.min(1 / RENDER_SCALE, box / Math.max(bw, bh)));
 }
 
 /** Framed icon window (board U3): dark well with a coloured rim, art fitted inside; (x, y) = top-left. */

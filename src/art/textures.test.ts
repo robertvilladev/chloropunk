@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildSpriteTextures, shadowEllipse, spriteFrameKeys, svgUri } from "./textures";
+import { UI_WEAPON_KEYS, buildSpriteTextures, preloadSprites, shadowEllipse, spriteFrameKeys, svgUri } from "./textures";
 import { frameSize } from "./body";
 import { ACTOR_KEYS, SPRITE_META } from "./vector";
 import { ICON_KEYS } from "./icons";
@@ -20,15 +20,26 @@ describe("svgUri", () => {
 describe("spriteFrameKeys", () => {
   it("lists every key@frame, the portrait, then the icons", () => {
     const keys = spriteFrameKeys();
-    expect(keys).toHaveLength(53 + 29);
+    expect(keys).toHaveLength(53 + 29 + 24);
     expect(keys[0]).toBe("player@walk0");
     expect(keys).toContain("enemy_potato@hit");
     expect(keys).toContain("pickup_scrap@1");
     expect(keys).toContain("weapon_rocket@t4");
     expect(keys).toContain("fx_beam@0");
     expect(keys[52]).toBe("player_portrait");
-    expect(keys.slice(53)).toEqual(ICON_KEYS);
-    expect(new Set(keys).size).toBe(53 + 29);
+    expect(keys.slice(53, 53 + 29)).toEqual(ICON_KEYS);
+    expect(keys.slice(53 + 29)).toEqual(UI_WEAPON_KEYS);
+    expect(UI_WEAPON_KEYS).toContain("ui_weapon_rocket_t4");
+    expect(new Set(keys).size).toBe(53 + 29 + 24);
+  });
+});
+
+describe("preloadSprites", () => {
+  // Card / HUD art is drawn up to ~54 design px (108 device px at RENDER_SCALE 2): bake it at 4x design so it is never upscaled
+  it("loads icons and UI weapon art at scale 2 (4x design px)", () => {
+    const calls: [string, unknown][] = [];
+    preloadSprites({ load: { svg: (k: string, _u: string, cfg?: unknown) => calls.push([k, cfg]) } } as unknown as Phaser.Scene);
+    for (const k of [...ICON_KEYS, ...UI_WEAPON_KEYS]) expect(calls.find(([c]) => c === k)?.[1], k).toEqual({ scale: 2 });
   });
 });
 
@@ -48,7 +59,7 @@ describe("buildSpriteTextures", () => {
     const ok = { textures: { ...scene.textures, exists: () => true } };
     filtered.length = 0;
     buildSpriteTextures(ok as unknown as Phaser.Scene);
-    expect(filtered).toEqual(expect.arrayContaining(ICON_KEYS));
+    expect(filtered).toEqual(expect.arrayContaining([...ICON_KEYS, ...UI_WEAPON_KEYS]));
   });
 });
 

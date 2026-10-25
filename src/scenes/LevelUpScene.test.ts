@@ -22,6 +22,7 @@ function scene(tier: 1 | 2 | 3 | 4) {
     rerolls: 0,
     picked: false,
     scene: { restart: go, start: go },
+    input: { enabled: true },
     time: { delayedCall: (_ms: number, fn: () => void) => fn() },
   });
   return { s, run, go };
@@ -49,5 +50,23 @@ describe("LevelUpScene.pick", () => {
     (s as unknown as { pick(i: number): void }).pick(0);
     expect(sfx).not.toHaveBeenCalledWith("legendary");
     expect(pop).not.toHaveBeenCalled();
+  });
+});
+
+describe("LevelUpScene input after a pick", () => {
+  it("arrow keys and hover previews do nothing while the legendary effect plays", () => {
+    const { s } = scene(4);
+    const render = vi.fn();
+    const diff = { removeAll: vi.fn() };
+    Object.assign(s, { render, diff, time: { delayedCall: () => {} } });
+    const sc = s as unknown as { pick(i: number): void; onKey(e: { code: string }): void; preview(c: unknown): void };
+    sc.pick(0);
+    sc.onKey({ code: "ArrowRight" });
+    sc.onKey({ code: "KeyR" });
+    sc.preview({ stat: "damage", tier: 4, amount: 16 });
+    expect(render).not.toHaveBeenCalled();
+    expect(diff.removeAll).not.toHaveBeenCalled();
+    expect(sfx).not.toHaveBeenCalledWith("uiMove");
+    expect((s as unknown as { input: { enabled: boolean } }).input.enabled).toBe(false);
   });
 });
