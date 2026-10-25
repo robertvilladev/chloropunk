@@ -10,8 +10,8 @@ export type SpriteKey = ActorKey | "pickup_scrap" | WeaponKey | ShotKey;
 /** Design px; (cx, cy) = body centre, feet = shadow row; (px, py) = weapon grip pivot. */
 export interface SpriteMeta { w: number; h: number; feet: number; cx: number; cy: number; px?: number; py?: number }
 
-const K = THEME_CSS.deep;
-const C = {
+export const K = THEME_CSS.deep;
+export const C = {
   pink: THEME_CSS.pink, pinkD: THEME_CSS.pink700, pinkL: THEME_CSS.pink300, skin: "#e0a77a", skinD: "#a8704a",
   cyan: "#4ff0ff", cyanD: "#1f9fc4", lime: THEME_CSS.lime, limeL: "#e9ff9a",
   jacket: THEME_CSS.faint, jacketD: THEME_CSS.line, slate: "#6b7088", metal: "#b8bdd4", metalD: "#6b7088", gun: "#3d4552",
@@ -22,25 +22,29 @@ const C = {
 const KEYLINE = { r: 1.2, color: THEME_CSS.text, op: 0.55 };
 
 let uid = 0;
-const ol = (w = 2.5) => ` stroke="${K}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
+/** Restart clip-path ids: every svg() string numbers its own from 1. */
+export const resetIds = (): void => {
+  uid = 0;
+};
+export const ol = (w = 2.5) => ` stroke="${K}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
 /** shape = an SVG element without fill and without its closing "/>". Shade fill, base copy shifted up-left, ink outline. */
-function part(shape: string, base: string, shade: string | null, k = 3, extra = "", w?: number): string {
+export function part(shape: string, base: string, shade: string | null, k = 3, extra = "", w?: number): string {
   const id = `c${++uid}`;
   return `<clipPath id="${id}">${shape}/></clipPath>${shape} fill="${shade || base}"/>` +
     `<g clip-path="url(#${id})"><g transform="translate(${-k * 0.8} ${-k})">${shape} fill="${base}"/></g>${extra}</g>` +
     `${shape} fill="none"${ol(w)}/>`;
 }
 /** Stroked detail; under = ink width beneath (0 = none). */
-const line = (d: string, color: string, w: number, under = 0) =>
+export const line = (d: string, color: string, w: number, under = 0) =>
   (under ? `<path d="${d}" fill="none"${ol(under)}/>` : "") +
   `<path d="${d}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
-const E = (cx: number, cy: number, rx: number, ry: number, rot = 0) =>
+export const E = (cx: number, cy: number, rx: number, ry: number, rot = 0) =>
   `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"${rot ? ` transform="rotate(${rot} ${cx} ${cy})"` : ""}`;
-const Rr = (x: number, y: number, w: number, h: number, r = 0) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}"`;
-const Pd = (d: string) => `<path d="${d}"`;
-const dot = (cx: number, cy: number, rx: number, ry: number, fill: string, rot = 0, op = 1) =>
+export const Rr = (x: number, y: number, w: number, h: number, r = 0) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}"`;
+export const Pd = (d: string) => `<path d="${d}"`;
+export const dot = (cx: number, cy: number, rx: number, ry: number, fill: string, rot = 0, op = 1) =>
   `${E(cx, cy, rx, ry, rot)} fill="${fill}"${op < 1 ? ` opacity="${op}"` : ""}/>`;
-const box = (x: number, y: number, w: number, h: number, r: number, fill: string, op = 1) =>
+export const box = (x: number, y: number, w: number, h: number, r: number, fill: string, op = 1) =>
   `${Rr(x, y, w, h, r)} fill="${fill}"${op < 1 ? ` opacity="${op}"` : ""}/>`;
 /** Hit-frame >< eyes. */
 const squint = (pts: number[][], s = 2.6) =>
@@ -170,7 +174,7 @@ function bolt(f: number): string {
 }
 
 // ---------- weapons (pointing right; px,py = grip pivot), projectiles, effects (board A1, approved 2026-10-25) ----------
-const AMB = { base: THEME_CSS.tier[3], d: "#b8741c", l: "#ffd98a" };
+export const AMB = { base: THEME_CSS.tier[3], d: "#b8741c", l: "#ffd98a" };
 /** 4-point flash. */
 function star(x: number, y: number, r: number, fill: string): string {
   const q = r * 0.32;
@@ -259,7 +263,7 @@ export const FRAMES: Record<SpriteKey, readonly string[]> = {
 };
 
 /** Keyline filter (dilated alpha, light rim under the art); hit = everything white, face swapped for >< eyes. */
-function wrap(w: number, h: number, inner: string, hit: string, keyline = true): string {
+export function wrap(w: number, h: number, inner: string, hit: string, keyline = true): string {
   const css = hit ? `<style>.hit [fill]:not([fill="none"]){fill:#fff}.hit .face{display:none}.hit [stroke]:not([stroke="${K}"]){stroke:#fff}</style>` : "";
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w * 2}" height="${h * 2}">${css}<defs>` +
     `<filter id="st" x="-25%" y="-25%" width="150%" height="150%"><feMorphology in="SourceAlpha" operator="dilate" radius="${KEYLINE.r}" result="d"/>` +
@@ -270,7 +274,7 @@ function wrap(w: number, h: number, inner: string, hit: string, keyline = true):
 
 /** SVG string for a texture key + frame (walk0/walk1/hit, scrap 0/1, weapons t1..t4, shots 0); width/height = 2x design px. */
 export function svg(key: SpriteKey, frame: string): string {
-  uid = 0;
+  resetIds();
   const { w, h } = SPRITE_META[key];
   if (key === "pickup_scrap") return wrap(w, h, bolt(+frame), "");
   if (key in X) {

@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { ART_SCALE, frameSize } from "./body";
+import { ICON_KEYS, ITEM_ICONS, STAT_ICONS, iconKey, iconSvg } from "./icons";
 import { ACTOR_KEYS, FRAMES, SPRITE_META, svg, type ActorKey, type SpriteKey } from "./vector";
 import { THEME } from "@/config/theme";
 
@@ -10,15 +11,18 @@ const PORTRAIT_SCALE = 4;
 /** Base64 because Phaser's loader decodes every data: URL with atob; the SVG strings are plain ASCII. */
 export const svgUri = (s: string): string => "data:image/svg+xml;base64," + btoa(s);
 
-/** Loader keys queued by preloadSprites: every key@frame, then player_portrait. */
+/** Loader keys queued by preloadSprites: every key@frame, then player_portrait, then the card/HUD icons. */
 export function spriteFrameKeys(): string[] {
-  return [...KEYS.flatMap((k) => FRAMES[k].map((f) => `${k}@${f}`)), "player_portrait"];
+  return [...KEYS.flatMap((k) => FRAMES[k].map((f) => `${k}@${f}`)), "player_portrait", ...ICON_KEYS];
 }
 
 /** Queue every frame as an SVG image at 2x design px (the svg width/height), plus the 8x portrait. */
 export function preloadSprites(scene: Phaser.Scene): void {
   for (const k of KEYS) for (const f of FRAMES[k]) scene.load.svg(`${k}@${f}`, svgUri(svg(k, f)));
   scene.load.svg("player_portrait", svgUri(svg("player", "walk0")), { scale: PORTRAIT_SCALE });
+  // Icons stay one texture each (icon_<kind>_<id>, 64 px), drawn down to card and HUD size
+  for (const id of ITEM_ICONS) scene.load.svg(iconKey("item", id), svgUri(iconSvg("item", id)));
+  for (const id of STAT_ICONS) scene.load.svg(iconKey("stat", id), svgUri(iconSvg("stat", id)));
 }
 
 /** Baked shadow in texture px: rx 0.36 w, ry rx/4, centred on the feet but lifted so it never clips at the frame bottom. */
@@ -55,6 +59,10 @@ export function buildSpriteTextures(scene: Phaser.Scene): void {
   }
   if (!scene.textures.exists("player_portrait")) throw new Error("sprite player_portrait failed to load");
   scene.textures.get("player_portrait").setFilter(Phaser.Textures.FilterMode.LINEAR);
+  for (const k of ICON_KEYS) {
+    if (!scene.textures.exists(k)) throw new Error(`sprite ${k} failed to load`);
+    scene.textures.get(k).setFilter(Phaser.Textures.FilterMode.LINEAR);
+  }
 }
 
 /** vignette: 800x600, transparent centre, danger-coloured edge (alpha 0.7 -> 0 over 90px). Canvas-safe. */
