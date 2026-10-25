@@ -83,7 +83,7 @@
 - [ ] **Step 3:** Docs: ROADMAP tick A5 (remove the "no enemy-to-enemy separation" carry-over), ARCHITECTURE (solids, `avoid`), ASSETS_GUIDE (`solid` in `arena.json`), addendum §2.4 outcome line.
 - [ ] **Step 4: Commit** `docs: obstacles`, open the PR to `main`.
 
-## Outcome (2026-10-24, owner playtest pending)
+## Outcome (2026-10-25)
 
 Shipped on `feat/arena-obstacles`: the 4 vents are `solid` (no crates: the vents already give kiting lanes; owner call). `WorldManager` puts static zones over them; player, enemies, enemy bolts (removed on hit) and scrap collide, player shots fly over. `core/arena` checks the size and 80 px gap rules (`solidRects`, `outsideSolids`). `avoid()` in `enemyBehaviors` runs after `steer` (dashes skip it and stop on the collider): separation from up to 6 neighbours from a per-frame spatial hash, then a slide around the solid.
 
@@ -91,6 +91,6 @@ Deviation from the plan: `avoid` takes a 7th argument, `mem: { turn }` (stored i
 
 Checked: in game, 24 mixed enemies sent past each vent (incl. the vent-1 pocket) had no enemy still for more than 0.25 s; the player stops on the vent face; 1800 spawn points, 200 dev spawns and a scrap drop on a vent all landed outside; 150 peas at 64–67 fps (pane), `updateEnemies` 0.46 ms per frame. Playtest seeds 1–3 vs `main`, both won all 3: fitted contactRate 2.38 vs 2.77 (−14%, no sim factor added), kills in waves 1–5 the same, waves 6–10 lower (median 17/22/18/11/7% vs 24/27/24/17/17%), likely separation spreading the 40-alive crowd so fewer shots multi-hit. Three runs are noisy, so it's left for the economy pass and the owner playtest.
 
-Owner check (2026-10-25): logic fine, but the flat vents didn't read apart from the floor decor, so solids are now drawn as raised blocks (shadow, dark front face with hazard stripes, lighter top, bright violet rim).
+Owner check (2026-10-25): logic fine, but the flat vents didn't read apart from the floor decor, so solids are now drawn as raised blocks (shadow, dark front face with hazard stripes, lighter top, bright violet rim). Owner approved A5 after that change (2026-10-25).
 
 Carry-overs: the late-wave kill drop above; the boss charge (M4b) collides with the same static group (`WorldManager.getSolids()`).
