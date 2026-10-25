@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { UI_WEAPON_KEYS, buildSpriteTextures, preloadSprites, shadowEllipse, spriteFrameKeys, svgUri } from "./textures";
+import { UI_WEAPON_KEYS, buildSpriteTextures, preloadSprites, shadowEllipse, spriteFrameKeys, svgUri, preloadBoss } from "./textures";
 import { frameSize } from "./body";
-import { ACTOR_KEYS, SPRITE_META } from "./vector";
+import { ACTOR_KEYS, SPRITE_META, BOSS_KEYS } from "./vector";
 import { ICON_KEYS } from "./icons";
 
 // textures.ts only uses Phaser through the scene it is given (plus one filter-mode constant)
@@ -20,17 +20,20 @@ describe("svgUri", () => {
 describe("spriteFrameKeys", () => {
   it("lists every key@frame, the portrait, then the icons", () => {
     const keys = spriteFrameKeys();
-    expect(keys).toHaveLength(53 + 29 + 24);
+    expect(keys).toHaveLength(61 + 29 + 24);
     expect(keys[0]).toBe("player@walk0");
     expect(keys).toContain("enemy_potato@hit");
     expect(keys).toContain("pickup_scrap@1");
     expect(keys).toContain("weapon_rocket@t4");
     expect(keys).toContain("fx_beam@0");
-    expect(keys[52]).toBe("player_portrait");
-    expect(keys.slice(53, 53 + 29)).toEqual(ICON_KEYS);
-    expect(keys.slice(53 + 29)).toEqual(UI_WEAPON_KEYS);
+    expect(keys).toContain("enemy_pepper@tell");
+    expect(keys.some((k) => k.startsWith("boss_")), "bosses load per run, not at boot").toBe(false);
+    expect(keys).toContain("bproj_bulb@0");
+    expect(keys[60]).toBe("player_portrait");
+    expect(keys.slice(61, 61 + 29)).toEqual(ICON_KEYS);
+    expect(keys.slice(61 + 29)).toEqual(UI_WEAPON_KEYS);
     expect(UI_WEAPON_KEYS).toContain("ui_weapon_rocket_t4");
-    expect(new Set(keys).size).toBe(53 + 29 + 24);
+    expect(new Set(keys).size).toBe(61 + 29 + 24);
   });
 });
 
@@ -40,6 +43,15 @@ describe("preloadSprites", () => {
     const calls: [string, unknown][] = [];
     preloadSprites({ load: { svg: (k: string, _u: string, cfg?: unknown) => calls.push([k, cfg]) } } as unknown as Phaser.Scene);
     for (const k of [...ICON_KEYS, ...UI_WEAPON_KEYS]) expect(calls.find(([c]) => c === k)?.[1], k).toEqual({ scale: 2 });
+  });
+});
+
+describe("preloadBoss", () => {
+  it("queues the twelve frames (both phases) of one boss only", () => {
+    const calls: string[] = [];
+    preloadBoss({ load: { svg: (k: string) => calls.push(k) } } as unknown as Phaser.Scene, "boss_onion");
+    const poses = ["idle0", "idle1", "hit", "volley", "charge", "lob"];
+    expect(calls).toEqual([...poses, ...poses.map((f) => `${f}_p2`)].map((f) => `boss_onion@${f}`));
   });
 });
 
@@ -65,7 +77,7 @@ describe("buildSpriteTextures", () => {
 
 describe("shadowEllipse", () => {
   it("keeps every actor shadow whole inside its frame, under the feet", () => {
-    for (const k of ACTOR_KEYS) {
+    for (const k of [...ACTOR_KEYS, ...BOSS_KEYS]) {
       const s = shadowEllipse(k);
       expect(s.cy + s.ry, k).toBeLessThanOrEqual(frameSize(k).h);
       expect(s.rx, k).toBeCloseTo(SPRITE_META[k].w * 0.36 * 2);
