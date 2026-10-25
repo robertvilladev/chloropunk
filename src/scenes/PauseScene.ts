@@ -42,7 +42,7 @@ export class PauseScene extends Phaser.Scene {
     this.add.rectangle(0, 0, width, height, THEME.bg, 0.7).setOrigin(0).setInteractive();
     scanlines(this);
     const pw = 420, ph = PANEL_H;
-    panel(this, width / 2 - pw / 2, height / 2 - ph / 2, pw, ph, { border: THEME.lime, shadow: true });
+    panel(this, width / 2 - pw / 2, height / 2 - ph / 2, pw, ph, { frame: THEME.lime, shadow: THEME.pink });
 
     onKeys(this, (e) => {
       if (e.code === "KeyP") this.resume();

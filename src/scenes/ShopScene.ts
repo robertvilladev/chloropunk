@@ -22,7 +22,7 @@ import weaponDefs from "@assets/data/weapons.json";
 import Phaser from "phaser";
 import { truncate } from "@/core/labels";
 import { sfx } from "@/fx/sfx";
-import { button, lockIcon, lockedTab, onKeys, panel, text, tierTab } from "./ui";
+import { button, lockIcon, lockedTab, num, onKeys, panel, text, tierTab } from "./ui";
 
 const weapons = weaponDefs as Record<string, WeaponDef>;
 const items = itemDefs as Record<string, ItemDef>;
@@ -243,16 +243,16 @@ export class ShopScene extends Phaser.Scene {
     add(text(this, 24, 24, `WAVE ${String(this.run.wave).padStart(2, "0")} CLEARED`, 10, THEME_CSS.textMuted));
     add(this.add.text(24, 40, "BLACK MARKET", { fontFamily: FONTS.display, fontSize: "28px", color: THEME_CSS.text }));
     const cost = rerollCost(this.run.wave, this.shop.rerolls);
-    add(panel(this, 500, 28, 128, 44, { border: THEME.line, fill: THEME.surface2 }));
+    add(panel(this, 500, 28, 128, 44, { fill: THEME.surface2 }));
     add(this.add.rectangle(518, 50, 10, 10, THEME.lime).setAngle(45));
-    add(text(this, 620, 50, `${this.run.scrap}`, 28, THEME_CSS.lime, "pixel").setOrigin(1, 0.5));
+    add(num(this, 620, 50, `${this.run.scrap}`, 24, THEME_CSS.lime).setOrigin(1, 0.5));
     add(button(this, 704, 50, `REROLL ${cost}`, () => this.reroll(), false, this.run.scrap >= cost, { w: 120, h: 44, size: 13 }));
 
     this.shop.offers.forEach((o, i) => this.renderOffer(add, o, i, stats));
 
     // Weapons panel
     const pairs = combinePairs(this.run.weapons);
-    add(panel(this, 24, 292, 536, 236, { border: THEME.line, fill: THEME.surface2 }));
+    add(panel(this, 24, 292, 536, 236, { fill: THEME.surface2 }));
     add(text(this, 36, 302, `WEAPONS ${this.run.weapons.length} / 6`, 10, THEME_CSS.textMuted));
     add(text(this, 548, 302, "TAB FOCUS · S SELL · C COMBINE", 10, THEME_CSS.textMuted).setOrigin(1, 0));
     for (let i = 0; i < 6; i++) {
@@ -287,7 +287,7 @@ export class ShopScene extends Phaser.Scene {
     );
 
     // Stats panel
-    add(panel(this, 576, 292, 200, 236, { border: THEME.line, fill: THEME.surface2 }));
+    add(panel(this, 576, 292, 200, 236, { fill: THEME.surface2 }));
     add(text(this, 588, 302, "STATS", 10, THEME_CSS.textMuted));
     this.statBox = add(this.add.container(588, 322));
     this.drawStats();

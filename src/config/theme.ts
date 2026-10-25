@@ -48,8 +48,17 @@ export const THEME = {
   tier: TIER_HEX.map(num),
 };
 
+/** No pixel font (UI art refresh, 2026-10-25): Bungee for titles and every big number, Plex Mono for the rest. */
 export const FONTS = {
   display: "Bungee, Impact, sans-serif",
   ui: "IBM Plex Mono, monospace",
-  pixel: "VT323, monospace",
+} as const;
+
+/** Ink stroke under Bungee numbers so they read over the floor (board U1). */
+export const numberStroke = (size: number): number => (size >= 24 ? 3 : 2);
+
+/** Damage numbers (board U1): white hits, bigger amber crits that pop (scale `pop` -> 1) before floating. */
+export const DAMAGE_NUMBER = {
+  normal: { fontFamily: FONTS.display, fontSize: "16px", color: HEX.text, stroke: HEX.deep, strokeThickness: 2, pop: 1 },
+  crit: { fontFamily: FONTS.display, fontSize: "22px", color: TIER_HEX[3], stroke: HEX.deep, strokeThickness: 3, pop: 1.4 },
 } as const;

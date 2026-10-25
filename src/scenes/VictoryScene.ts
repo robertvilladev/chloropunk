@@ -29,7 +29,7 @@ export class VictoryScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(THEME.bg);
     scanlines(this);
     const pw = 460, ph = 330;
-    panel(this, cx - pw / 2, height / 2 - ph / 2, pw, ph, { border: THEME.lime, shadow: true });
+    panel(this, cx - pw / 2, height / 2 - ph / 2, pw, ph, { frame: THEME.lime, shadow: THEME.pink });
     text(this, cx, height / 2 - 120, "ROUND COMPLETE", 40, THEME_CSS.lime, "display").setOrigin(0.5);
     statTile(this, cx - 130, height / 2 - 55, "ENEMIES DEFEATED", String(this.enemiesKilled));
     statTile(this, cx + 30, height / 2 - 55, "SCRAP EARNED", String(this.scrapEarned), THEME_CSS.pink);

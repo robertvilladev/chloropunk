@@ -50,7 +50,7 @@ export class LoadoutScene extends Phaser.Scene {
       const face = this.add.rectangle(x, TOP, 160, H, THEME.surface).setOrigin(0);
       faces.push(face);
       this.add.rectangle(x + 16, TOP + 16, 128, 72, THEME.surface2).setOrigin(0);
-      text(this, x + 80, TOP + 52, String(i + 1), 40, THEME_CSS.faint, "pixel").setOrigin(0.5);
+      text(this, x + 80, TOP + 52, String(i + 1), 40, THEME_CSS.faint, "display").setOrigin(0.5);
       text(this, x + 16, TOP + 104, def.name.toUpperCase(), 14, THEME_CSS.text, "display").setWordWrapWidth(128);
       text(this, x + 16, TOP + 152, [...def.tags, def.behavior.replace(/^melee-?/, "")].filter(Boolean).join(" · ").toUpperCase(), 9, THEME_CSS.textMuted)
         .setLetterSpacing(1.2)
@@ -91,7 +91,7 @@ export class LoadoutScene extends Phaser.Scene {
   }
 
   private characterPanel(): void {
-    panel(this, 32, TOP, 200, H, { fill: THEME.surface2 }).setStrokeStyle(2, THEME.line);
+    panel(this, 32, TOP, 200, H, { fill: THEME.surface2 });
     text(this, 48, TOP + 16, character.title, 10, THEME_CSS.textMuted).setLetterSpacing(1.4);
     this.add.image(132, TOP + 94, "player_portrait").setScale(1 / 3); // -> 128 design px
     text(this, 48, TOP + 168, character.name.toUpperCase(), 16, THEME_CSS.text, "display");

@@ -9,7 +9,7 @@ import type { RunState } from "@/types";
 import Phaser from "phaser";
 import { truncate } from "@/core/labels";
 import { sfx } from "@/fx/sfx";
-import { button, onKeys, panel, text, tierTab } from "./ui";
+import { button, num, onKeys, panel, text, tierTab } from "./ui";
 
 /**
  * LevelUpScene - one pick per pending level (1 of 4 stat upgrades, paid
@@ -119,7 +119,7 @@ export class LevelUpScene extends Phaser.Scene {
     add(text(this, 32, 32, `LEVEL ${this.run.level} REACHED · ${pick} OF ${this.total} PICKS`, 10, THEME_CSS.lime));
     add(this.add.text(32, 50, "UPGRADE", { fontFamily: FONTS.display, fontSize: "34px", color: THEME_CSS.text }));
     const cost = rerollCost(this.run.wave, this.rerolls);
-    add(text(this, 612, 62, `◆ ${this.run.scrap}`, 24, THEME_CSS.lime, "pixel").setOrigin(1, 0.5));
+    add(num(this, 612, 62, `${this.run.scrap}`, 20, THEME_CSS.lime).setOrigin(1, 0.5));
     add(button(this, 700, 62, `REROLL ${cost}`, () => this.reroll(), false, this.run.scrap >= cost, { w: 124, h: 44, size: 13 }));
 
     this.choices.forEach((c, i) => {
@@ -135,13 +135,13 @@ export class LevelUpScene extends Phaser.Scene {
         this.add
           .text(x + 14, y + 44, truncate(STAT_LABELS[c.stat].toUpperCase(), 24), { fontFamily: FONTS.display, fontSize: "14px", color: THEME_CSS.text, wordWrap: { width: 144 } })
       );
-      add(text(this, x + 14, y + 110, `+${c.amount}`, 56, THEME_CSS.lime, "pixel"));
+      add(num(this, x + 14, y + 120, `+${c.amount}`, 32, THEME_CSS.lime));
       card.setInteractive({ useHandCursor: true });
       card.on("pointerover", () => this.preview(c));
       card.on("pointerdown", () => this.pick(i));
     });
 
-    add(panel(this, 32, 492, 736, 60, { border: THEME.line, fill: THEME.surface2 }));
+    add(panel(this, 32, 492, 736, 60, { fill: THEME.surface2 }));
     this.diff = add(this.add.container(48, 514));
     this.info = add(text(this, 48, 514, "Hover or ←/→ to preview · 1-4 pick · R reroll", 12, THEME_CSS.textMuted));
   }

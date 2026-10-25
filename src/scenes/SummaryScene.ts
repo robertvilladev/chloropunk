@@ -7,7 +7,7 @@ import { sfx } from "@/fx/sfx";
 import type { RunState } from "@/types";
 import itemDefs from "@assets/data/items.json";
 import Phaser from "phaser";
-import { button, onKeys, panel, scanlines, text } from "./ui";
+import { button, num, onKeys, panel, scanlines, text } from "./ui";
 
 const PW = 560, PAD = 28, INNER = PW - 2 * PAD;
 const WEAPON_CHIP = 40, ITEM_CHIP = 28, CHIP_GAP = 6;
@@ -46,7 +46,7 @@ export class SummaryScene extends Phaser.Scene {
     const { WIDTH: W, HEIGHT: H } = GAME_CONFIG;
     const ph = 420, px = W / 2 - PW / 2, py = H / 2 - ph / 2;
     const x = px + PAD;
-    panel(this, px, py, PW, ph, { border: accent, shadow: true }).setStrokeStyle(2, accent);
+    panel(this, px, py, PW, ph, { frame: accent, shadow: THEME.pink });
 
     let y = py + PAD;
     text(this, x, y, `${win ? "DISTRICT CLEARED" : "SIGNAL LOST"} · WAVE ${pad2(s.wave)}`, 10, accentCss).setLetterSpacing(1.8);
@@ -74,7 +74,7 @@ export class SummaryScene extends Phaser.Scene {
       const tx = x + i * (tw + 8);
       this.add.rectangle(tx, y, tw, 58, THEME.surface2).setOrigin(0);
       text(this, tx + 10, y + 10, label, 9, THEME_CSS.textMuted).setLetterSpacing(1.2);
-      text(this, tx + 10, y + 22, value, 32, color, "pixel");
+      num(this, tx + 10, y + 24, value, 20, color);
     });
     y += 58 + 22;
 
@@ -122,7 +122,7 @@ export class SummaryScene extends Phaser.Scene {
     if (fit < s.items.length) {
       const [cx, cy] = at(fit);
       chip(cx, cy, ITEM_CHIP, THEME.line);
-      text(this, cx + ITEM_CHIP / 2, cy + ITEM_CHIP / 2, `+${s.items.length - fit}`, 16, THEME_CSS.textMuted, "pixel").setOrigin(0.5);
+      text(this, cx + ITEM_CHIP / 2, cy + ITEM_CHIP / 2, `+${s.items.length - fit}`, 12, THEME_CSS.textMuted, "display").setOrigin(0.5);
     }
     return rows === 1 ? WEAPON_CHIP : 2 * ITEM_CHIP + CHIP_GAP;
   }

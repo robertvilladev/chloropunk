@@ -1,7 +1,7 @@
 import { ART_SCALE } from "@/art/body";
 import { BLAST_R } from "@/art/vector";
 import { DEPTH } from "@/config/constants";
-import { FONTS, THEME_CSS } from "@/config/theme";
+import { DAMAGE_NUMBER } from "@/config/theme";
 import { loadSettings } from "@/core/settings";
 import Phaser from "phaser";
 import { sfx } from "./sfx";
@@ -50,11 +50,7 @@ export class Juice {
     let t = pool[this.next[kind]];
     if (!t) {
       t = this.scene.add
-        .text(0, 0, "", {
-          fontFamily: FONTS.pixel,
-          fontSize: crit ? "36px" : "24px",
-          color: crit ? THEME_CSS.lime : THEME_CSS.text,
-        })
+        .text(0, 0, "", DAMAGE_NUMBER[kind])
         .setOrigin(0.5)
         .setDepth(DEPTH.NUMBERS);
       pool[this.next[kind]] = t;
@@ -62,10 +58,14 @@ export class Juice {
     this.next[kind] = (this.next[kind] + 1) % MAX_NUMBERS;
 
     this.scene.tweens.killTweensOf(t);
+    const pop = DAMAGE_NUMBER[kind].pop;
     t.setText(String(Math.round(amount)))
       .setPosition(x, y)
       .setAlpha(1)
+      .setScale(pop > 1 ? 0.6 : 1)
       .setVisible(true);
+    // Crit pop (board U1): 0.6 -> 1.4 -> 1 in the first 100 ms, alongside the float
+    if (pop > 1) this.scene.tweens.chain({ targets: t, tweens: [{ scale: pop, duration: 50 }, { scale: 1, duration: 50 }] });
     this.scene.tweens.add({
       targets: t,
       y: y - 24,
