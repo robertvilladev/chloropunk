@@ -3,6 +3,7 @@ import { ART_SCALE, feetOffset, fitBox, fitCircle, frameSize } from "./body";
 import { SPRITE_META, type SpriteKey } from "./vector";
 import enemies from "@assets/data/enemies.json";
 import { SPAWN_MARGIN } from "@/managers/EnemyManager";
+import { HIT_SIZE } from "@/config/constants";
 
 // EnemyManager only uses Phaser through the scene it is given
 vi.mock("phaser", () => ({ default: {} }));
@@ -64,6 +65,24 @@ describe("fitBox", () => {
     expect(rec.size).toEqual([64, 64]);
     expect(rec.offset).toEqual([48 - 32, 64 - 32]);
     expect(rec.offset[1] + 64).toBeLessThanOrEqual(frameSize("player").h);
+  });
+});
+
+describe("projectile hit boxes", () => {
+  it("keep their sizes from before the art refresh", () => {
+    expect(HIT_SIZE).toEqual({ projectile_basic: [8, 8], enemy_bolt: [8, 8], proj_pellet: [6, 6], proj_rocket: [10, 6] });
+  });
+
+  it("are centred inside the bigger projectile frames", () => {
+    for (const [key, [w, h]] of Object.entries(HIT_SIZE) as [SpriteKey, [number, number]][]) {
+      const { s, rec } = fake();
+      fitBox(s, key, w, h);
+      const f = frameSize(key);
+      expect(rec.scale, key).toBe(0.5);
+      expect(rec.size, key).toEqual([w * 2, h * 2]);
+      expect(rec.offset[0] * 2 + w * 2, key).toBeCloseTo(f.w);
+      expect(rec.offset[1] * 2 + h * 2, key).toBeCloseTo(f.h);
+    }
   });
 });
 

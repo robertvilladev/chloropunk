@@ -1,14 +1,14 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
-import { FRAMES, SPRITE_META, svg, type SpriteKey } from "./vector";
+import { ACTOR_KEYS, FRAMES, SPRITE_META, WEAPON_IDS, svg, weaponFrame, type SpriteKey } from "./vector";
 
 const KEYS = Object.keys(SPRITE_META) as SpriteKey[];
-const ACTORS = KEYS.filter((k) => k !== "pickup_scrap");
+const ACTORS = ACTOR_KEYS;
 const all = KEYS.flatMap((k) => FRAMES[k].map((f) => ({ k, f, s: svg(k, f) })));
 
 describe("vector sprites", () => {
   it("every key and frame builds an svg at 2x", () => {
-    expect(all.length).toBe(20);
+    expect(all.length).toBe(52);
     for (const { k, f, s } of all) {
       const { w, h } = SPRITE_META[k];
       expect(s.startsWith("<svg"), `${k}@${f}`).toBe(true);
@@ -55,6 +55,28 @@ describe("vector sprites", () => {
     const total = all.reduce((n, { s }) => n + s.length, 0);
     expect(total).toBeLessThan(300 * 1024);
     for (const { k, f, s } of all) expect(s.length, `${k}@${f}`).toBeLessThan(16 * 1024);
+  });
+
+  it("every weapon has four tier frames that differ", () => {
+    expect(WEAPON_IDS).toEqual(["pistol", "shotgun", "laser", "blade", "drone", "rocket"]);
+    for (const id of WEAPON_IDS) {
+      const key = `weapon_${id}` as SpriteKey;
+      expect(FRAMES[key], key).toEqual(["t1", "t2", "t3", "t4"]);
+      expect(new Set(FRAMES[key].map((f) => svg(key, f))).size, key).toBe(4);
+    }
+    expect([1, 2, 3, 4].map((t) => weaponFrame(t as 1 | 2 | 3 | 4))).toEqual(["t1", "t2", "t3", "t4"]);
+  });
+
+  it("weapon grip pivots sit inside the frame", () => {
+    for (const id of WEAPON_IDS) {
+      const m = SPRITE_META[`weapon_${id}` as SpriteKey];
+      expect(m.px! > 0 && m.px! < m.w && m.py! > 0 && m.py! < m.h, id).toBe(true);
+    }
+  });
+
+  it("the laser beam tile has no keyline, so tiles join without seams", () => {
+    expect(svg("fx_beam", "0")).not.toContain("filter=");
+    expect(svg("projectile_basic", "0")).toContain('filter="url(#st)"');
   });
 
   it("body centre sits inside the frame", () => {

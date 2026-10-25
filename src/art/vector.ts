@@ -6,9 +6,9 @@ import { THEME_CSS } from "@/config/theme";
  * Port of the approved canvas file project/vector.js (https://claude.ai/artifact/TnsQjaTcJEYoShEC5AyMXM).
  */
 export type ActorKey = "player" | "enemy_pea" | "enemy_pepper" | "enemy_potato" | "enemy_carrot" | "enemy_tomato";
-export type SpriteKey = ActorKey | "pickup_scrap";
-/** Design px; (cx, cy) = body centre, feet = shadow row. */
-export interface SpriteMeta { w: number; h: number; feet: number; cx: number; cy: number }
+export type SpriteKey = ActorKey | "pickup_scrap" | WeaponKey | ShotKey;
+/** Design px; (cx, cy) = body centre, feet = shadow row; (px, py) = weapon grip pivot. */
+export interface SpriteMeta { w: number; h: number; feet: number; cx: number; cy: number; px?: number; py?: number }
 
 const K = THEME_CSS.deep;
 const C = {
@@ -169,31 +169,120 @@ function bolt(f: number): string {
     dot(12, 12, 1.1, 1.1, f ? C.limeL : C.lime) + (f ? line("M6,8 L9,6.2", C.white, 1.2) : "");
 }
 
+// ---------- weapons (pointing right; px,py = grip pivot), projectiles, effects (board A1, approved 2026-10-25) ----------
+const AMB = { base: THEME_CSS.tier[3], d: "#b8741c", l: "#ffd98a" };
+/** 4-point flash. */
+function star(x: number, y: number, r: number, fill: string): string {
+  const q = r * 0.32;
+  return `${Pd(`M${x},${y - r} L${x + q},${y - q} L${x + r},${y} L${x + q},${y + q} L${x},${y + r} L${x - q},${y + q} L${x - r},${y} L${x - q},${y - q} Z`)} fill="${fill}"/>`;
+}
+const n1 = (v: number) => Math.round(v * 10) / 10;
+/** Tapered capsule from (x1,y1) radius r1 to (x2,y2) radius r2. */
+function cone(x1: number, y1: number, r1: number, x2: number, y2: number, r2: number): string {
+  const dx = x2 - x1, dy = y2 - y1, l = Math.hypot(dx, dy) || 1, nx = -dy / l, ny = dx / l;
+  return Pd(`M${n1(x1 + nx * r1)},${n1(y1 + ny * r1)} L${n1(x2 + nx * r2)},${n1(y2 + ny * r2)} A${r2},${r2} 0 0 1 ${n1(x2 - nx * r2)},${n1(y2 - ny * r2)}` +
+    ` L${n1(x1 - nx * r1)},${n1(y1 - ny * r1)} A${r1},${r1} 0 0 1 ${n1(x1 + nx * r1)},${n1(y1 + ny * r1)} Z`);
+}
+
+export const WEAPON_IDS = ["pistol", "shotgun", "laser", "blade", "drone", "rocket"] as const;
+export type WeaponKey = `weapon_${(typeof WEAPON_IDS)[number]}`;
+export type ShotKey = "projectile_basic" | "proj_pellet" | "proj_rocket" | "enemy_bolt" | "fx_muzzle" | "fx_swoosh" | "fx_beam" | "fx_blast";
+/** Tier trim is baked: frame t1..t4. */
+export const weaponFrame = (tier: 1 | 2 | 3 | 4): string => `t${tier}`;
+
+/** flat = no keyline (the beam tile must join seamlessly); draw gets the tier colour (weapons only). */
+interface Misc { w: number; h: number; px?: number; py?: number; flat?: boolean; draw: (t: string) => string }
+const X: Record<WeaponKey | ShotKey, Misc> = {
+  weapon_pistol: { w: 24, h: 14, px: 6, py: 9, draw: (t) =>
+    part(Pd("M4,8 L10,8 L9,13.5 L3.5,13.5 Z"), C.gun, C.jacketD, 1.2) + line("M9.5,9 Q11.5,12.5 13.5,9", K, 1.2) +
+    part(Rr(2, 3, 19, 6, 2), C.slate, C.gun, 2, box(2, 3, 19, 1.6, 0, C.metal)) + box(5, 5.4, 12, 1.8, 0.9, t) +
+    part(Rr(20, 3.8, 3.5, 4.4, 1), C.gun, null, 0, "", 1.6) + box(22.4, 4.7, 1.2, 2.6, 0.5, t) },
+  weapon_shotgun: { w: 34, h: 14, px: 9, py: 9, draw: (t) =>
+    part(Pd("M1,5 L9,5 L10,10.5 L2.5,12.5 Z"), C.slate, C.gun, 1.5, dot(4, 8, 0.8, 0.8, K)) +
+    part(Rr(15, 2.8, 17, 3.2, 1.2), C.metal, C.metalD, 1, "", 1.6) + part(Rr(15, 6.2, 17, 3.2, 1.2), C.metal, C.metalD, 1, "", 1.6) +
+    box(31, 3, 1.6, 6.2, 0.5, t) +
+    part(Rr(8, 3.5, 9, 7.5, 1.5), C.slate, C.gun, 2, box(9.2, 6, 6.5, 2, 0.6, t) + dot(10, 9.3, 0.6, 0.6, K) + dot(15, 9.3, 0.6, 0.6, K)) +
+    part(Rr(18, 8.6, 9, 4.2, 1.6), C.gun, C.jacketD, 1, box(19.4, 9.8, 6.2, 1.2, 0.6, t), 1.8) + line("M11,11 L10,13.2", K, 1.4) },
+  weapon_laser: { w: 30, h: 16, px: 7, py: 10, draw: (t) =>
+    part(Pd("M5,10 L11,10 L10,15 L4.5,15 Z"), C.gun, C.jacketD, 1.2) +
+    part(Rr(19, 5.5, 8, 5, 2), C.gun, null, 0, [20.5, 23].map((x) => box(x, 5.5, 1.4, 5, 0.4, t)).join(""), 1.8) +
+    part(Pd("M2,6.5 C2,3.5 5,2.5 8,2.5 L17,2.5 L21,5 L21,11 L17,13 L8,13 C5,13 2,12 2,9.5 Z"), C.metal, C.metalD, 2.5,
+      box(4, 3.2, 13, 1.4, 0.7, C.white, 0.5) + box(5, 6.2, 9, 3.4, 1.7, K) + box(6, 7.1, 7, 1.6, 0.8, t)) +
+    dot(28, 8, 3.4, 3.4, t, 0, 0.35) + dot(28, 8, 1.7, 2.2, t) + dot(27.6, 7.2, 0.6, 0.6, C.white) },
+  weapon_blade: { w: 42, h: 12, px: 5, py: 6, draw: (t) =>
+    part(Rr(0.8, 4.5, 8, 3, 1.5), C.gun, C.jacketD, 1, line("M3,4.6 L4,7.4 M5.5,4.6 L6.5,7.4", K, 0.8), 1.8) +
+    part(Pd("M10,4 L35,4 C38.5,4 40.5,5 41,6 C39.5,7.6 36.5,8 33,8 L10,8 Z"), C.metal, C.metalD, 1.2, box(11, 4.2, 22, 1, 0.5, C.white, 0.7), 1.8) +
+    line("M11,7.3 L33,7.3 C36.5,7.2 39,6.8 40.4,6.2", t, 1.2) + part(Rr(7.6, 1.2, 2.8, 9.6, 1), C.slate, C.gun, 0.8, "", 1.8) + dot(9, 6, 0.9, 0.9, t) },
+  weapon_drone: { w: 24, h: 24, px: 12, py: 12, draw: (t) => {
+    const r = [[5, 5], [19, 5], [5, 19], [19, 19]];
+    return r.map((p) => line(`M12,12 L${p[0]},${p[1]}`, C.gun, 2.2, 4)).join("") +
+      r.map((p) => dot(p[0], p[1], 4.4, 4.4, C.metal, 0, 0.35) + part(E(p[0], p[1], 2.2, 2.2), C.slate, C.gun, 0.6, "", 1.6)).join("") +
+      part(E(12, 12, 6.4, 6.4), C.slate, C.gun, 2, `<circle cx="12" cy="12" r="4.4" fill="none" stroke="${t}" stroke-width="1.4"/>`) +
+      dot(14, 12, 2.4, 2.4, K) + dot(14.4, 12, 1.4, 1.4, C.cyan) + dot(13.9, 11.4, 0.5, 0.5, C.white);
+  } },
+  weapon_rocket: { w: 34, h: 14, px: 11, py: 9, draw: (t) =>
+    part(Pd("M9,10 L14,10 L13,14 L8.5,14 Z"), C.gun, C.jacketD, 1.2) +
+    part(Pd("M26,4.2 L29,4.2 C31.5,4.2 33,6 33,7.2 C33,8.4 31.5,10.2 29,10.2 L26,10.2 Z"), C.red, C.redD, 1.2, "", 1.8) +
+    part(Pd("M1,2.5 L5,4 L5,10 L1,11.5 Z"), C.gun, null, 0, "", 1.8) +
+    part(Rr(4, 3, 23, 8.4, 3), C.jacket, C.jacketD, 2, box(4, 3, 23, 1.8, 0, C.slate) + box(8, 3, 2.4, 8.4, 0, t) + box(21, 3, 2.4, 8.4, 0, t)) +
+    part(Rr(12, 0.8, 6, 2.4, 0.8), C.gun, null, 0, "", 1.4) + dot(17.4, 2, 0.7, 0.7, C.lime) },
+  projectile_basic: { w: 12, h: 8, draw: () => box(0.5, 1, 11, 6, 3, C.cyan, 0.4) + box(2, 2.4, 9, 3.2, 1.6, C.cyan) + box(5, 3.2, 5.4, 1.6, 0.8, C.white) },
+  proj_pellet: { w: 8, h: 8, draw: () => dot(4, 4, 3.6, 3.6, AMB.base, 0, 0.45) + part(E(4, 4, 2.3, 2.3), AMB.l, AMB.base, 0.8, "", 1.2) + dot(4.6, 3.4, 0.7, 0.7, C.white) },
+  proj_rocket: { w: 18, h: 10, draw: () =>
+    `${Pd("M5,3.5 L0,5 L5,6.5 Z")} fill="${C.flame}"/>` + dot(4, 5, 3, 2.4, C.orange, 0, 0.6) +
+    part(Pd("M5,3 L13,3 C15.5,3 17,4 17,5 C17,6 15.5,7 13,7 L5,7 Z"), C.metal, C.metalD, 1, box(12, 3, 2, 4, 0, C.red), 1.4) +
+    part(Pd("M5,3 L8,3 L6,0.8 L4.4,0.8 Z"), C.red, null, 0, "", 1.2) + part(Pd("M5,7 L8,7 L6,9.2 L4.4,9.2 Z"), C.red, null, 0, "", 1.2) },
+  // orange-red (owner 2026-10-25): an enemy shot reads as danger, not like the cyan pistol bolt
+  enemy_bolt: { w: 10, h: 10, draw: () => dot(5, 5, 4.6, 4.6, C.red, 0, 0.4) + dot(5, 5, 3, 3, C.orange) + dot(5, 5, 1.5, 1.5, C.flame) },
+  fx_muzzle: { w: 14, h: 14, draw: () => dot(7, 7, 6, 6, C.flame, 0, 0.35) + star(7, 7, 6.5, C.flame) + dot(7, 7, 2, 2, C.white) },
+  /** Arc centre at (4, 56), outer radius 58, 120 deg. */
+  fx_swoosh: { w: 64, h: 112, flat: true, draw: () =>
+    `${Pd("M33,5.8 A58,58 0 0 1 33,106.2 A82.6,82.6 0 0 0 33,5.8 Z")} fill="${C.white}" opacity="0.5"/>` +
+    `<path d="M33,5.8 A58,58 0 0 1 33,106.2" fill="none" stroke="${C.cyan}" stroke-width="2.4" stroke-linecap="round"/>` },
+  fx_beam: { w: 16, h: 10, flat: true, draw: () => box(0, 0, 16, 10, 0, C.cyan, 0.3) + box(0, 2, 16, 6, 0, C.cyan) + box(0, 4, 16, 2, 0, C.white) },
+  /** Ring radius 27 at the centre of a 64 frame. */
+  fx_blast: { w: 64, h: 64, draw: () =>
+    dot(32, 32, 26, 26, C.flame, 0, 0.25) + `<circle cx="32" cy="32" r="27" fill="none" stroke="${C.orange}" stroke-width="5"/>` +
+    `<circle cx="32" cy="32" r="27" fill="none" stroke="${C.flame}" stroke-width="1.6"/>` +
+    [0, 60, 120, 180, 240, 300].map((a) => star(n1(32 + Math.cos(a * Math.PI / 180) * 17), n1(32 + Math.sin(a * Math.PI / 180) * 17), 3, C.flame)).join("") },
+};
+/** Design px of the swoosh arc and blast ring, for scaling them to a weapon's reach. */
+export const SWOOSH = { cx: 4, cy: 56, r: 58 } as const;
+export const BLAST_R = 27;
+
+export const ACTOR_KEYS = Object.keys(A) as ActorKey[];
 export const SPRITE_META: Record<SpriteKey, SpriteMeta> = {
   ...(Object.fromEntries(Object.entries(A).map(([k, a]) => [k, a.meta])) as Record<ActorKey, SpriteMeta>),
   pickup_scrap: { w: 24, h: 24, feet: 22, cx: 12, cy: 12 },
+  ...(Object.fromEntries(Object.entries(X).map(([k, { w, h, px, py }]) =>
+    [k, { w, h, feet: h, cx: w / 2, cy: h / 2, ...(px === undefined ? {} : { px, py }) }])) as Record<WeaponKey | ShotKey, SpriteMeta>),
 };
 const WALK = ["walk0", "walk1", "hit"] as const;
 export const FRAMES: Record<SpriteKey, readonly string[]> = {
   player: WALK, enemy_pea: WALK, enemy_pepper: WALK, enemy_potato: WALK, enemy_carrot: WALK, enemy_tomato: WALK,
   pickup_scrap: ["0", "1"],
+  ...(Object.fromEntries(Object.keys(X).map((k) => [k, k.startsWith("weapon_") ? ["t1", "t2", "t3", "t4"] : ["0"]])) as Record<WeaponKey | ShotKey, string[]>),
 };
 
 /** Keyline filter (dilated alpha, light rim under the art); hit = everything white, face swapped for >< eyes. */
-function wrap(w: number, h: number, inner: string, hit: string): string {
+function wrap(w: number, h: number, inner: string, hit: string, keyline = true): string {
   const css = hit ? `<style>.hit [fill]:not([fill="none"]){fill:#fff}.hit .face{display:none}.hit [stroke]:not([stroke="${K}"]){stroke:#fff}</style>` : "";
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w * 2}" height="${h * 2}">${css}<defs>` +
     `<filter id="st" x="-25%" y="-25%" width="150%" height="150%"><feMorphology in="SourceAlpha" operator="dilate" radius="${KEYLINE.r}" result="d"/>` +
     `<feFlood flood-color="${KEYLINE.color}" flood-opacity="${KEYLINE.op}"/><feComposite in2="d" operator="in" result="k"/>` +
     `<feMerge><feMergeNode in="k"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>` +
-    `<g filter="url(#st)"><g class="${hit ? "hit" : ""}">${inner}</g>${hit}</g></svg>`;
+    `<g${keyline ? ' filter="url(#st)"' : ""}><g class="${hit ? "hit" : ""}">${inner}</g>${hit}</g></svg>`;
 }
 
-/** SVG string for a texture key + frame (walk0/walk1/hit, scrap 0/1); width/height = 2x design px. */
+/** SVG string for a texture key + frame (walk0/walk1/hit, scrap 0/1, weapons t1..t4, shots 0); width/height = 2x design px. */
 export function svg(key: SpriteKey, frame: string): string {
   uid = 0;
   const { w, h } = SPRITE_META[key];
   if (key === "pickup_scrap") return wrap(w, h, bolt(+frame), "");
-  const a = A[key];
+  if (key in X) {
+    const x = X[key as WeaponKey | ShotKey];
+    return wrap(w, h, x.draw(THEME_CSS.tier[(+frame.slice(1) || 1) - 1]), "", !x.flat);
+  }
+  const a = A[key as ActorKey];
   return wrap(w, h, a.draw(frame === "walk1" ? 1 : 0), frame === "hit" ? squint(a.squint) : "");
 }

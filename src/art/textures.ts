@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { ART_SCALE, frameSize } from "./body";
-import { FRAMES, SPRITE_META, svg, type SpriteKey } from "./vector";
+import { ACTOR_KEYS, FRAMES, SPRITE_META, svg, type ActorKey, type SpriteKey } from "./vector";
 import { THEME } from "@/config/theme";
 
 const KEYS = Object.keys(SPRITE_META) as SpriteKey[];
@@ -27,7 +27,7 @@ export function shadowEllipse(key: SpriteKey): { cy: number; rx: number; ry: num
   return { cy: Math.min(SPRITE_META[key].feet * ART_SCALE, frameSize(key).h - ry), rx, ry };
 }
 
-/** One CanvasTexture per key, frames side by side (walk0/walk1/hit, scrap 0/1), shadow baked under actors. */
+/** One CanvasTexture per key, frames side by side (walk0/walk1/hit, scrap 0/1, weapons t1..t4), shadow baked under actors. */
 export function buildSpriteTextures(scene: Phaser.Scene): void {
   for (const k of KEYS) {
     if (scene.textures.exists(k)) continue;
@@ -40,7 +40,7 @@ export function buildSpriteTextures(scene: Phaser.Scene): void {
       const src = `${k}@${f}`;
       // A frame the browser could not decode is dropped by the loader: fail at boot, not with a missing texture
       if (!scene.textures.exists(src)) throw new Error(`sprite ${src} failed to load`);
-      if (k !== "pickup_scrap") {
+      if (ACTOR_KEYS.includes(k as ActorKey)) {
         ctx.fillStyle = "rgba(0,0,0,0.35)";
         ctx.beginPath();
         ctx.ellipse(i * w + w / 2, sh.cy, sh.rx, sh.ry, 0, 0, Math.PI * 2);
@@ -81,8 +81,8 @@ export function buildFxTextures(scene: Phaser.Scene): void {
 
 export function registerAnimations(scene: Phaser.Scene): void {
   const anims = scene.anims;
-  for (const key of KEYS) {
-    if (key === "pickup_scrap" || anims.exists(`${key}_walk`)) continue;
+  for (const key of ACTOR_KEYS) {
+    if (anims.exists(`${key}_walk`)) continue;
     anims.create({
       key: `${key}_walk`,
       frames: [{ key, frame: "walk0" }, { key, frame: "walk1" }],
