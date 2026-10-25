@@ -1,8 +1,9 @@
 import { ARENA, DEPTH } from "@/config/constants";
 import { THEME } from "@/config/theme";
 import { bakeArena } from "@/art/arena";
+import { solidRects } from "@/core/arena";
 import layout from "@assets/data/arena.json";
-import type { ArenaProp } from "@/types";
+import type { ArenaProp, Rect } from "@/types";
 import Phaser from "phaser";
 
 /**
@@ -11,6 +12,8 @@ import Phaser from "phaser";
  */
 export class WorldManager {
   private scene: Phaser.Scene;
+  private solids!: Phaser.Physics.Arcade.StaticGroup;
+  private rects: Rect[] = [];
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -29,6 +32,7 @@ export class WorldManager {
     this.scene.cameras.main.setBackgroundColor(THEME.bg);
 
     this.createBackground();
+    this.createSolids();
 
     console.log("✓ WorldManager: World created");
   }
@@ -38,6 +42,23 @@ export class WorldManager {
     const fits = layout.w === ARENA.w && layout.h === ARENA.h;
     const key = bakeArena(this.scene, fits ? (layout.props as ArenaProp[]) : [], ARENA);
     this.scene.add.image(0, 0, key).setOrigin(0).setDepth(DEPTH.BACKGROUND);
+  }
+
+  /** Invisible static bodies over the solid props (already drawn in the floor). */
+  private createSolids(): void {
+    const fits = layout.w === ARENA.w && layout.h === ARENA.h;
+    this.rects = fits ? solidRects(layout.props as ArenaProp[]) : [];
+    this.solids = this.scene.physics.add.staticGroup();
+    for (const r of this.rects) this.solids.add(this.scene.add.zone(r.x + r.w / 2, r.y + r.h / 2, r.w, r.h));
+  }
+
+  getSolids(): Phaser.Physics.Arcade.StaticGroup {
+    return this.solids;
+  }
+
+  /** The solids' boxes, for steering and spawn checks. */
+  getSolidRects(): readonly Rect[] {
+    return this.rects;
   }
 
   /**

@@ -8,14 +8,51 @@ const D = THEME_CSS.decor;
 
 type Ctx = CanvasRenderingContext2D;
 
-function vent(c: Ctx, { x, y, w, h }: ArenaProp): void {
-  c.fillStyle = THEME_CSS.deep;
-  c.fillRect(x + 4, y + 6, w, h); // drop shadow
-  c.fillStyle = D.vent;
+/**
+ * Solid props as raised blocks over the same footprint (the collider): shadow, dark front face,
+ * lighter top with a bright rim. Flat decor has none of these. Returns the top face's box.
+ */
+function block(c: Ctx, { x, y, w, h }: ArenaProp): { x: number; y: number; w: number; h: number } {
+  const front = Math.min(14, Math.round(h * 0.3));
+  c.fillStyle = D.solidShadow;
+  c.fillRect(x + 6, y + 8, w, h);
+  c.fillStyle = D.solidFront;
   c.fillRect(x, y, w, h);
-  c.strokeStyle = D.ventEdge;
-  c.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
-  c.fillStyle = D.slat;
+  // hazard stripes on the front face
+  c.save();
+  c.beginPath();
+  c.rect(x, y + h - front, w, front);
+  c.clip();
+  c.strokeStyle = D.solidStripe;
+  c.lineWidth = 3;
+  for (let s = -front; s < w; s += 10) {
+    c.beginPath();
+    c.moveTo(x + s, y + h);
+    c.lineTo(x + s + front, y + h - front);
+    c.stroke();
+  }
+  c.restore();
+  c.fillStyle = D.solidTop;
+  c.fillRect(x, y, w, h - front);
+  c.lineWidth = 2;
+  c.strokeStyle = D.solidRim;
+  c.strokeRect(x + 1, y + 1, w - 2, h - front - 2);
+  c.lineWidth = 1;
+  return { x, y, w, h: h - front };
+}
+
+function vent(c: Ctx, p: ArenaProp): void {
+  let { x, y, w, h } = p;
+  if (p.solid) ({ x, y, w, h } = block(c, p));
+  else {
+    c.fillStyle = THEME_CSS.deep;
+    c.fillRect(x + 4, y + 6, w, h); // drop shadow
+    c.fillStyle = D.vent;
+    c.fillRect(x, y, w, h);
+    c.strokeStyle = D.ventEdge;
+    c.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+  }
+  c.fillStyle = p.solid ? D.solidFront : D.slat;
   for (let i = 1; i < 4; i++) c.fillRect(x + 6, y + (h * i) / 4 - 1, w - 12, 2);
 }
 
@@ -79,11 +116,16 @@ function zone(c: Ctx, { x, y, w, h }: ArenaProp): void {
   c.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
 }
 
-function crate(c: Ctx, { x, y, w, h }: ArenaProp): void {
-  c.fillStyle = D.vent;
-  c.fillRect(x, y, w, h);
+function crate(c: Ctx, p: ArenaProp): void {
+  let { x, y, w, h } = p;
+  if (p.solid) ({ x, y, w, h } = block(c, p));
+  else {
+    c.fillStyle = D.vent;
+    c.fillRect(x, y, w, h);
+    c.strokeStyle = D.ventEdge;
+    c.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+  }
   c.strokeStyle = D.ventEdge;
-  c.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
   c.strokeRect(x + 4.5, y + 4.5, w - 9, h - 9);
 }
 

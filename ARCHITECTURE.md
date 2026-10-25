@@ -7,10 +7,10 @@ src/
   main.ts, config/      Phaser config, constants (GAME_CONFIG, SCENE_KEYS, DEPTH), theme.ts tokens
   scenes/               Boot, Menu, Loadout, Game (+ UIScene HUD, PauseScene overlay), Victory, LevelUp, Shop, Summary; ui.ts themed widget kit (button, panel, tierChip, statTile, scanlines), fonts.ts font-load gate
   managers/             Player, Input, World, Weapon, Enemy, Pickup
-  entities/             enemyBehaviors.ts, weaponBehaviors.ts (pure movement/targeting geometry)
+  entities/             enemyBehaviors.ts (steer, then avoid: separation + sliding around solids), weaponBehaviors.ts (pure movement/targeting geometry)
   core/                 pure logic: rng, waves (spawn schedule; spawn points just off-screen via offscreenPoint, edgePoint for an arena no bigger than the view; CATCH_UP far-enemy speed-up), edgeArrow (HUD arrows for off-screen telegraphs), progression (XP/levels), run (newRun),
                         stats (computeStats), weapons (tier stats, prices), inventory (slots, merge, sell),
-                        shop (offers, reroll, lock), levelup (picks), time, settings (reduced shake, master/music/SFX volume), music (track per state, duck/crossfade constants, volume step), voices (SFX voice limit, pitch/volume variation, pickup streak pitch), menuNav (keyboard selection), depth (y-sort, facing), arena (validateArena: rooftop decor inside the arena and clear of the 160 px start circle), labels (tier names, clock, truncate, formatCount), summary (summariseRun for the run summary; best wave in localStorage `vv.best`, quits don't count),
+                        shop (offers, reroll, lock), levelup (picks), time, settings (reduced shake, master/music/SFX volume), music (track per state, duck/crossfade constants, volume step), voices (SFX voice limit, pitch/volume variation, pickup streak pitch), menuNav (keyboard selection), depth (y-sort, facing), arena (validateArena: rooftop decor inside the arena and clear of the 160 px start circle, solids ≤144×96 and ≥80 px apart; solidRects; outsideSolids moves spawns and drops off the solids), labels (tier names, clock, truncate, formatCount), summary (summariseRun for the run summary; best wave in localStorage `vv.best`, quits don't count),
                         sim (headless balance simulator; sim.targets = reference builds, balance targets, threat-budget wave authoring, dev `runAtWave`), autopilot (dev kiting input),
                         runlog (versioned per-run log: wave/shop/level-up records, localStorage store of the last 50, summarise + fitParams for `pnpm runs`)
 scripts/runs.mjs        `pnpm runs <file|folder>` wrapper: runs src/core/runlog.report.test.ts under Vitest with RUNS_PATH set
@@ -22,9 +22,9 @@ scripts/playtest.mjs    `pnpm playtest`: Vite + Playwright Chromium autopilot ru
   fx/sfx.ts             initSfx (BootScene) + sfx(name): ZzFX buffers played on Phaser's WebAudio context through an SFX gain node; dropped while audio is locked/suspended
   fx/music.ts           initMusic (BootScene) + setMusic(state) / duckMusic(on): one streamed <audio> per track routed through a music gain node on Phaser's context; crossfades, ducks, waits for the autoplay unlock, pauses on blur; MUSIC_CREDITS for the menu overlay
   fx/sounds.ts          every SFX as a ZzFX parameter array + voice rule (one data file); fx/zzfx.ts = vendored ZzFX sample generator (MIT)
-  art/                  vector.ts (sprites, weapons, projectiles and effects as SVG strings + SPRITE_META), body.ts (ART_SCALE, fitCircle/fitBox hit areas), textures.ts loads the SVGs at 2x and bakes CanvasTextures + walk anims at boot; arena.ts bakes the floor (grid, rooftop decor from arena.json, lime edge) into one texture per arena size, shown by WorldManager as one image
+  art/                  vector.ts (sprites, weapons, projectiles and effects as SVG strings + SPRITE_META), body.ts (ART_SCALE, fitCircle/fitBox hit areas), textures.ts loads the SVGs at 2x and bakes CanvasTextures + walk anims at boot; arena.ts bakes the floor (grid, rooftop decor from arena.json, lime edge) into one texture per arena size, shown by WorldManager as one image; WorldManager also puts invisible static bodies over the `solid` props (player, enemies, enemy bolts and scrap collide; player shots fly over)
   types/, utils/        shared types, math helpers
-assets/data/            enemies.json, waves.json, weapons.json, character.json, items.json, upgrades.json, arena.json (rooftop decor layout)
+assets/data/            enemies.json, waves.json, weapons.json, character.json, items.json, upgrades.json, arena.json (rooftop decor layout; `solid` props are obstacles)
 ```
 
 ## Rules of the house

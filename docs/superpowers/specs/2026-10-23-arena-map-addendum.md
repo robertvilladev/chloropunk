@@ -13,7 +13,7 @@ Playtests feel solid but static: the arena is exactly the 800×600 screen, so th
 1. **Map size 2×:** the arena is **1600×1200** design px. The screen stays the 800×600 design space at camera zoom 2 (`config/view.ts`); menus, shop and other screens don't change.
 2. **Follow camera** in `GameScene` only, light smoothing, clamped to the arena bounds.
 3. **Spawn rule = just off-screen.** Amends §4 step 2 ("enemies spawn in groups at the arena edges"): spawn points sit on a ring just outside the camera frame, clamped inside the arena. Telegraphs that are off-screen show as arrows on the screen edge. Keeps the balance model's spawn distance (`sim.ts` `spawnDist` 330) close to today.
-4. **Small obstacles are in the MVP:** a handful of small solid props (vents, crates) that the player and enemies collide with; enemies get a simple steering push around them. Bigger level design is refined after the MVP.
+4. **Small obstacles are in the MVP:** a handful of small solid props (vents, crates) that the player and enemies collide with; enemies get a simple steering push around them. Bigger level design is refined after the MVP. Outcome (A5, owner-approved 2026-10-25): the 4 vents are solid, drawn as raised blocks, no crates; enemies slide around them and keep apart (`avoid`); see the [A5 outcome](../plans/2026-10-23-arena-5-obstacles.md#outcome-2026-10-25).
 5. **Rooftop decor:** one hand-made layout (floor zones, neon billboard, vents, puddles, helipad, rail), defined as data. Palette (owner pick 2026-10-24, out of Night violet / Toxic teal / Graphite + one neon, shown in game at wave 4): **Night violet**, dim indigo/violet tokens in `THEME_CSS.decor` (zones `#1a1730`, outlines `#6a4cc2`, rail posts `#7b5cff`, puddles `#5b3fd1` at ~20% with a faint pink rim); the pink billboard is the only bright decor.
 6. **Boss (wave 10)** is a big humanoid built from the parts of the vegetables that spawn (see §3). Its look is refined in Claude Design before it is built.
 7. **Art refresh:** today's sprites (16×16 grids drawn at 3×, then zoom 2) read too chunky. Fighter, 5 enemies, scrap and the boss get finer sprites, art direction refined in Claude Design (see §4). Amends §6 "Sprites: 16×16 pixel grids drawn at 3×".
@@ -43,7 +43,7 @@ Below 50% HP it enters phase 2: shorter cooldowns, two patterns can overlap (loo
 
 ## 5. Delivery
 
-One PR per row, each with its own plan and session. "Depends on" = the PR builds on the merged one. Status lives in [ROADMAP.md](../../../ROADMAP.md#arena-map-) (A1–A3b merged by 2026-10-24; measured spawn distance 480 px, sim `spawnDist` updated).
+One PR per row, each with its own plan and session. "Depends on" = the PR builds on the merged one. Status lives in [ROADMAP.md](../../../ROADMAP.md#arena-map-) (A1–A4 merged by 2026-10-24, A5 owner-approved 2026-10-25; measured spawn distance 480 px, sim `spawnDist` updated).
 
 | PR | Plan | Depends on |
 |---|---|---|

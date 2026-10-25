@@ -2,16 +2,19 @@
  * Dev autopilot: a reproducible "moving player" for calibrating the sim
  * (balance design §3). Kites by circle-strafing away from nearby enemies,
  * bends toward the arena centre near walls, and grabs scrap when no enemy is close.
+ * Solids act like walls: it never steps into one, sliding along it instead.
  * ponytail: naive potential field, no pathing; corners can still pin it in dense waves.
  */
 type P = { x: number; y: number };
+type R = { x: number; y: number; w: number; h: number };
 
 const DANGER = 220; // px: enemies inside this push the player
 const SAFE = 140; // px: nearest enemy farther than this = safe to collect scrap
 const WALL = 120; // px from an edge where the centre pull starts
+const SOLID_NEAR = 40; // px from a solid's edge where it slides instead of walking in
 
 /** Unit move vector (or 0,0 to stand still) for the player at `p`. */
-export function autopilot(p: P, enemies: P[], scrap: P[], w: number, h: number): P {
+export function autopilot(p: P, enemies: P[], scrap: P[], w: number, h: number, solids: readonly R[] = []): P {
   let ax = 0;
   let ay = 0;
   let nearest = Infinity;
@@ -54,6 +57,22 @@ export function autopilot(p: P, enemies: P[], scrap: P[], w: number, h: number):
   const c = Math.hypot(cx, cy) || 1;
   mx += (cx / c) * pull;
   my += (cy / c) * pull;
+
+  for (const r of solids) {
+    const dx = p.x - Math.min(Math.max(p.x, r.x), r.x + r.w);
+    const dy = p.y - Math.min(Math.max(p.y, r.y), r.y + r.h);
+    const d = Math.hypot(dx, dy);
+    if (d === 0 || d > SOLID_NEAR) continue;
+    const into = (mx * dx + my * dy) / d;
+    if (into >= 0) continue;
+    mx -= (into * dx) / d;
+    my -= (into * dy) / d;
+    if (Math.hypot(mx, my) < 1e-6) {
+      // dead-on: slide sideways along it
+      mx = -dy / d;
+      my = dx / d;
+    }
+  }
 
   const m = Math.hypot(mx, my);
   return m < 1e-6 ? { x: 0, y: 0 } : { x: mx / m, y: my / m };
