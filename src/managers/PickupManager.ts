@@ -1,9 +1,10 @@
 import { fitBox } from "@/art/body";
 import { GAME_CONFIG } from "@/config/constants";
+import { outsideSolids } from "@/core/arena";
 import { pickupDepth } from "@/core/depth";
 import { streakRate } from "@/core/voices";
 import { sfx } from "@/fx/sfx";
-import type { Vector2 } from "@/types";
+import type { Rect, Vector2 } from "@/types";
 import Phaser from "phaser";
 
 type Sprite = Phaser.Physics.Arcade.Sprite;
@@ -19,8 +20,10 @@ export class PickupManager {
   private group: Phaser.Physics.Arcade.Group;
   private streak = 0;
   private lastPickup = -Infinity;
+  private solids: readonly Rect[];
 
-  constructor(scene: Phaser.Scene) {
+  constructor(scene: Phaser.Scene, solids: readonly Rect[] = []) {
+    this.solids = solids;
     this.scene = scene;
     this.group = scene.physics.add.group({
       defaultKey: "pickup_scrap",
@@ -28,7 +31,8 @@ export class PickupManager {
     });
   }
 
-  spawnScrap(x: number, y: number, amount: number): void {
+  spawnScrap(dropX: number, dropY: number, amount: number): void {
+    const { x, y } = outsideSolids({ x: dropX, y: dropY }, this.solids, PICKUP_SIZE / 2); // never inside a vent
     const s = this.group.get(x, y, "pickup_scrap", "0") as Sprite | null;
     if (!s) {
       // Pool exhausted: bank the value immediately rather than lose it
