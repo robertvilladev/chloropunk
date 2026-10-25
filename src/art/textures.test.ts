@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { UI_WEAPON_KEYS, buildSpriteTextures, preloadSprites, shadowEllipse, spriteFrameKeys, svgUri } from "./textures";
 import { frameSize } from "./body";
-import { ACTOR_KEYS, SPRITE_META } from "./vector";
+import { ACTOR_KEYS, SPRITE_META, BOSS_KEYS } from "./vector";
 import { ICON_KEYS } from "./icons";
 
 // textures.ts only uses Phaser through the scene it is given (plus one filter-mode constant)
@@ -20,18 +20,20 @@ describe("svgUri", () => {
 describe("spriteFrameKeys", () => {
   it("lists every key@frame, the portrait, then the icons", () => {
     const keys = spriteFrameKeys();
-    expect(keys).toHaveLength(56 + 29 + 24);
+    expect(keys).toHaveLength(79 + 29 + 24);
     expect(keys[0]).toBe("player@walk0");
     expect(keys).toContain("enemy_potato@hit");
     expect(keys).toContain("pickup_scrap@1");
     expect(keys).toContain("weapon_rocket@t4");
     expect(keys).toContain("fx_beam@0");
     expect(keys).toContain("enemy_pepper@tell");
-    expect(keys[55]).toBe("player_portrait");
-    expect(keys.slice(56, 56 + 29)).toEqual(ICON_KEYS);
-    expect(keys.slice(56 + 29)).toEqual(UI_WEAPON_KEYS);
+    expect(keys).toContain("boss_onion@lob");
+    expect(keys).toContain("bproj_bulb@0");
+    expect(keys[78]).toBe("player_portrait");
+    expect(keys.slice(79, 79 + 29)).toEqual(ICON_KEYS);
+    expect(keys.slice(79 + 29)).toEqual(UI_WEAPON_KEYS);
     expect(UI_WEAPON_KEYS).toContain("ui_weapon_rocket_t4");
-    expect(new Set(keys).size).toBe(56 + 29 + 24);
+    expect(new Set(keys).size).toBe(79 + 29 + 24);
   });
 });
 
@@ -66,7 +68,7 @@ describe("buildSpriteTextures", () => {
 
 describe("shadowEllipse", () => {
   it("keeps every actor shadow whole inside its frame, under the feet", () => {
-    for (const k of ACTOR_KEYS) {
+    for (const k of [...ACTOR_KEYS, ...BOSS_KEYS]) {
       const s = shadowEllipse(k);
       expect(s.cy + s.ry, k).toBeLessThanOrEqual(frameSize(k).h);
       expect(s.rx, k).toBeCloseTo(SPRITE_META[k].w * 0.36 * 2);

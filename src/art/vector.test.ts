@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
-import { ACTOR_KEYS, FRAMES, SPRITE_META, WEAPON_IDS, svg, weaponFrame, type SpriteKey } from "./vector";
+import { ACTOR_KEYS, BOSS_FRAMES, BOSS_KEYS, FRAMES, SPRITE_META, WEAPON_IDS, svg, weaponFrame, type SpriteKey } from "./vector";
 
 const KEYS = Object.keys(SPRITE_META) as SpriteKey[];
 const ACTORS = ACTOR_KEYS;
@@ -8,7 +8,7 @@ const all = KEYS.flatMap((k) => FRAMES[k].map((f) => ({ k, f, s: svg(k, f) })));
 
 describe("vector sprites", () => {
   it("every key and frame builds an svg at 2x", () => {
-    expect(all.length).toBe(55); // + pepper, carrot, tomato tell
+    expect(all.length).toBe(78); // + 3 tells, 3 bosses x 6 poses, 5 boss projectiles
     for (const { k, f, s } of all) {
       const { w, h } = SPRITE_META[k];
       expect(s.startsWith("<svg"), `${k}@${f}`).toBe(true);
@@ -59,10 +59,29 @@ describe("vector sprites", () => {
     for (const k of ["player", "enemy_pea", "enemy_potato"] as const) expect(FRAMES[k], k).not.toContain("tell");
   });
 
+  it("every boss has six distinct poses (board A3)", () => {
+    expect(BOSS_KEYS).toEqual(["boss_harvester", "boss_onion", "boss_greenhouse"]);
+    expect(BOSS_FRAMES).toEqual(["idle0", "idle1", "hit", "volley", "charge", "lob"]);
+    for (const k of BOSS_KEYS) {
+      expect(FRAMES[k], k).toEqual(BOSS_FRAMES);
+      expect(new Set(BOSS_FRAMES.map((f) => svg(k, f))).size, k).toBe(6);
+    }
+  });
+
+  it("the three bosses share one body: same frame, feet and centre", () => {
+    const [a, ...rest] = BOSS_KEYS.map((k) => SPRITE_META[k]);
+    for (const m of rest) expect(m).toEqual(a);
+  });
+
+  it("boss projectiles build", () => {
+    for (const k of ["bproj_round", "bproj_shard", "bproj_cbolt", "bproj_tomato", "bproj_bulb"] as const) expect(FRAMES[k], k).toEqual(["0"]);
+  });
+
   it("stays inside the size budget", () => {
     const total = all.reduce((n, { s }) => n + s.length, 0);
-    expect(total).toBeLessThan(300 * 1024);
-    for (const { k, f, s } of all) expect(s.length, `${k}@${f}`).toBeLessThan(16 * 1024);
+    expect(total).toBeLessThan(700 * 1024);
+    // bosses are 160 px with many parts: their own per-frame budget
+    for (const { k, f, s } of all) expect(s.length, `${k}@${f}`).toBeLessThan((k.startsWith("boss_") ? 24 : 16) * 1024);
   });
 
   it("every weapon has four tier frames that differ", () => {
