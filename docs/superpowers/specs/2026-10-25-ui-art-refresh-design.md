@@ -32,3 +32,17 @@ Menus, cards and HUD use the pixel font VT323 for every big number and flat boxe
 ## Left to the builder
 
 Icon designs, exact font sizes, outline treatment for text (stroke vs baked), glow timing, slot sizes, the legendary animation and sound, and how text is made crisp (e.g. Phaser text resolution). Show them on the canvas first; the owner approves there.
+
+## Owner approval (2026-10-25)
+
+Boards U1–U4 on the [sprites canvas](https://claude.ai/artifact/TnsQjaTcJEYoShEC5AyMXM) (v13) approved as drawn, including the builder's open choices:
+
+- Type: Bungee for every big number with an ink stroke (3 px at 24+, 2 px below), Plex Mono 10 is the smallest text; all text at resolution 2.
+- Panels: ink rim + light keyline, 3 px corners. Tier badge `T1`–`T4` on the icon window's corner; tier name in the card's kind line.
+- Shop card: LOCK button moves to the top-right corner; Bungee price with the scrap bolt. Level-up card: icon window, stat name, Bungee amount, tier name.
+- Glow: T3 pink pulse 1.6 s, T4 amber pulse 1.2 s + shine sweep 3.2 s (baked soft rect + alpha tween, no tint).
+- Legendary pick: purchase applied at once; a copy of the card pops (1.1×, white flash, amber ring, 10 sparks, "LEGENDARY!"), non-blocking; sound `legendary` = rising triangle chime E5–G♯5–B5–E6 + shimmer, ~0.6 s, replaces the normal buy/pick sound.
+- Damage numbers: Bungee 16 white, 2 px ink; crits Bungee 22 amber, 3 px ink, pop 0.6 → 1.4 → 1 in 100 ms, then the usual float.
+- Icons: `icon_item_<id>` (15) and `icon_stat_<id>` (14), 32×32 design px; stat icons carry no tier; pickup radius has no stat icon (no level-up card).
+- HUD: 30 px weapon slots (sprite at its tier frame, tier border, T3/T4 glow, empty slots not drawn), 22 px item chips above (rarity border, stack count, ≤ 12 per row, ≤ 2 rows, then "+N"). Scrap shows the power-bolt sprite.
+- Loadout: starter cards show the T1 weapon sprite; the slot number becomes a key badge. Summary chips show sprites/icons.

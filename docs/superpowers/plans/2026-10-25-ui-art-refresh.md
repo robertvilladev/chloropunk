@@ -32,11 +32,11 @@
 
 On the [sprites canvas](https://claude.ai/artifact/TnsQjaTcJEYoShEC5AyMXM), Vector page, new boards after "7 · Boss sheets". Follow the canvas's own type instructions; extend `project/vector.js` (or add `project/icons.js`) as the art source.
 
-- [ ] **U1 UI kit:** type scale (Bungee numbers, Plex body), panel / button / tier badge / card frame per tier (idle glow on t3–t4), damage numbers (normal, crit pop), shown on the rooftop floor colour and the menu background.
-- [ ] **U2 Icon sheet:** 15 item + 14 stat icons at card size and HUD size, plus greyscale; each named. One board so single icons can be rejected.
-- [ ] **U3 Cards:** shop card (weapon and item) and level-up card restyled on today's layouts, all four tiers, legendary pick animation as a looping preview.
-- [ ] **U4 HUD + screens:** in-game HUD (HP, timer, scrap, bottom-left weapon + item slots with icons), plus menu, loadout, summary, pause and victory restyled.
-- [ ] Owner approval recorded in the design doc and in this plan, with any calls the owner makes.
+- [x] **U1 UI kit:** type scale (Bungee numbers, Plex body), panel / button / tier badge / card frame per tier (idle glow on t3–t4), damage numbers (normal, crit pop), shown on the rooftop floor colour and the menu background.
+- [x] **U2 Icon sheet:** 15 item + 14 stat icons at card size and HUD size, plus greyscale; each named. One board so single icons can be rejected.
+- [x] **U3 Cards:** shop card (weapon and item) and level-up card restyled on today's layouts, all four tiers, legendary pick animation as a looping preview.
+- [x] **U4 HUD + screens:** in-game HUD (HP, timer, scrap, bottom-left weapon + item slots with icons), plus menu, loadout, summary, pause and victory restyled.
+- [x] Owner approval recorded in the design doc and in this plan, with any calls the owner makes. **Approved 2026-10-25** (canvas v13): U1–U4 as drawn incl. the open choices; details in the [design doc](../specs/2026-10-25-ui-art-refresh-design.md#owner-approval-2026-10-25).
 
 ## Task 1 — Icons in the pipeline
 
