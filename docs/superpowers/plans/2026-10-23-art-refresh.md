@@ -145,6 +145,13 @@ Done 2026-10-24: direction (keyline), cast, scrap (power bolt), boss proposals. 
 - Tests: every weapon has 4 tier frames that differ; projectile hit sizes unchanged (`HIT_SIZE` snapshot); `WeaponManager` picks frame `t${tier}`.
 - Browser: all 6 weapons at T1 and T4 in a wave, WebGL + Canvas, fps check as PR 1.
 
+### PR 2 outcome (2026-10-25)
+
+- Shipped on `feat/art-weapons` (branched from `feat/art-vector-cast`, since PR 1 is not merged): 6 weapons × `t1`–`t4`, the 4 projectiles, `fx_muzzle`, `fx_beam`, `fx_swoosh`, `fx_blast` in `vector.ts` (canvas art unchanged). `WeaponManager` shows the tier frame at the grip pivot, flips aiming-left weapons upright, draws the beam and swing as sprites, adds a 50 ms muzzle flash and a 2 px kick; `Juice.blast` uses `fx_blast`; projectiles and enemy bolts fit their unchanged `HIT_SIZE` boxes with `fitBox`. Placeholder bakes for these keys removed from `BootScene`. 223 tests pass, `pnpm build` clean.
+- Ruling: started before A5 merged, as the owner asked. A5 (`feat/arena-obstacles`) does not touch `WeaponManager` (player shots pass over props); its `EnemyManager` changes may conflict with the one-line bolt change here, so rebase onto main after A5 and PR 1 merge.
+- Browser (headless Chrome, WebGL + `?renderer=canvas`): all 6 weapons at t1 and t4 in wave 4, beam and swing visible, no console errors; F2 (150 peas) 60 fps on both. Boot to menu (warm): WebGL about 550–650 ms vs 490–560 on PR 1, Canvas about 400 vs 385, so about +60 / +15 ms.
+- Not run: playtest balance check (no gameplay numbers changed: hit boxes, ranges and spawn points are the same).
+
 ## PR 3 — Animations (`feat/art-animations`, after A2 and PR 1)
 
 **Files:** `src/art/vector.ts` (+ `tell` frames, player `hit`), `src/art/textures.ts` (`registerAnimations`), `src/fx/Juice.ts` (death pop, spawn pop-in, player hit uses the `hit` frame instead of `setTint` — closes the ROADMAP Canvas carry-over), `src/managers/EnemyManager.ts` (tell frame during wind-ups, squash-and-bob), `src/core/bob.ts` (pure squash-and-bob curve).
