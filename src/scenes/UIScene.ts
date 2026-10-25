@@ -7,7 +7,10 @@ import { waveBoost } from "@/core/voices";
 import { sfx } from "@/fx/sfx";
 import type { SoundName } from "@/fx/sounds";
 import type { GameScene } from "@/scenes/GameScene";
-import { drawPanel, num, panel, text } from "@/scenes/ui";
+import { cardGlow, drawPanel, fitImage, iconArt, num, panel, text, weaponArt } from "@/scenes/ui";
+import { hudSlots } from "@/scenes/hud";
+import itemDefs from "@assets/data/items.json";
+import type { ItemDef, OwnedWeapon } from "@/types";
 import { frameSize } from "@/art/body";
 import Phaser from "phaser";
 
@@ -16,6 +19,7 @@ const XP_W = 140;
 const ARROWS = 12; // pooled off-screen telegraph arrows; more pending than this just go unmarked
 const ARROW_INSET = 12;
 const SCRAP_TEX = frameSize("pickup_scrap").w; // texture px of one scrap frame
+const items = itemDefs as Record<string, ItemDef>;
 
 /**
  * UIScene - Persistent UI overlay (HUD), per mockups/Hud.dc.html.
@@ -84,16 +88,9 @@ export class UIScene extends Phaser.Scene {
     this.scrapValue = num(this, 0, 23, "0", 18, THEME_CSS.lime).setOrigin(1, 0).setDepth(DEPTH.UI + 1);
     this.scrapLabel = text(this, 0, 30, "SCRAP", 10, THEME_CSS.textMuted).setLetterSpacing(1.4).setOrigin(1, 0).setDepth(DEPTH.UI + 1);
 
-    // Bottom-left: 6 weapon slots, framed by tier colour (no icons); weapons only change in the shop
-    const owned = (this.scene.get(SCENE_KEYS.GAME) as GameScene | undefined)?.getPlayerStats().weapons ?? [];
-    for (let i = 0; i < 6; i++) {
-      const wpn = owned[i];
-      this.add
-        .rectangle(30 + i * 42, h - 52, 36, 36, THEME.surface2)
-        .setOrigin(0)
-        .setStrokeStyle(2, wpn ? THEME.tier[wpn.tier - 1] : THEME.line)
-        .setDepth(DEPTH.UI);
-    }
+    // Bottom-left: weapons + owned items (board U4); both only change in the shop and this scene restarts each wave
+    const run = (this.scene.get(SCENE_KEYS.GAME) as GameScene | undefined)?.getPlayerStats();
+    if (run) this.drawInventory(run.weapons, run.items, w, h);
 
     if (import.meta.env.DEV) this.createSpeedControls(h);
 
@@ -131,6 +128,28 @@ export class UIScene extends Phaser.Scene {
     this.xpFill.width = XP_W * Math.min(1, stats.xp / stats.xpNeeded);
     this.levelText.setText(`LV ${stats.level}${stats.pending > 0 ? ` (+${stats.pending})` : ""}`);
   };
+
+  /** Weapon slots (sprite at its tier frame, tier rim, T3/T4 glow) and item chips (rarity rim, stack count). */
+  private drawInventory(weapons: readonly OwnedWeapon[], owned: readonly string[], w: number, h: number): void {
+    const layout = hudSlots(weapons, owned, w, h);
+    const g = this.add.graphics().setDepth(DEPTH.UI);
+    for (const s of layout.weapons) {
+      const glow = cardGlow(this, s.x, s.y, s.size, s.size, s.tier);
+      if (glow) Object.values(glow).forEach((o) => o.setDepth(DEPTH.UI - 1));
+      drawPanel(g, s.x, s.y, s.size, s.size, { fill: THEME.surface2, frame: THEME.tier[s.tier - 1], keyline: false });
+      fitImage(this, s.x + s.size / 2, s.y + s.size / 2, weaponArt(s.id, s.tier), s.size - 6).setDepth(DEPTH.UI + 1);
+    }
+    for (const c of layout.items) {
+      drawPanel(g, c.x, c.y, c.size, c.size, { fill: THEME.surface2, frame: THEME.tier[(items[c.id]?.rarity ?? 1) - 1], keyline: false });
+      fitImage(this, c.x + c.size / 2, c.y + c.size / 2, iconArt("item", c.id), c.size - 4).setDepth(DEPTH.UI + 1);
+      if (c.count > 1) num(this, c.x + c.size + 1, c.y + c.size + 2, String(c.count), 9).setOrigin(1, 1).setDepth(DEPTH.UI + 2);
+    }
+    if (layout.more) {
+      const m = layout.more;
+      drawPanel(g, m.x, m.y, m.size, m.size, { fill: THEME.surface2, keyline: false });
+      num(this, m.x + m.size / 2, m.y + m.size / 2, `+${m.n}`, 9, THEME_CSS.textMuted).setOrigin(0.5).setDepth(DEPTH.UI + 1);
+    }
+  }
 
   /** Right-align label, value and gem inside a box sized to the text. */
   private layoutScrap(): void {
