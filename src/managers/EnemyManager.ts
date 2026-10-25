@@ -1,4 +1,4 @@
-import { feetOffset, fitCircle } from "@/art/body";
+import { feetOffset, fitBox, fitCircle } from "@/art/body";
 import type { SpriteKey } from "@/art/vector";
 import { ARENA, DEPTH, HIT_SIZE } from "@/config/constants";
 import type { Rng } from "@/core/rng";
@@ -314,7 +314,7 @@ export class EnemyManager {
     const angle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
     const speed = def.params!.boltSpeed;
     bolt.enableBody(true, enemy.x, enemy.y, true, true);
-    bolt.setSize(...HIT_SIZE.enemy_bolt);
+    fitBox(bolt, "enemy_bolt", ...HIT_SIZE.enemy_bolt);
     bolt.setDepth(DEPTH.PROJECTILES);
     bolt.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
     bolt.setData("damage", state.damage);

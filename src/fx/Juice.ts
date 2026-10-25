@@ -1,5 +1,7 @@
+import { ART_SCALE } from "@/art/body";
+import { BLAST_R } from "@/art/vector";
 import { DEPTH } from "@/config/constants";
-import { FONTS, THEME, THEME_CSS } from "@/config/theme";
+import { FONTS, THEME_CSS } from "@/config/theme";
 import { loadSettings } from "@/core/settings";
 import Phaser from "phaser";
 import { sfx } from "./sfx";
@@ -21,7 +23,7 @@ export class Juice {
   private pools = { normal: [] as Phaser.GameObjects.Text[], crit: [] as Phaser.GameObjects.Text[] };
   private next = { normal: 0, crit: 0 };
   private burst: Phaser.GameObjects.Particles.ParticleEmitter;
-  private blasts: Phaser.GameObjects.Arc[] = [];
+  private blasts: Phaser.GameObjects.Image[] = [];
   private nextBlast = 0;
 
   constructor(scene: Phaser.Scene) {
@@ -102,18 +104,17 @@ export class Juice {
     sfx("blast");
     let c = this.blasts[this.nextBlast];
     if (!c) {
-      c = this.scene.add
-        .circle(0, 0, 1, THEME.danger, 0.35)
-        .setStrokeStyle(2, THEME.danger)
-        .setDepth(DEPTH.PROJECTILES);
+      c = this.scene.add.image(0, 0, "fx_blast").setDepth(DEPTH.PROJECTILES);
       this.blasts[this.nextBlast] = c;
     }
     this.nextBlast = (this.nextBlast + 1) % MAX_BLASTS;
     this.scene.tweens.killTweensOf(c);
-    c.setRadius(radius).setPosition(x, y).setScale(0.3).setAlpha(1).setVisible(true);
+    // the ring is drawn at BLAST_R design px in a 2x texture: full scale puts it on the blast radius
+    const full = radius / (BLAST_R * ART_SCALE);
+    c.setPosition(x, y).setScale(full * 0.3).setAlpha(1).setVisible(true);
     this.scene.tweens.add({
       targets: c,
-      scale: 1,
+      scale: full,
       alpha: 0,
       duration: 200,
       onComplete: () => c.setVisible(false),

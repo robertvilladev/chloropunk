@@ -177,12 +177,6 @@ function star(x: number, y: number, r: number, fill: string): string {
   return `${Pd(`M${x},${y - r} L${x + q},${y - q} L${x + r},${y} L${x + q},${y + q} L${x},${y + r} L${x - q},${y + q} L${x - r},${y} L${x - q},${y - q} Z`)} fill="${fill}"/>`;
 }
 const n1 = (v: number) => Math.round(v * 10) / 10;
-/** Tapered capsule from (x1,y1) radius r1 to (x2,y2) radius r2. */
-function cone(x1: number, y1: number, r1: number, x2: number, y2: number, r2: number): string {
-  const dx = x2 - x1, dy = y2 - y1, l = Math.hypot(dx, dy) || 1, nx = -dy / l, ny = dx / l;
-  return Pd(`M${n1(x1 + nx * r1)},${n1(y1 + ny * r1)} L${n1(x2 + nx * r2)},${n1(y2 + ny * r2)} A${r2},${r2} 0 0 1 ${n1(x2 - nx * r2)},${n1(y2 - ny * r2)}` +
-    ` L${n1(x1 - nx * r1)},${n1(y1 - ny * r1)} A${r1},${r1} 0 0 1 ${n1(x1 + nx * r1)},${n1(y1 + ny * r1)} Z`);
-}
 
 export const WEAPON_IDS = ["pistol", "shotgun", "laser", "blade", "drone", "rocket"] as const;
 export type WeaponKey = `weapon_${(typeof WEAPON_IDS)[number]}`;
