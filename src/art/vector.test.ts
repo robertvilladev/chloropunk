@@ -51,6 +51,14 @@ describe("vector sprites", () => {
     expect(svg("pickup_scrap", "1")).not.toBe(svg("pickup_scrap", "0"));
   });
 
+  it("the fighter holds no gun of its own: the equipped weapons are separate sprites", () => {
+    for (const f of FRAMES.player) {
+      const p = svg("player", f);
+      expect(p, f).not.toContain('<rect x="32" y="24" width="13" height="6"'); // barrel
+      expect(p, f).not.toContain('<rect x="44.5" y="25"'); // muzzle tip
+    }
+  });
+
   it("pepper, carrot and tomato have a tell frame that differs from walk0 (board A2)", () => {
     for (const k of ["enemy_pepper", "enemy_carrot", "enemy_tomato"] as const) {
       expect(FRAMES[k], k).toContain("tell");

@@ -68,9 +68,7 @@ const A: Record<ActorKey, Actor> = {
       part(E(27.5, 17.5, 6.5, 7), C.skin, C.skinD, 2.5) +
       `<g class="face">${part(Rr(22, 12.5, 14, 5.5, 2.75), C.cyan, C.cyanD, 1.5, box(24, 13.4, 3.5, 1.3, 0.6, C.white))}${line("M28,22.5 L31.5,21.8", K, 1.6)}</g>` +
       part(Rr(25, 27, 10, 5, 2.5), C.gun, C.jacketD, 1.5) +
-      part(Rr(32, 24, 13, 6, 1.5), C.slate, C.gun, 2, box(32, 24, 13, 1.8, 0, C.metal)) +
-      part(Rr(35, 21, 5, 3, 1), C.gun, null, 0) +
-      box(44.5, 25, 2.6, 4, 0.8, C.cyan) +
+      // no gun in hand: the equipped weapons orbit as their own sprites (owner 2026-10-25)
       part(E(33.5, 30.5, 2.6, 2.6), C.skin, C.skinD, 1) +
       "</g>";
   } },
