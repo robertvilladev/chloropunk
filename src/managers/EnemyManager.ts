@@ -3,14 +3,16 @@ import type { SpriteKey } from "@/art/vector";
 import { ARENA, DEPTH, HIT_SIZE } from "@/config/constants";
 import type { Rng } from "@/core/rng";
 import { actorDepth, facingFlip } from "@/core/depth";
+import { outsideSolids } from "@/core/arena";
 import { MAX_ALIVE, advanceCursor, buildSpawnSchedule, offscreenPoint } from "@/core/waves";
 import {
+  avoid,
   createEnemyState,
   steer,
   type EnemyState,
   type Steer,
 } from "@/entities/enemyBehaviors";
-import type { EnemyDef, SpawnEvent, Vector2 } from "@/types";
+import type { EnemyDef, Rect, SpawnEvent, Vector2 } from "@/types";
 import enemyDefs from "@assets/data/enemies.json";
 import wavesData from "@assets/data/waves.json";
 import Phaser from "phaser";
@@ -21,10 +23,13 @@ const TELEGRAPH_S = 0.6;
 const EDGE_INSET = 40;
 const MIN_PLAYER_DIST = 160;
 export const SPAWN_MARGIN = 50; // px outside the view: largest enemy radius (potato 26) + the 24 px group spread
+const SPREAD = 24; // px a group spreads around its telegraph
 const MAX_ENEMIES = 250;
 const MAX_BOLTS = 100;
 const KNOCK_DECAY = 8; // per second
 const BOLT_MARGIN = 20;
+const CELL = 48; // spatial hash cell: >= 2x the largest enemy radius (20)
+const MAX_NEIGHBOURS = 6;
 
 interface Pending {
   x: number;
@@ -49,6 +54,13 @@ export class EnemyManager {
   private params = new Map<string, Record<string, number>>();
   private activeBuf: Sprite[] = [];
   private out: Steer = { vx: 0, vy: 0, fire: false };
+  private solids: readonly Rect[];
+  // spatial hash for separation: head[cell] -> first enemy index, next[index] -> next in that cell
+  private cols = Math.ceil(ARENA.w / CELL);
+  private rows = Math.ceil(ARENA.h / CELL);
+  private head = new Int32Array(this.cols * this.rows);
+  private next = new Int32Array(MAX_ENEMIES);
+  private nbBuf: Vector2[] = [];
   private wave = 1;
   private cursor = 0; // next unfired index into schedule
   private rng!: Rng;
@@ -57,7 +69,8 @@ export class EnemyManager {
   /** Sum of player→enemy px at spawn for those (run log `spawnDist` = this ÷ spawned). */
   spawnDistSum = 0;
 
-  constructor(scene: Phaser.Scene) {
+  constructor(scene: Phaser.Scene, solids: readonly Rect[] = []) {
+    this.solids = solids;
     this.scene = scene;
     this.enemies = scene.physics.add.group({
       defaultKey: "enemy_pea",
@@ -114,11 +127,12 @@ export class EnemyManager {
   debugSpawn(id: string, count: number): void {
     const def = (enemyDefs as Record<string, EnemyDef>)[id];
     for (let i = 0; def && i < count; i++) {
-      this.spawnEnemy(
-        def,
-        this.rng.int(EDGE_INSET, ARENA.w - EDGE_INSET),
-        this.rng.int(EDGE_INSET, ARENA.h - EDGE_INSET)
+      const { x, y } = outsideSolids(
+        { x: this.rng.int(EDGE_INSET, ARENA.w - EDGE_INSET), y: this.rng.int(EDGE_INSET, ARENA.h - EDGE_INSET) },
+        this.solids,
+        def.radius
       );
+      this.spawnEnemy(def, x, y);
     }
   }
 
@@ -226,9 +240,9 @@ export class EnemyManager {
     });
   }
 
-  /** Point just outside the camera view, inside the arena, >= 160 px from the player (one RNG draw). */
+  /** Point just outside the camera view, inside the arena, >= 160 px from the player, off the solids (one RNG draw). */
   private pickSpawnPoint(player: Vector2): Vector2 {
-    return offscreenPoint(
+    const p = offscreenPoint(
       this.rng.next(),
       player,
       this.scene.cameras.main.worldView,
@@ -237,6 +251,7 @@ export class EnemyManager {
       EDGE_INSET,
       MIN_PLAYER_DIST
     );
+    return outsideSolids(p, this.solids, SPREAD); // marker off the vents; each enemy is pushed out again
   }
 
   private updateTelegraphs(dt: number, player: Vector2): void {
@@ -251,8 +266,11 @@ export class EnemyManager {
       }
       for (let n = 0; n < p.count; n++) {
         // draw first so the spawn RNG stream doesn't depend on the cap
-        const x = p.x + this.rng.int(-24, 24);
-        const y = p.y + this.rng.int(-24, 24);
+        const { x, y } = outsideSolids(
+          { x: p.x + this.rng.int(-SPREAD, SPREAD), y: p.y + this.rng.int(-SPREAD, SPREAD) },
+          this.solids,
+          p.def.radius
+        );
         if (this.enemies.countActive(true) < MAX_ALIVE) {
           this.spawnEnemy(p.def, x, y);
           this.spawned++;
@@ -286,6 +304,7 @@ export class EnemyManager {
     const list = this.enemies.children.entries;
     const out = this.out;
     const decay = Math.max(0, 1 - KNOCK_DECAY * dt);
+    this.buildGrid(list as Sprite[]);
     for (let i = 0; i < list.length; i++) {
       const enemy = list[i] as Sprite;
       if (!enemy.active) continue;
@@ -293,6 +312,9 @@ export class EnemyManager {
       const state = enemy.getData("state") as EnemyState;
       const knock = enemy.getData("knock") as Vector2;
       steer(def.behavior, state, enemy, player, dt, this.params.get(def.id)!, out);
+      // dashes stay straight and stop on solids (the collider)
+      if (state.phase !== "dash")
+        avoid(enemy, def.radius, out, this.solids, this.neighbours(i, list as Sprite[], def.radius * 2), out, state);
       enemy.setVelocity(out.vx + knock.x, out.vy + knock.y);
       enemy.flipX = facingFlip(out.vx + knock.x, enemy.flipX);
       const d = actorDepth(enemy.y + feetOffset(def.sprite as SpriteKey));
@@ -301,6 +323,47 @@ export class EnemyManager {
       knock.y *= decay;
       if (out.fire) this.fireBolt(enemy, def, state, player);
     }
+  }
+
+  private cellOf(x: number, y: number): number {
+    const cx = Math.min(this.cols - 1, Math.max(0, Math.floor(x / CELL)));
+    const cy = Math.min(this.rows - 1, Math.max(0, Math.floor(y / CELL)));
+    return cy * this.cols + cx;
+  }
+
+  /** Rebuild the per-frame spatial hash of active enemies (by pool index). */
+  private buildGrid(list: Sprite[]): void {
+    this.head.fill(-1);
+    for (let i = 0; i < list.length; i++) {
+      if (!list[i].active) continue;
+      const c = this.cellOf(list[i].x, list[i].y);
+      this.next[i] = this.head[c];
+      this.head[c] = i;
+    }
+  }
+
+  /** Up to MAX_NEIGHBOURS active enemies within `dist` of enemy `i` (shared buffer). */
+  private neighbours(i: number, list: Sprite[], dist: number): Vector2[] {
+    const buf = this.nbBuf;
+    buf.length = 0;
+    const self = list[i];
+    const cx = Math.floor(self.x / CELL);
+    const cy = Math.floor(self.y / CELL);
+    for (let y = cy - 1; y <= cy + 1; y++) {
+      if (y < 0 || y >= this.rows) continue;
+      for (let x = cx - 1; x <= cx + 1; x++) {
+        if (x < 0 || x >= this.cols) continue;
+        for (let j = this.head[y * this.cols + x]; j >= 0; j = this.next[j]) {
+          if (j === i) continue;
+          const o = list[j];
+          if (Math.abs(o.x - self.x) < dist && Math.abs(o.y - self.y) < dist) {
+            buf.push(o);
+            if (buf.length >= MAX_NEIGHBOURS) return buf;
+          }
+        }
+      }
+    }
+    return buf;
   }
 
   private fireBolt(

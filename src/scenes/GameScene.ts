@@ -129,13 +129,13 @@ export class GameScene extends Phaser.Scene {
 
     // 4. Initialize enemy system and start this wave's spawn schedule
     this.roundDuration = waveDuration(this.run.wave);
-    this.enemyManager = new EnemyManager(this);
+    this.enemyManager = new EnemyManager(this, this.worldManager.getSolidRects());
     this.enemyManager.create();
     this.enemyManager.startWave(this.run.wave, this.rng);
 
 
     // 7. Initialize pickups
-    this.pickupManager = new PickupManager(this);
+    this.pickupManager = new PickupManager(this, this.worldManager.getSolidRects());
     this.waveEarned = 0;
     this.events.on("scrapCollected", this.onScrapCollected, this);
 
@@ -260,6 +260,15 @@ export class GameScene extends Phaser.Scene {
    * Set up collision detection between game entities
    */
   private setupCollisions(): void {
+    // Solid props block everything but player shots (those fly over)
+    const solids = this.worldManager.getSolids();
+    this.physics.add.collider(this.playerManager.getSprite(), solids);
+    this.physics.add.collider(this.enemyManager.getEnemyGroup(), solids);
+    this.physics.add.collider(this.pickupManager.getGroup(), solids);
+    this.physics.add.collider(this.enemyManager.getEnemyProjectileGroup(), solids, (bolt) =>
+      this.enemyManager.removeBolt(bolt as Phaser.Physics.Arcade.Sprite)
+    );
+
     // Player <-> Enemy collisions (player takes damage)
     this.physics.add.overlap(
       this.playerManager.getSprite(),
@@ -350,7 +359,8 @@ export class GameScene extends Phaser.Scene {
         this.enemyManager.getEnemies(),
         scrap.filter((s) => s.active),
         ARENA.w,
-        ARENA.h
+        ARENA.h,
+        this.worldManager.getSolidRects()
       );
     const pilot = () => {
       this.inputManager.autopilot = autopilotOn ? steer : null;

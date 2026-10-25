@@ -35,6 +35,12 @@ const DECOR = {
   padEdge: "#6a4cc2aa",
   padText: "#6a4cc277",
   signBg: "#1a1236",
+  // solid props (A5): raised blocks, so they read apart from the flat floor decor
+  solidTop: "#342c5c",
+  solidFront: "#100d1c",
+  solidRim: "#8f74ff",
+  solidShadow: "#000000aa",
+  solidStripe: "#6a4cc266",
 } as const;
 
 const num = (h: string): number => parseInt(h.slice(1), 16);
