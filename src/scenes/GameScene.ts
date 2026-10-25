@@ -502,10 +502,11 @@ export class GameScene extends Phaser.Scene {
   /**
    * Handle enemy killed
    */
-  private onEnemyKilled(x: number, y: number, def: EnemyDef, drops: boolean): void {
+  private onEnemyKilled(x: number, y: number, def: EnemyDef, drops: boolean, flipX = false): void {
     this.enemiesKilled++;
     if (drops) this.waveLog.scrapDropped += def.scrap;
 
+    this.juice.deathPop(x, y, def.sprite, flipX, def.radius, this.burstColors.get(def.id)!);
     this.juice.deathBurst(x, y, this.burstColors.get(def.id)!);
     if (def.shakeOnKill) this.juice.shake("kill");
 

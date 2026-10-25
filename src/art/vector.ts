@@ -54,7 +54,7 @@ const squint = (pts: number[][], s = 2.6) =>
 const legs = (xs: number[][], y: number, h: number, fill: string, fillD: string) =>
   xs.map((p) => part(Rr(p[0], y + (p[1] || 0), 6, h, 3), fill, fillD, 2)).join("");
 
-interface Actor { meta: SpriteMeta; accent: string; squint: number[][]; draw: (f: number) => string }
+interface Actor { meta: SpriteMeta; accent: string; squint: number[][]; draw: (f: number, tell?: boolean) => string }
 
 const A: Record<ActorKey, Actor> = {
   player: { meta: { w: 48, h: 48, feet: 46, cx: 24, cy: 32 }, accent: C.pink, squint: [[26, 15], [32, 15]], draw: (f) => {
@@ -91,9 +91,9 @@ const A: Record<ActorKey, Actor> = {
       `${box(20, 17.6, 4.5, 2.6, 1.3, C.cyan)}${box(28, 17.6, 4.5, 2.6, 1.3, C.cyan)}${dot(33, 19, 0.8, 0.8, C.pink)}</g>` +
       "</g>";
   } },
-  enemy_pepper: { meta: { w: 40, h: 56, feet: 54, cx: 20, cy: 30 }, accent: C.red, squint: [[18, 20], [27, 20]], draw: (f) => {
-    const b = f ? -1.5 : 0, fl = f ? 1.15 : 1;
-    return `<g transform="translate(0 ${b})">` +
+  enemy_pepper: { meta: { w: 40, h: 56, feet: 54, cx: 20, cy: 30 }, accent: C.red, squint: [[18, 20], [27, 20]], draw: (f, tell) => { // tell: crouch before the dash
+    const b = f ? -1.5 : 0, fl = tell ? 1.5 : f ? 1.15 : 1, eye = tell ? C.flame : C.cyan;
+    return `<g transform="translate(0 ${b})${tell ? " translate(20 52) scale(1.12 0.84) translate(-20 -52)" : ""}">` +
       `<g transform="translate(20 44) scale(1 ${fl}) translate(-20 -44)">` +
       `${Pd("M20,43 C11,46 9.5,53 13.5,56 C18,53 23,51 24.5,46 Z")} fill="${C.orange}"/>` +
       `${Pd("M20,45 C15,47 14,51 16,53.5 C18.5,51.5 21.5,50 22.5,47 Z")} fill="${C.flame}"/></g>` +
@@ -101,8 +101,8 @@ const A: Record<ActorKey, Actor> = {
       line("M20,9 C20,5 22.5,2.5 26,2.5", C.greenD, 3, 6) +
       part(Pd("M9.5,12.5 C12,6 28,6 30.5,12.5 C26,15 14,15 9.5,12.5 Z"), C.green, C.greenD, 2) +
       '<g class="face">' +
-      `${Pd("M15,18 L21.5,20 L20.5,22.5 L15,21.3 Z")} fill="${C.cyan}"${ol(1.4)}/>` +
-      `${Pd("M24,20 L29.5,18 L29.5,21.3 L25,22.5 Z")} fill="${C.cyan}"${ol(1.4)}/>` +
+      `${Pd("M15,18 L21.5,20 L20.5,22.5 L15,21.3 Z")} fill="${eye}"${ol(1.4)}/>` +
+      `${Pd("M24,20 L29.5,18 L29.5,21.3 L25,22.5 Z")} fill="${eye}"${ol(1.4)}/>` +
       line("M13.5,15.5 L21.5,18.3", K, 2.2) + line("M23.5,18.3 L31,15.5", K, 2.2) +
       line("M18,28 Q22,25.5 26,28", K, 1.8) + "</g>" +
       "</g>";
@@ -134,31 +134,33 @@ const A: Record<ActorKey, Actor> = {
       part(Rr(11, 33, 20, 8, 1.5), K, null, 0, stripes) +
       "</g>";
   } },
-  enemy_carrot: { meta: { w: 48, h: 56, feet: 54, cx: 22, cy: 30 }, accent: C.orange, squint: [[17, 18], [24, 18]], draw: (f) => {
+  enemy_carrot: { meta: { w: 48, h: 56, feet: 54, cx: 22, cy: 30 }, accent: C.orange, squint: [[17, 18], [24, 18]], draw: (f, tell) => { // tell: aim, scope and muzzle glow
     const b = f ? 1 : 0, s = f ? 6 : 0;
     return `<g transform="translate(0 ${b})">` +
       ([[16, 7, -32 - s, C.green], [21.5, 5, 0, C.greenD], [27, 7, 32 + s, C.green]] as const)
         .map(([x, y, r, c]) => part(E(x, y, 2.6, 6.2, r), c, C.greenD, 1)).join("") +
       part(Pd("M11,16 C11,11 16,10 21,10 C28,10 32,12 32,17 C32,30 26,42 21,52.5 C19.5,55.5 16.5,55 16.8,52 C15,40 11,28 11,16 Z"), C.orange, C.orangeD, 4,
         dot(15, 18, 2, 5, C.orangeL) + line("M13.5,27 L18,27.5", C.orangeD, 1.6) + line("M15.5,35 L20,35.5", C.orangeD, 1.6) + line("M17.5,43 L21,43.3", C.orangeD, 1.6)) +
-      `<g class="face">${part(E(24, 18, 4.2, 4.2), K, null, 0)}${dot(24, 18, 2.3, 2.3, C.cyan)}${dot(23.2, 17.2, 0.7, 0.7, C.white)}` +
+      (tell ? dot(24, 18, 7, 7, C.flame, 0, 0.4) : "") +
+      `<g class="face">${part(E(24, 18, 4.2, 4.2), K, null, 0)}${dot(24, 18, 2.3, 2.3, tell ? C.flame : C.cyan)}${dot(23.2, 17.2, 0.7, 0.7, C.white)}` +
       `${line("M14.5,16.5 L19,18.3", K, 2.2)}${line("M17.5,24.5 L22.5,24", K, 1.8)}</g>` +
       part(Rr(24, 26, 22, 5, 1.5), C.slate, C.gun, 2, box(24, 26, 22, 1.8, 0, C.metal)) +
-      part(Rr(30, 22.5, 7, 3.5, 1), C.gun, null, 0) + box(45.5, 26.5, 2.6, 4, 0.8, C.cyan) +
+      part(Rr(30, 22.5, 7, 3.5, 1), C.gun, null, 0) +
+      (tell ? dot(46, 28.5, 4.6, 4.6, C.flame, 0, 0.5) + box(45.5, 26.5, 2.6, 4, 0.8, C.flame) + dot(46.8, 28.5, 1, 1, C.white) : box(45.5, 26.5, 2.6, 4, 0.8, C.cyan)) +
       "</g>";
   } },
-  enemy_tomato: { meta: { w: 48, h: 52, feet: 50, cx: 24, cy: 32 }, accent: C.red, squint: [[21.5, 30], [30.5, 30]], draw: (f) => {
-    const b = f ? -1 : 0, F = f ? [[18, 45.5], [29, 46.5]] : [[16, 46.5], [31, 46.5]];
-    const spark = f ? "M31,-1 L32.5,2 L36,3 L32.5,4 L31,7 L29.5,4 L26,3 L29.5,2 Z" : "M31,0 L32,2.3 L34.5,3 L32,3.7 L31,6 L30,3.7 L27.5,3 L30,2.3 Z";
+  enemy_tomato: { meta: { w: 48, h: 52, feet: 50, cx: 24, cy: 32 }, accent: C.red, squint: [[21.5, 30], [30.5, 30]], draw: (f, tell) => { // tell: fuse flares, body swells
+    const b = f ? -1 : 0, F = f ? [[18, 45.5], [29, 46.5]] : [[16, 46.5], [31, 46.5]], eye = tell ? C.flame : C.cyan;
+    const spark = tell ? "M31,0 L33.2,2.6 L37.5,3.5 L33.2,4.6 L31,8 L28.8,4.6 L24.5,3.5 L28.8,2.6 Z" : f ? "M31,-1 L32.5,2 L36,3 L32.5,4 L31,7 L29.5,4 L26,3 L29.5,2 Z" : "M31,0 L32,2.3 L34.5,3 L32,3.7 L31,6 L30,3.7 L27.5,3 L30,2.3 Z";
     return F.map((p) => part(E(p[0], p[1], 4, 2.6), C.redD, null, 0)).join("") +
-      `<g transform="translate(0 ${b})">` +
+      `<g transform="translate(0 ${b})${tell ? " translate(24 31) scale(1.07) translate(-24 -31)" : ""}">` + (tell ? dot(31, 3.5, 6, 6, C.flame, 0, 0.45) : "") +
       part(E(24, 31, 17, 15), C.red, C.redD, 5, dot(14, 24, 4.2, 2.4, C.redL, -32)) +
       line("M24,14 C24,9 27.5,6.5 30.5,4", C.slate, 2, 4.4) +
       `${Pd(spark)} fill="${C.flame}"${ol(1)}/>` + dot(31, 3, 1, 1, C.white) +
       part(Pd("M24,12 L27,16 L33,15 L29,19 L31,23 L24,21 L17,23 L19,19 L15,15 L21,16 Z"), C.green, C.greenD, 1.5) +
       '<g class="face">' +
-      `${Pd("M19,28 L24.5,30 L24.5,32.3 L19,31.3 Z")} fill="${C.cyan}"${ol(1.4)}/>` +
-      `${Pd("M28,30 L33.5,28 L33.5,31.3 L28,32.3 Z")} fill="${C.cyan}"${ol(1.4)}/>` +
+      `${Pd("M19,28 L24.5,30 L24.5,32.3 L19,31.3 Z")} fill="${eye}"${ol(1.4)}/>` +
+      `${Pd("M28,30 L33.5,28 L33.5,31.3 L28,32.3 Z")} fill="${eye}"${ol(1.4)}/>` +
       line("M17.5,25.5 L25,28", K, 2.2) + line("M27,28 L35,25.5", K, 2.2) +
       box(17, 35, 16, 6.5, 3.25, K) + box(19, 36.2, 12, 2.4, 0.6, C.white) + line("M22,36 L22,38.6 M25,36 L25,38.6 M28,36 L28,38.6", K, 0.9) + "</g>" +
       "</g>";
@@ -256,8 +258,9 @@ export const SPRITE_META: Record<SpriteKey, SpriteMeta> = {
     [k, { w, h, feet: h, cx: w / 2, cy: h / 2, ...(px === undefined ? {} : { px, py }) }])) as Record<WeaponKey | ShotKey, SpriteMeta>),
 };
 const WALK = ["walk0", "walk1", "hit"] as const;
+const TELL = [...WALK, "tell"] as const; // board A2: wind-up frame
 export const FRAMES: Record<SpriteKey, readonly string[]> = {
-  player: WALK, enemy_pea: WALK, enemy_pepper: WALK, enemy_potato: WALK, enemy_carrot: WALK, enemy_tomato: WALK,
+  player: WALK, enemy_pea: WALK, enemy_pepper: TELL, enemy_potato: WALK, enemy_carrot: TELL, enemy_tomato: TELL,
   pickup_scrap: ["0", "1"],
   ...(Object.fromEntries(Object.keys(X).map((k) => [k, k.startsWith("weapon_") ? ["t1", "t2", "t3", "t4"] : ["0"]])) as Record<WeaponKey | ShotKey, string[]>),
 };
@@ -272,7 +275,7 @@ export function wrap(w: number, h: number, inner: string, hit: string, keyline =
     `<g${keyline ? ' filter="url(#st)"' : ""}><g class="${hit ? "hit" : ""}">${inner}</g>${hit}</g></svg>`;
 }
 
-/** SVG string for a texture key + frame (walk0/walk1/hit, scrap 0/1, weapons t1..t4, shots 0); width/height = 2x design px. */
+/** SVG string for a texture key + frame (walk0/walk1/hit, tell on pepper/carrot/tomato, scrap 0/1, weapons t1..t4, shots 0); width/height = 2x design px. */
 export function svg(key: SpriteKey, frame: string): string {
   resetIds();
   const { w, h } = SPRITE_META[key];
@@ -282,5 +285,5 @@ export function svg(key: SpriteKey, frame: string): string {
     return wrap(w, h, x.draw(THEME_CSS.tier[(+frame.slice(1) || 1) - 1]), "", !x.flat);
   }
   const a = A[key as ActorKey];
-  return wrap(w, h, a.draw(frame === "walk1" ? 1 : 0), frame === "hit" ? squint(a.squint) : "");
+  return wrap(w, h, a.draw(frame === "walk1" ? 1 : 0, frame === "tell"), frame === "hit" ? squint(a.squint) : "");
 }

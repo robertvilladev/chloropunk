@@ -81,6 +81,16 @@ export function steer(
   return out;
 }
 
+// Attack tells (board A2): the last part of a wind-up shows the "tell" frame
+const TELL = { dashLead: 0.4, shotLead: 0.5, fuseDist: 90 };
+
+/** True while an enemy should show its tell frame. Read after `steer` for the frame (same state). */
+export function tells(behavior: EnemyBehavior, state: EnemyState, params: Record<string, number>, dist: number): boolean {
+  if (behavior === "dasher") return state.phase === "move" && state.timer >= params.dashEvery - TELL.dashLead;
+  if (behavior === "shooter") return dist <= params.range && state.timer >= params.fireEvery - TELL.shotLead;
+  return behavior === "exploder" && dist <= TELL.fuseDist;
+}
+
 const LOOK = 24; // px of gap to a solid where avoidance starts
 const IDLE_SEP = 40; // px/s: standing enemies (shooters in range) drift apart this fast
 

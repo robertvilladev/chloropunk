@@ -8,7 +8,7 @@ const all = KEYS.flatMap((k) => FRAMES[k].map((f) => ({ k, f, s: svg(k, f) })));
 
 describe("vector sprites", () => {
   it("every key and frame builds an svg at 2x", () => {
-    expect(all.length).toBe(52);
+    expect(all.length).toBe(55); // + pepper, carrot, tomato tell
     for (const { k, f, s } of all) {
       const { w, h } = SPRITE_META[k];
       expect(s.startsWith("<svg"), `${k}@${f}`).toBe(true);
@@ -49,6 +49,14 @@ describe("vector sprites", () => {
       expect(svg(k, "walk1"), k).not.toBe(svg(k, "walk0"));
     }
     expect(svg("pickup_scrap", "1")).not.toBe(svg("pickup_scrap", "0"));
+  });
+
+  it("pepper, carrot and tomato have a tell frame that differs from walk0 (board A2)", () => {
+    for (const k of ["enemy_pepper", "enemy_carrot", "enemy_tomato"] as const) {
+      expect(FRAMES[k], k).toContain("tell");
+      expect(svg(k, "tell"), k).not.toBe(svg(k, "walk0"));
+    }
+    for (const k of ["player", "enemy_pea", "enemy_potato"] as const) expect(FRAMES[k], k).not.toContain("tell");
   });
 
   it("stays inside the size budget", () => {
