@@ -1,7 +1,7 @@
-import { feetOffset } from "@/art/body";
+import { ART_SCALE, feetOffset, fitBox } from "@/art/body";
+import { SPRITE_META, SWOOSH, weaponFrame, type SpriteKey } from "@/art/vector";
 import { DEPTH, HIT_SIZE } from "@/config/constants";
 import { actorDepth } from "@/core/depth";
-import { THEME } from "@/config/theme";
 import type { Rng } from "@/core/rng";
 import { CRIT_MULT, weaponStats, type WeaponStats } from "@/core/weapons";
 import { inArc, nearestInRange, onBeam, slotOffset, spreadAngles } from "@/entities/weaponBehaviors";
@@ -22,6 +22,8 @@ export type HitFn = (
 
 const MAX_PROJECTILES = 200;
 const ARC_SHOW_S = 0.1;
+const MUZZLE_S = 0.05;
+const KICK_PX = 2; // weapon kick on each shot (owner board A2): back 2 px, eases back
 
 interface Equipped {
   def: WeaponDef;
@@ -30,8 +32,14 @@ interface Equipped {
   timer: number;
   offset: Vector2;
   sprite: Phaser.GameObjects.Image;
-  gfx: Phaser.GameObjects.Graphics | null; // beam / arc flash
+  pivot: [number, number]; // grip origin; y is mirrored while the weapon is flipped to aim left
+  tip: number; // design px from the grip to the barrel tip (muzzle flash)
+  aim: number; // last aim angle
+  fired: boolean; // has shot at least once (kick)
+  fx: Phaser.GameObjects.Image | null; // beam / swoosh flash
   fxLeft: number; // seconds the flash stays visible
+  muzzle: Phaser.GameObjects.Image | null; // ranged weapons: flash at the barrel tip
+  muzzleLeft: number;
   orbit: number; // drone angle
   hits: Map<Sprite, number>; // drone: enemy -> clock time of last hit
 }
@@ -80,18 +88,32 @@ export class WeaponManager {
     this.enemyGroup = o.enemyGroup;
     this.equipped = o.weapons.map((w, i) => {
       const def = (weaponDefs as Record<string, WeaponDef>)[w.id];
+      const key = `weapon_${def.id}` as SpriteKey, m = SPRITE_META[key];
+      const fxKey = def.behavior === "beam" ? "fx_beam" : def.behavior === "melee-arc" ? "fx_swoosh" : null;
+      const ranged = def.behavior === "projectile" || def.behavior === "spread" || def.behavior === "explosive";
+      const fx = fxKey ? this.scene.add.image(0, 0, fxKey).setDepth(DEPTH.PROJECTILES).setVisible(false) : null;
+      // beam: one tile stretched from its left edge; swoosh: scaled from the arc centre
+      if (fx && fxKey === "fx_beam") fx.setOrigin(0, 0.5);
+      if (fx && fxKey === "fx_swoosh") fx.setOrigin(SWOOSH.cx / SPRITE_META.fx_swoosh.w, SWOOSH.cy / SPRITE_META.fx_swoosh.h);
       return {
         def,
         tier: w.tier,
         ws: weaponStats(def, w.tier, o.stats),
         timer: 0,
         offset: slotOffset(i, o.weapons.length),
-        sprite: this.scene.add.image(0, 0, `weapon_${def.id}`).setDepth(DEPTH.ACTORS + 0.01),
-        gfx:
-          def.behavior === "beam" || def.behavior === "melee-arc"
-            ? this.scene.add.graphics().setDepth(DEPTH.PROJECTILES)
-            : null,
+        sprite: this.scene.add
+          .image(0, 0, key, weaponFrame(w.tier))
+          .setScale(1 / ART_SCALE)
+          .setOrigin((m.px ?? m.w / 2) / m.w, (m.py ?? m.h / 2) / m.h)
+          .setDepth(DEPTH.ACTORS + 0.01),
+        pivot: [(m.px ?? m.w / 2) / m.w, (m.py ?? m.h / 2) / m.h],
+        tip: m.w - (m.px ?? m.w / 2),
+        aim: 0,
+        fired: false,
+        fx,
         fxLeft: 0,
+        muzzle: ranged ? this.scene.add.image(0, 0, "fx_muzzle").setScale(1 / ART_SCALE).setDepth(DEPTH.PROJECTILES).setVisible(false) : null,
+        muzzleLeft: 0,
         orbit: (i / o.weapons.length) * Math.PI * 2,
         hits: new Map(),
       };
@@ -116,16 +138,21 @@ export class WeaponManager {
       this.fadeFx(w, dt);
       slot.x = player.x + w.offset.x;
       slot.y = player.y + w.offset.y;
-      w.sprite.setPosition(slot.x, slot.y);
+      // kick: pushed back along the aim right after a shot, eased out over ~120 ms
+      const kick = w.fired && w.timer < 0.12 ? KICK_PX * (1 - w.timer / 0.12) : 0;
+      w.sprite.setPosition(slot.x - Math.cos(w.aim) * kick, slot.y - Math.sin(w.aim) * kick);
       w.timer += dt;
+      this.fadeMuzzle(w, slot, dt);
       // Blades reach from the player, everything else from its slot
       const origin = w.def.behavior === "melee-arc" ? player : slot;
       const target = nearestInRange(origin, w.ws.range, enemies);
       if (!target) continue;
       const angle = Math.atan2(target.y - origin.y, target.x - origin.x);
-      w.sprite.setRotation(angle);
+      this.aimAt(w, angle);
       if (w.timer < w.ws.cooldown) continue;
       w.timer = 0;
+      w.fired = true;
+      if (w.muzzle) w.muzzleLeft = MUZZLE_S;
       this.fire(w, origin, angle, enemies);
     }
     this.updateProjectiles();
@@ -138,7 +165,9 @@ export class WeaponManager {
     for (const w of this.equipped) {
       w.hits.clear();
       w.fxLeft = 0;
-      w.gfx?.clear();
+      w.fx?.setVisible(false);
+      w.muzzleLeft = 0;
+      w.muzzle?.setVisible(false);
     }
   }
 
@@ -201,16 +230,7 @@ export class WeaponManager {
     }
     this.tally.shots++;
     if (landed) this.tally.hits++;
-    const g = w.gfx!;
-    g.clear();
-    g.lineStyle(w.def.params.width, THEME.tier[1]);
-    g.lineBetween(
-      from.x,
-      from.y,
-      from.x + Math.cos(angle) * w.ws.range,
-      from.y + Math.sin(angle) * w.ws.range
-    );
-    g.setAlpha(1);
+    w.fx!.setPosition(from.x, from.y).setRotation(angle).setDisplaySize(w.ws.range, w.def.params.width).setAlpha(1).setVisible(true);
     w.fxLeft = w.def.params.duration;
   }
 
@@ -227,22 +247,32 @@ export class WeaponManager {
     }
     this.tally.shots++;
     if (landed) this.tally.hits++;
-    const half = ((arc / 2) * Math.PI) / 180;
-    const g = w.gfx!;
-    g.clear();
-    g.fillStyle(THEME.text, 0.35);
-    g.slice(from.x, from.y, w.ws.range, angle - half, angle + half);
-    g.fillPath();
-    g.setAlpha(1);
+    // the swoosh is drawn as a 120 deg arc (weapons.json blade arc); scale its outer edge to the reach
+    w.fx!.setPosition(from.x, from.y).setRotation(angle).setScale(w.ws.range / (SWOOSH.r * ART_SCALE)).setAlpha(1).setVisible(true);
     w.fxLeft = ARC_SHOW_S;
   }
 
   private fadeFx(w: Equipped, dt: number): void {
-    if (!w.gfx || w.fxLeft <= 0) return;
+    if (!w.fx || w.fxLeft <= 0) return;
     w.fxLeft -= dt;
     const total = w.def.behavior === "beam" ? w.def.params.duration : ARC_SHOW_S;
-    if (w.fxLeft <= 0) w.gfx.clear();
-    else w.gfx.setAlpha(w.fxLeft / total);
+    if (w.fxLeft <= 0) w.fx.setVisible(false);
+    else w.fx.setAlpha(w.fxLeft / total);
+  }
+
+  /** Muzzle flash at the barrel tip for MUZZLE_S after each shot. */
+  private fadeMuzzle(w: Equipped, slot: Vector2, dt: number): void {
+    if (!w.muzzle) return;
+    if (w.muzzleLeft <= 0) return;
+    w.muzzleLeft -= dt;
+    w.muzzle.setVisible(w.muzzleLeft > 0).setPosition(slot.x + Math.cos(w.aim) * w.tip, slot.y + Math.sin(w.aim) * w.tip);
+  }
+
+  /** Rotate to aim; aiming left flips the art vertically (and mirrors the grip pivot) so it stays upright. */
+  private aimAt(w: Equipped, angle: number): void {
+    w.aim = angle;
+    const left = Math.cos(angle) < 0;
+    w.sprite.setRotation(angle).setFlipY(left).setOrigin(w.pivot[0], left ? 1 - w.pivot[1] : w.pivot[1]);
   }
 
   /** Drone: circles the player, ticks each touched enemy at most once per cooldown. */
@@ -276,7 +306,7 @@ export class WeaponManager {
     this.tally.shots++;
     pr.setTexture(key);
     pr.enableBody(true, from.x, from.y, true, true);
-    pr.setSize(...HIT_SIZE[key as keyof typeof HIT_SIZE]);
+    fitBox(pr, key as SpriteKey, ...HIT_SIZE[key as keyof typeof HIT_SIZE]);
     pr.setDepth(DEPTH.PROJECTILES);
     const speed = w.def.params.speed;
     pr.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);

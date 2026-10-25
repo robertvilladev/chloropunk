@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SOUNDS } from "./sounds";
+import { SOUNDS, pickSound } from "./sounds";
 import { zzfxSamples } from "./zzfx";
 
 describe("sounds", () => {
@@ -11,5 +11,13 @@ describe("sounds", () => {
     expect(peak).toBeGreaterThan(0.05);
     expect(peak).toBeLessThanOrEqual(1);
     expect(s.zzfx[1]).toBe(0); // buffers are cached: per-play variation happens in sfx.ts
+  });
+});
+
+describe("pickSound", () => {
+  it("a legendary (T4) pick plays the legendary sound instead of the normal one", () => {
+    expect(pickSound(4, "buy")).toBe("legendary");
+    expect(pickSound(3, "buy")).toBe("buy");
+    expect(pickSound(1, "uiConfirm")).toBe("uiConfirm");
   });
 });

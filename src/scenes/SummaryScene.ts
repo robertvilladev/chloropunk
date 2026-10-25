@@ -1,5 +1,5 @@
 import { GAME_CONFIG, SCENE_KEYS } from "@/config/constants";
-import { FONTS, THEME, THEME_CSS } from "@/config/theme";
+import { FONTS, THEME, THEME_CSS, numberStroke } from "@/config/theme";
 import { formatCount } from "@/core/labels";
 import { loadBest, summariseRun, type RunOutcome, type RunSummary } from "@/core/summary";
 import { duckMusic } from "@/fx/music";
@@ -7,7 +7,7 @@ import { sfx } from "@/fx/sfx";
 import type { RunState } from "@/types";
 import itemDefs from "@assets/data/items.json";
 import Phaser from "phaser";
-import { button, onKeys, panel, scanlines, text } from "./ui";
+import { button, drawPanel, fitImage, iconArt, num, onKeys, panel, scanlines, text, weaponArt, type IconArt } from "./ui";
 
 const PW = 560, PAD = 28, INNER = PW - 2 * PAD;
 const WEAPON_CHIP = 40, ITEM_CHIP = 28, CHIP_GAP = 6;
@@ -46,7 +46,7 @@ export class SummaryScene extends Phaser.Scene {
     const { WIDTH: W, HEIGHT: H } = GAME_CONFIG;
     const ph = 420, px = W / 2 - PW / 2, py = H / 2 - ph / 2;
     const x = px + PAD;
-    panel(this, px, py, PW, ph, { border: accent, shadow: true }).setStrokeStyle(2, accent);
+    panel(this, px, py, PW, ph, { frame: accent, shadow: THEME.pink });
 
     let y = py + PAD;
     text(this, x, y, `${win ? "DISTRICT CLEARED" : "SIGNAL LOST"} · WAVE ${pad2(s.wave)}`, 10, accentCss).setLetterSpacing(1.8);
@@ -54,7 +54,7 @@ export class SummaryScene extends Phaser.Scene {
     // RGB-split title, same layers as the menu logo
     const title = win ? "VICTORY" : "FLATLINED";
     for (const [dx, color] of [[3, THEME_CSS.pink], [-3, THEME_CSS.tier[1]], [0, accentCss]] as const) {
-      this.add.text(x + dx, y, title, { fontFamily: FONTS.display, fontSize: "40px", color });
+      this.add.text(x + dx, y, title, { fontFamily: FONTS.display, fontSize: "40px", color, ...(dx ? {} : { stroke: THEME_CSS.deep, strokeThickness: numberStroke(40) }) });
     }
     y += 50;
     const sub = win
@@ -74,7 +74,7 @@ export class SummaryScene extends Phaser.Scene {
       const tx = x + i * (tw + 8);
       this.add.rectangle(tx, y, tw, 58, THEME.surface2).setOrigin(0);
       text(this, tx + 10, y + 10, label, 9, THEME_CSS.textMuted).setLetterSpacing(1.2);
-      text(this, tx + 10, y + 22, value, 32, color, "pixel");
+      num(this, tx + 10, y + 24, value, 20, color);
     });
     y += 58 + 22;
 
@@ -101,11 +101,14 @@ export class SummaryScene extends Phaser.Scene {
    * wrapping onto a second row; overflow ends in "+N". Returns the block's height.
    */
   private build(s: RunSummary, x0: number, y0: number): number {
-    const chip = (x: number, y: number, size: number, border: number) =>
-      this.add.rectangle(x, y, size, size, THEME.surface2).setOrigin(0).setStrokeStyle(2, border);
+    const g = this.add.graphics();
+    const chip = (x: number, y: number, size: number, border: number, art?: IconArt) => {
+      drawPanel(g, x, y, size, size, { fill: THEME.surface2, frame: border, keyline: false });
+      if (art) fitImage(this, x + size / 2, y + size / 2, art, size - 6);
+    };
     let x = x0;
     for (const w of s.weapons) {
-      chip(x, y0, WEAPON_CHIP, THEME.tier[w.tier - 1]);
+      chip(x, y0, WEAPON_CHIP, THEME.tier[w.tier - 1], weaponArt(w.id, w.tier));
       x += WEAPON_CHIP + CHIP_GAP;
     }
     const ix = x + 12 - CHIP_GAP;
@@ -117,12 +120,12 @@ export class SummaryScene extends Phaser.Scene {
     const at = (i: number) => [ix + (i % perRow) * (ITEM_CHIP + CHIP_GAP), rowY(Math.floor(i / perRow))] as const;
     s.items.slice(0, fit).forEach((id, i) => {
       const [cx, cy] = at(i);
-      chip(cx, cy, ITEM_CHIP, THEME.tier[(defs[id]?.rarity ?? 1) - 1]);
+      chip(cx, cy, ITEM_CHIP, THEME.tier[(defs[id]?.rarity ?? 1) - 1], iconArt("item", id));
     });
     if (fit < s.items.length) {
       const [cx, cy] = at(fit);
       chip(cx, cy, ITEM_CHIP, THEME.line);
-      text(this, cx + ITEM_CHIP / 2, cy + ITEM_CHIP / 2, `+${s.items.length - fit}`, 16, THEME_CSS.textMuted, "pixel").setOrigin(0.5);
+      text(this, cx + ITEM_CHIP / 2, cy + ITEM_CHIP / 2, `+${s.items.length - fit}`, 12, THEME_CSS.textMuted, "display").setOrigin(0.5);
     }
     return rows === 1 ? WEAPON_CHIP : 2 * ITEM_CHIP + CHIP_GAP;
   }

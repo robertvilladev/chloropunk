@@ -5,7 +5,7 @@ import { nextVolume } from "@/core/music";
 import { loadSettings, saveSettings, type Settings } from "@/core/settings";
 import { duckMusic, setMusicVolume } from "@/fx/music";
 import { setSfxVolume, sfx } from "@/fx/sfx";
-import { button, onKeys, panel, scanlines, text } from "./ui";
+import { button, num, onKeys, panel, scanlines, text } from "./ui";
 import Phaser from "phaser";
 
 type View = "main" | "settings" | "confirm";
@@ -42,7 +42,7 @@ export class PauseScene extends Phaser.Scene {
     this.add.rectangle(0, 0, width, height, THEME.bg, 0.7).setOrigin(0).setInteractive();
     scanlines(this);
     const pw = 420, ph = PANEL_H;
-    panel(this, width / 2 - pw / 2, height / 2 - ph / 2, pw, ph, { border: THEME.lime, shadow: true });
+    panel(this, width / 2 - pw / 2, height / 2 - ph / 2, pw, ph, { frame: THEME.lime, shadow: THEME.pink });
 
     onKeys(this, (e) => {
       if (e.code === "KeyP") this.resume();
@@ -93,7 +93,7 @@ export class PauseScene extends Phaser.Scene {
       ];
     }
 
-    add(text(this, cx, top + 55, title, 40, view === "confirm" ? THEME_CSS.danger : THEME_CSS.lime, "display").setOrigin(0.5));
+    add(num(this, cx, top + 55, title, 40, view === "confirm" ? THEME_CSS.danger : THEME_CSS.lime).setOrigin(0.5));
     if (sub) add(text(this, cx, top + 100, sub, 14, THEME_CSS.textMuted).setOrigin(0.5));
     this.buttons = this.items.map((it, i) =>
       add(

@@ -41,13 +41,13 @@ Spec: [§4 steps 1, 4, 5; §5 stats/weapons/items](docs/superpowers/specs/2026-1
 - 🚧 Balance pass — see [Balance & progression](#balance--progression-)
 
 ## M3 — Look ✅
-Spec: [§6 look and feel, §7 screens](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md). Mockups approved ([copies](docs/superpowers/specs/mockups/README.md)). Owner scope: fighter + 5 enemies get 2-frame walk + hit frame, pickups get sprites, no weapon/item icons, plain graphite floor (superseded by A4 rooftop decor), **SFX moved to M4**.
+Spec: [§6 look and feel, §7 screens](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md). Mockups approved ([copies](docs/superpowers/specs/mockups/README.md)). Owner scope: fighter + 5 enemies get 2-frame walk + hit frame, pickups get sprites, no weapon/item icons (superseded by the UI art refresh, PR 5), plain graphite floor (superseded by A4 rooftop decor), **SFX moved to M4**.
 
 - ✅ Sprite-grid pipeline: grids in `src/art/`, baked to textures at boot (`textures.ts`); fighter, 5 enemies and scrap on screen with walk/hit frames
 - ✅ 3/4 y-sorted depth (`core/depth.ts` `actorDepth`, bands in `DEPTH`): actors in [40, 50), projectiles 60, FX 70, numbers 90
 - ✅ Soft shadows, neon glow FX (one camera-level bloom on WebGL; baked 1px halos on Canvas)
-- ✅ "Chlorophyll" `theme.ts` applied to every screen; fonts Bungee / IBM Plex Mono / VT323
-- ✅ (HUD: no stats panel, 1/2/3 speed buttons dev-only) level-up and shop screens, menu, loadout per the mockups (drag-to-combine and item/weapon icons from the shop mockup not built; (proposed) later); stat previews on hover; mouse + keyboard
+- ✅ "Chlorophyll" `theme.ts` applied to every screen; fonts Bungee / IBM Plex Mono / VT323 (VT323 dropped in the UI art refresh, PR 5)
+- ✅ (HUD: no stats panel, 1/2/3 speed buttons dev-only) level-up and shop screens, menu, loadout per the mockups (drag-to-combine from the shop mockup not built, (proposed) later; item/weapon icons arrived with the UI art refresh, PR 5); stat previews on hover; mouse + keyboard
 
 ## M3.1 — Readability ✅
 Owner playtest: text was jaggy. Cause: an 800×600 canvas upscaled with nearest-neighbour.
@@ -88,9 +88,12 @@ Spec: [arena map addendum](docs/superpowers/specs/2026-10-23-arena-map-addendum.
 ## Art refresh 🚧
 - 🚧 Vector redesign (owner 2026-10-24: not pixel art; Brotato-inspired, own designs, keyline outline), designed in the [Chloropunk Sprites canvas](https://claude.ai/artifact/TnsQjaTcJEYoShEC5AyMXM), swapped by texture key — [plan](docs/superpowers/plans/2026-10-23-art-refresh.md)
   - ✅ Canvas: direction (keyline), fighter + 5 enemies (techy pea and potato), scrap (power bolt), three boss concepts — approved 2026-10-24
-  - ⬜ Canvas: weapons + projectiles, animations, full boss sheets
+  - ✅ Canvas: weapons + projectiles, animations, full boss sheets (owner approved 2026-10-25)
   - Known (PR 1 review): the carrot hit circle sits 4 design px off its art when it faces left (art centre `cx` 22 of 48, Arcade does not mirror body offsets on flip); fix by centring the carrot art or mirroring the offset
-  - ✅ PR 1 vector pipeline + cast + scrap + bigger hit areas (`feat/art-vector-cast`, not merged yet): SVG sprites baked at 2x, hit areas pea r12 / carrot r15 / tomato r17 / potato r26; playtest seeds 1–3 still win wave 10, boot about +300 ms ([outcome](docs/superpowers/plans/2026-10-23-art-refresh.md#pr-1-outcome-2026-10-25)) · ⬜ PR 2 weapons (after A5) · ⬜ PR 3 animations · ⬜ PR 4 boss sheets (for M4b)
+  - ✅ PR 1 vector pipeline + cast + scrap + bigger hit areas (`feat/art-vector-cast`, not merged yet): SVG sprites baked at 2x, hit areas pea r12 / carrot r15 / tomato r17 / potato r26; playtest seeds 1–3 still win wave 10, boot about +300 ms ([outcome](docs/superpowers/plans/2026-10-23-art-refresh.md#pr-1-outcome-2026-10-25)) · ✅ PR 2 weapons, projectiles and effects (`feat/art-weapons`, on top of PR 1, not merged yet): tier frames t1–t4, beam/swoosh/muzzle/blast sprites, orange-red enemy bolt, hit boxes unchanged, boot about +60 ms over PR 1 ([outcome](docs/superpowers/plans/2026-10-23-art-refresh.md#pr-2-outcome-2026-10-25)) · ✅ PR 3 animations (`feat/art-animations`, on top of PR 5, not merged yet): pepper/carrot/tomato attack tells, player hit frame (no tint), spawn pop-in, death pop, squash-and-bob with the hit circle fixed; 150 peas 56–60 fps on both renderers ([outcome](docs/superpowers/plans/2026-10-23-art-refresh.md#pr-3-outcome-2026-10-25)) · ✅ PR 4 boss sheets (`feat/art-bosses`, on top of PR 3, not merged yet): three bosses × 6 poses, boss projectiles, `pickBossSkin`; loaded per run with `preloadBoss`/`buildBoss`, not at boot ([outcome](docs/superpowers/plans/2026-10-23-art-refresh.md#pr-4-outcome-2026-10-25)); phase-2 looks (option B, `<pose>_p2`) added; fighter sprite no longer holds a baked-in gun
+  - ✅ Canvas: UI boards U1–U4 (kit, 29 icons, cards + legendary pick, HUD + screens), owner approved 2026-10-25 ([design](docs/superpowers/specs/2026-10-25-ui-art-refresh-design.md))
+  - ✅ PR 5 UI art refresh (`feat/art-ui`, on top of PR 2, not merged yet): no pixel font (Bungee numbers with an ink stroke), kit panels/buttons, icon windows + tier badge on shop and level-up cards, T3/T4 idle glow, legendary pick effect + sound (first pass), white/amber damage numbers, HUD weapon slots with sprites + owned item chips, loadout/summary art; boot about +250 ms WebGL / +90 ms Canvas over PR 2, art refresh total +365 / +129 ms (budget 500) ([outcome](docs/superpowers/plans/2026-10-25-ui-art-refresh.md#outcome-2026-10-25))
+  - (proposed) Shop ITEMS list could use the item chips instead of names; legendary animation and sound refinement (owner, later)
 
 ## M4 — Boss & run end ⬜
 Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md). Plans: [M4a run end](docs/superpowers/plans/2026-10-23-m4-run-end.md), [M4b boss](docs/superpowers/plans/2026-10-23-m4-boss.md) (after A5 and the boss art). Boss design: [arena map addendum §3](docs/superpowers/specs/2026-10-23-arena-map-addendum.md#3-boss-three-looks-one-fight-revised-2026-10-24).
@@ -108,7 +111,7 @@ From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) an
 
 - **Balance:** see [Balance & progression](#balance--progression-); wave 10 (boss) targets come with M4
 - **Perf:** measured in M3 (visible pane, 6 tier-2 weapons, 90–150 peas): 72 fps (the display's refresh) on WebGL with and without bloom and on Canvas, steady 13.9 ms frames; not measured on a slower machine. A2 (2026-10-24, follow camera, 1600×1200, ~130–150 peas): 117–140 fps on WebGL and Canvas.
-- **Canvas renderer (pre-M3):** death bursts use `particleTint` and the player hit flash uses `setTint`, which Phaser's Canvas renderer doesn't draw (bursts white, no hit tint) — unverified in a browser.
+- **Canvas renderer (pre-M3):** death bursts use `particleTint`, which Phaser's Canvas renderer doesn't draw (bursts white). The player hit flash is the baked `hit` frame since art refresh PR 3, so it shows on Canvas.
 - **Weapons (M2 review):** drone hit map is keyed by pooled enemy sprites (a recycled enemy can be drone-immune ≤0.5 s); weapon textures and the starter list are hardcoded in `BootScene`/`LoadoutScene` (move colour + `starter` into `weapons.json`); pierce assumes enemies line up in the sim (pistol has pierce 1 since the balance pass)
 - **Robustness:** `rng.int` unguarded for max<min; `buildSpawnSchedule` hangs if `every<=0`
 - **Dev only:** `debugSpawn` draws from the spawn RNG; F2 peas aren't counted in the run log's `spawned` (kill % can pass 100)

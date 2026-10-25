@@ -4,7 +4,7 @@ import { CATCH_UP } from "@/core/waves";
 import layout from "@assets/data/arena.json";
 import { solidRects } from "@/core/arena";
 import type { ArenaProp, Rect } from "@/types";
-import { avoid, createEnemyState, steer } from "./enemyBehaviors";
+import { avoid, createEnemyState, steer, tells } from "./enemyBehaviors";
 
 const P = { x: 100, y: 0 };
 const O = { x: 0, y: 0 };
@@ -184,5 +184,40 @@ describe("avoid: crowds walk around the shipped vents", () => {
     const cy = v.y + v.h / 2;
     const player = { x: Math.max(30, cx + ax * 160), y: Math.max(30, cy + ay * 150) };
     expect(arrived(player, v, Math.max(16, cx - ax * 150 - 56), Math.max(16, cy - ay * 130 - 22))).toBeGreaterThanOrEqual(23);
+  });
+});
+
+describe("tells (board A2 wind-up windows)", () => {
+  const P_ = (b: keyof typeof enemies) => ({ speed: enemies[b].speed, ...enemies[b].params });
+
+  it("pepper crouches for the last 0.4 s before each dash, not during it", () => {
+    const s = createEnemyState(enemies.pepper, 1), p = P_("pepper"); // dashEvery 2.5
+    s.timer = 2.0;
+    expect(tells("dasher", s, p, 500)).toBe(false);
+    s.timer = 2.15;
+    expect(tells("dasher", s, p, 500)).toBe(true);
+    steer("dasher", s, { x: 0, y: 0 }, { x: 500, y: 0 }, 0.4, p); // crosses 2.5: dash starts
+    expect(s.phase).toBe("dash");
+    expect(tells("dasher", s, p, 500)).toBe(false);
+  });
+
+  it("carrot aims for the last 0.5 s before a shot, only in range", () => {
+    const s = createEnemyState(enemies.carrot, 1), p = P_("carrot");
+    s.timer = 1.4;
+    expect(tells("shooter", s, p, 200)).toBe(false);
+    s.timer = 1.5;
+    expect(tells("shooter", s, p, 200)).toBe(true);
+    expect(tells("shooter", s, p, 261)).toBe(false);
+  });
+
+  it("tomato flares within 90 px of the fighter", () => {
+    const s = createEnemyState(enemies.tomato, 1), p = P_("tomato");
+    expect(tells("exploder", s, p, 90)).toBe(true);
+    expect(tells("exploder", s, p, 91)).toBe(false);
+  });
+
+  it("peas and spuds have no tell", () => {
+    expect(tells("chaser", createEnemyState(enemies.pea, 1), P_("pea"), 10)).toBe(false);
+    expect(tells("tank", createEnemyState(enemies.potato, 1), P_("potato"), 10)).toBe(false);
   });
 });

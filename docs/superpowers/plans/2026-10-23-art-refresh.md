@@ -45,10 +45,10 @@
 
 Done 2026-10-24: direction (keyline), cast, scrap (power bolt), boss proposals. Old pixel boards and the Colossus sit on the canvas's "Superseded" page.
 
-- [ ] **A1 Weapons board** (gate for PR 2): 6 weapons (pistol, shotgun, laser, blade, drone, rocket) drawn pointing right, each ×4 tier trims (grey `#a9b0b8`, cyan `#3ad8ff`, pink `#ff4f9a`, amber `#ffb13b`); projectiles (`projectile_basic`, `proj_pellet`, `proj_rocket`, `enemy_bolt`), laser beam style, blade swoosh, drone body, rocket blast ring, muzzle flash; shown orbiting the fighter at real size.
-- [ ] **A2 Animations board** (gate for PR 3): attack tells (pepper `tell` crouch, carrot `tell` aim, tomato `tell` fuse flare), player `hit` frame, death pop and spawn pop-in timings, squash-and-bob curve (shown as a looping preview).
-- [ ] **A3 Boss sheets** (gate for PR 4): Harvester-9, Onion King, Greenhouse, each `idle0`, `idle1`, `hit`, `volley`, `charge`, `lob`, plus each boss's projectile art (carrot round / layer shard / carrot bolt; tomato / tear-gas bulb / tomato).
-- [ ] After each gate: record the approval date in the addendum §4 and copy the canvas `project/vector.js` changes into `src/art/vector.ts` in that PR.
+- [x] **A1 Weapons board** (approved 2026-10-25) (gate for PR 2): 6 weapons (pistol, shotgun, laser, blade, drone, rocket) drawn pointing right, each ×4 tier trims (grey `#a9b0b8`, cyan `#3ad8ff`, pink `#ff4f9a`, amber `#ffb13b`); projectiles (`projectile_basic`, `proj_pellet`, `proj_rocket`, `enemy_bolt`), laser beam style, blade swoosh, drone body, rocket blast ring, muzzle flash; shown orbiting the fighter at real size.
+- [x] **A2 Animations board** (approved 2026-10-25) (gate for PR 3): attack tells (pepper `tell` crouch, carrot `tell` aim, tomato `tell` fuse flare), player `hit` frame, death pop and spawn pop-in timings, squash-and-bob curve (shown as a looping preview).
+- [x] **A3 Boss sheets** (approved 2026-10-25) (gate for PR 4): Harvester-9, Onion King, Greenhouse, each `idle0`, `idle1`, `hit`, `volley`, `charge`, `lob`, plus each boss's projectile art (carrot round / layer shard / carrot bolt; tomato / tear-gas bulb / tomato).
+- [x] Approvals recorded in the addendum §4 (2026-10-25). Owner calls on the boards: Harvester-9 gatling on the front arm (claw at the back), Greenhouse cannon front / mortar back, `enemy_bolt` orange-red (reads as danger), tell windows pepper last 0.4 s before a dash / carrot last 0.5 s before a shot / tomato within 90 px of the fighter, bob 3 hops/s with k = min(1, speed/90). Boss phase-2 looks are not drawn yet (open for PR 4). Each PR still copies its part of the canvas `project/vector.js` into `src/art/vector.ts`.
 
 ---
 
@@ -145,6 +145,13 @@ Done 2026-10-24: direction (keyline), cast, scrap (power bolt), boss proposals. 
 - Tests: every weapon has 4 tier frames that differ; projectile hit sizes unchanged (`HIT_SIZE` snapshot); `WeaponManager` picks frame `t${tier}`.
 - Browser: all 6 weapons at T1 and T4 in a wave, WebGL + Canvas, fps check as PR 1.
 
+### PR 2 outcome (2026-10-25)
+
+- Shipped on `feat/art-weapons` (branched from `feat/art-vector-cast`, since PR 1 is not merged): 6 weapons × `t1`–`t4`, the 4 projectiles, `fx_muzzle`, `fx_beam`, `fx_swoosh`, `fx_blast` in `vector.ts` (canvas art unchanged). `WeaponManager` shows the tier frame at the grip pivot, flips aiming-left weapons upright, draws the beam and swing as sprites, adds a 50 ms muzzle flash and a 2 px kick; `Juice.blast` uses `fx_blast`; projectiles and enemy bolts fit their unchanged `HIT_SIZE` boxes with `fitBox`. Placeholder bakes for these keys removed from `BootScene`. 223 tests pass, `pnpm build` clean.
+- Ruling: started before A5 merged, as the owner asked. A5 (`feat/arena-obstacles`) does not touch `WeaponManager` (player shots pass over props); A5 merged to main (#46) and came in through PR 1 without conflicts in the weapon code; 266 tests pass after the merge.
+- Browser (headless Chrome, WebGL + `?renderer=canvas`): all 6 weapons at t1 and t4 in wave 4, beam and swing visible, no console errors; F2 (150 peas) 60 fps on both. Boot to menu (warm): WebGL about 550–650 ms vs 490–560 on PR 1, Canvas about 400 vs 385, so about +60 / +15 ms.
+- Not run: playtest balance check (no gameplay numbers changed: hit boxes, ranges and spawn points are the same).
+
 ## PR 3 — Animations (`feat/art-animations`, after A2 and PR 1)
 
 **Files:** `src/art/vector.ts` (+ `tell` frames, player `hit`), `src/art/textures.ts` (`registerAnimations`), `src/fx/Juice.ts` (death pop, spawn pop-in, player hit uses the `hit` frame instead of `setTint` — closes the ROADMAP Canvas carry-over), `src/managers/EnemyManager.ts` (tell frame during wind-ups, squash-and-bob), `src/core/bob.ts` (pure squash-and-bob curve).
@@ -154,6 +161,17 @@ Done 2026-10-24: direction (keyline), cast, scrap (power bolt), boss proposals. 
 - Tests: `bob` curve values; enemies with a tell show `tell` during the wind-up window (fake clock); `PlayerManager` no longer calls `setTint` (test double asserts `setFrame("hit")`).
 - Browser + fps as PR 1 (squash-and-bob on 150 peas is the perf risk).
 
+### PR 3 outcome (2026-10-25)
+
+- Shipped on `feat/art-animations`: `tell` frames on pepper, carrot and tomato (canvas art), held by `EnemyManager` while `tells()` (`enemyBehaviors.ts`) is true: the last 0.4 s before a dash, the last 0.5 s before a shot when in range, within 90 px for the tomato. `PlayerManager` shows the `hit` frame for 100 ms instead of `setTint`. `core/bob.ts` has `bob` (k = min(1, speed/90), 3 hops/s, dy = −3·k·sin(πp), sy = 1 − 0.07·k·cos(2πp), sx = 1/sy) and `popIn` (0.2 → 1.15 fading in over 120 ms, 1 by 200 ms); `body.ts` `bobCircle` applies both per frame. `Juice.deathPop`: hit frame to 1.25× over 60 ms, to 0 over 120 ms, ring in the enemy's colour. 308 tests pass, `pnpm build` clean.
+- Ruling: stacked on `feat/art-ui` (PR 5), not PR 1, since PR 5 also changes `Juice` and the HUD; merge order #45 → #48 → #47 → PR 3. Cost if wrong: one rebase.
+- Ruling: Arcade sizes and places a body from the sprite's scale and display origin, so a plain `setScale` bob would wobble the hit circle. `bobCircle` sets the display origin (feet fixed, lifted dy) and compensates the body offset and source size; a test models Arcade's maths and checks radius, centre and feet. Cost if wrong: the circle drifts by a few px (headless check: no drift on 15 enemies over 3 s).
+- Ruling: the player `hit` frame already existed (PR 1 bakes `hit` for every actor); PR 3 only switches `PlayerManager` to it. `registerAnimations` is unchanged: `tell` is a held frame, not an animation.
+- Ruling: the death burst stays the existing one-colour particle burst (the board shows six bits in the enemy's colours), and scrap still drops at once rather than after the pop, so pickup timing doesn't change. Cost if wrong: cosmetic.
+- Ruling: enemies stay hittable while popping in, as before (the board says "not hittable until it lands, as today"; today they are hittable straight after the telegraph).
+- Browser (headless Chrome, WebGL + `?renderer=canvas`): all five enemy types; tells seen on pepper, carrot (in range) and tomato (within 90 px); player `hit` → `walk1` after 100 ms; death pops visible; body `halfWidth` equals the radius on every sample; 150 peas: WebGL 56–59 fps, Canvas 60; no console errors.
+- Not run: playtest balance pass (no gameplay numbers change: hit circles, timings and speeds are the same).
+
 ## PR 4 — Boss sheets (`feat/art-bosses`, after A3 and PR 1; consumed by M4b)
 
 **Files:** `src/art/vector.ts` (+ `boss_harvester`, `boss_onion`, `boss_greenhouse`, their projectiles), `src/art/textures.ts`, `src/core/bossSkin.ts` (pure pick), docs: addendum §3 (done 2026-10-24), [M4b plan](2026-10-23-m4-boss.md) (texture key per skin, banner name per skin).
@@ -161,3 +179,12 @@ Done 2026-10-24: direction (keyline), cast, scrap (power bolt), boss proposals. 
 **Interfaces:** `type BossSkin = "harvester" | "onion" | "greenhouse"`; `pickBossSkin(rng: Rng): BossSkin` (uses a stream of the run seed, like `combatRng`); texture `boss_${skin}` with frames `idle0`, `idle1`, `hit`, `volley`, `charge`, `lob`; `BOSS_NAMES: Record<BossSkin, string>` = `HARVESTER-9`, `THE ONION KING`, `THE GREENHOUSE`; one shared body (`radius` from the M4b `boss` entry) for all three.
 
 - Tests: `pickBossSkin` deterministic per seed and covers all three over 30 seeds; every boss frame builds and parses (as Task 1); the three bodies are identical.
+
+### PR 4 outcome (2026-10-25)
+
+- Shipped on `feat/art-bosses` (on top of PR 3): `boss_harvester`, `boss_onion`, `boss_greenhouse` with frames `idle0`, `idle1`, `hit`, `volley`, `charge`, `lob`, and `bproj_round`, `bproj_shard`, `bproj_cbolt`, `bproj_tomato`, `bproj_bulb` in `vector.ts`, ported as-is from the canvas (a throwaway check matched every boss and projectile frame against the canvas output byte for byte after the palette tokens). One shared body meta: 160×160, feet 154, centre (80, 96); the radius is M4b's. `core/bossSkin.ts`: `BOSS_SKINS`, `pickBossSkin(rng)`, `BOSS_NAMES`, `bossKey(skin)`. 315 tests pass, `pnpm build` clean.
+- Ruling: bosses are not baked at boot. All three cost about +250–300 ms on WebGL and +200 ms on Canvas (warm boot) for art a run shows once, so `textures.ts` has `preloadBoss(scene, key)` / `buildBoss(scene, key)` (bakes the texture with its shadow and registers `<key>_idle`, idle0/idle1 at 3 fps) for M4b to call for the picked skin. Boot is back to the PR 3 numbers; all three on demand take 275 ms (WebGL) / 76 ms (Canvas), one about a third of that. Cost if wrong: M4b calls two functions in its wave-10 setup.
+- Ruling: boss shots stay at the 2× bake like the other projectiles (no size budget change for them); boss frames get their own 24 KB per-frame budget (the largest is about 19 KB) and the total budget rose to 700 KB.
+- Phase 2 (owner 2026-10-25, canvas board 8): option B "unleashed" for all three, plus the switch effect at 50%. Every pose also exists as `<pose>_p2` (12 frames per boss): Harvester-9's dome glass shatters (pilot exposed, red stripes and core glow, thrusters lit, gatling hot); the Onion King peels to a lime core with amber shreds; the Greenhouse's glass breaks open, vines burst out, the heart swells. Same body. Ported as-is and checked byte for byte against the canvas. One boss (both phases) loads on demand in about 190 ms on WebGL and 57 ms on Canvas, so M4b should call `preloadBoss` before wave 10 (e.g. during the wave-9 shop), not mid-wave. Size budget split: boot frames < 300 KB, each boss's 12 frames < 300 KB. The switch effect itself is gameplay, so it is in the [M4b plan](2026-10-23-m4-boss.md).
+- Fix (owner 2026-10-25): the fighter sprite drew a pistol in hand that didn't match the weapons picked or bought; the hand is empty now (game, menu and loadout portrait), canvas updated too.
+- Browser (headless Chrome, WebGL + `?renderer=canvas`): the three bosses loaded on demand in a live GameScene, every pose drawn with its shadow, idle animation plays, no console errors.
