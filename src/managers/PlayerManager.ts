@@ -1,6 +1,5 @@
 import { feetOffset, fitBox } from "@/art/body";
 import { ARENA, GAME_CONFIG } from "@/config/constants";
-import { THEME } from "@/config/theme";
 import { actorDepth, facingFlip } from "@/core/depth";
 import type { Rng } from "@/core/rng";
 import { damageTaken } from "@/core/stats";
@@ -141,10 +140,13 @@ export class PlayerManager {
 
     this.scene.events.emit("playerHit");
 
-    // Flash red
-    this.player.setTint(THEME.danger);
+    // Hit frame for 100 ms (board A2): a baked frame, since the Canvas renderer can't draw tints
+    this.player.anims.pause();
+    this.player.setFrame("hit");
     this.scene.time.delayedCall(100, () => {
-      this.player.clearTint();
+      if (!this.player.active || this.player.frame.name !== "hit") return;
+      this.player.anims.resume();
+      this.player.setFrame(this.player.anims.currentFrame?.textureFrame ?? "walk0");
     });
 
     // Check if dead

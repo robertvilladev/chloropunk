@@ -30,7 +30,7 @@ The owner dropped the stitched-vegetable *Compost Colossus* (2026-10-24: "looks 
 | Barrage | 3–5 lobbed shots onto ground markers, explode like the exploder | shoulder mortar / tear-gas bulbs / roof mortar | leave the markers |
 | Pea brood (support) | spawns a small pea group every few seconds; the spec's "reduced-rate regular spawns" | back hopper / sprouted seedlings / base hatch | AoE weapons |
 
-Below 50% HP it enters phase 2: shorter cooldowns, two patterns can overlap (looks: dome cracks / outer layer peels to a lime core / glass cracks, vines burst out). Wave 10 has no timer and ends when the boss or the player dies (spec §4). Numbers are the builder's call, checked with the sim and playtests.
+Below 50% HP it enters phase 2: shorter cooldowns, two patterns can overlap (looks, owner 2026-10-25 option B "unleashed": Harvester-9's dome glass shatters / the Onion King's outer layer peels to a lime core / the Greenhouse's glass breaks open and vines burst out). The switch is marked by a white flash, a burst in the boss's colour, a short shake and a "PHASE 2" banner. Wave 10 has no timer and ends when the boss or the player dies (spec §4). Numbers are the builder's call, checked with the sim and playtests.
 
 ## 4. Art refresh direction (revised 2026-10-24)
 

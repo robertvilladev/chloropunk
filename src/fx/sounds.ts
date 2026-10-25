@@ -29,6 +29,8 @@ export const SOUNDS = {
   pickup: def([0.35, 0, 1100, 0, 0.02, 0.07, 1, 1, 0, 0, 550, 0.02, 0, 0, 0, 0, 0, 1, 0, 0, -5000], 3, 35),
   levelUp: def([0.75, 0, 330, 0.02, 0.35, 0.3, 2, 1, 0, 0, 165, 0.07, 0.07, 0, 0, 0.03, 0.12, 0.8, 0, 0, -4000], 1, 300),
   buy: def([0.6, 0, 520, 0, 0.04, 0.14, 2, 1, 0, 0, 520, 0.04, 0, 0, 0, 0.05, 0, 1, 0, 0, -3500]),
+  // legendary (T4) pick, board U3: bright triangle chime leaping E5 -> E6, slap echo, tremolo shimmer (first pass)
+  legendary: def([0.6, 0, 659, 0.01, 0.22, 0.35, 1, 1, 0, 0, 660, 0.08, 0, 0.1, 0, 0, 0.09, 0.85, 0, 0.15, -1800], 1, 300, 0.01),
   deny: def([0.5, 0, 140, 0, 0.08, 0.1, 2, 1, 0, 0, -40, 0.04, 0, 0.3, 0, 0.1, 0, 1, 0, 0, -2000]),
   // menus: same filtered saw/triangle family, hover is a barely-there tick
   uiMove: def([0.08, 0, 900, 0, 0.005, 0.025, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, -3000], 1, 40, 0.03),
@@ -40,3 +42,6 @@ export const SOUNDS = {
 };
 
 export type SoundName = keyof typeof SOUNDS;
+
+/** A legendary (T4) shop buy or level-up pick replaces its normal sound with "legendary". */
+export const pickSound = (tier: number, normal: SoundName): SoundName => (tier === 4 ? "legendary" : normal);
