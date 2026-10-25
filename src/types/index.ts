@@ -8,6 +8,14 @@ export interface Vector2 {
   y: number;
 }
 
+/** Axis-aligned box in arena px (top-left x/y). */
+export interface Rect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
 export const GameState = {
   MENU: "MENU",
   WAVE_PREPARATION: "WAVE_PREPARATION",
@@ -165,7 +173,7 @@ export interface RunState {
 /** Rooftop decor kinds (assets/data/arena.json); drawn by src/art/arena.ts. */
 export type PropKind = "vent" | "sign" | "pad" | "puddle" | "rail" | "zone" | "crate";
 
-/** One decor prop in arena px (top-left x/y). `solid` is reserved for A5 obstacles. */
+/** One decor prop in arena px (top-left x/y). `solid` props block the player, enemies, bolts and scrap. */
 export interface ArenaProp {
   kind: PropKind;
   x: number;
