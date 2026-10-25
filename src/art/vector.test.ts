@@ -8,7 +8,7 @@ const all = KEYS.flatMap((k) => FRAMES[k].map((f) => ({ k, f, s: svg(k, f) })));
 
 describe("vector sprites", () => {
   it("every key and frame builds an svg at 2x", () => {
-    expect(all.length).toBe(78); // + 3 tells, 3 bosses x 6 poses, 5 boss projectiles
+    expect(all.length).toBe(96); // + 3 tells, 3 bosses x 6 poses x 2 phases, 5 boss projectiles
     for (const { k, f, s } of all) {
       const { w, h } = SPRITE_META[k];
       expect(s.startsWith("<svg"), `${k}@${f}`).toBe(true);
@@ -63,9 +63,13 @@ describe("vector sprites", () => {
     expect(BOSS_KEYS).toEqual(["boss_harvester", "boss_onion", "boss_greenhouse"]);
     expect(BOSS_FRAMES).toEqual(["idle0", "idle1", "hit", "volley", "charge", "lob"]);
     for (const k of BOSS_KEYS) {
-      expect(FRAMES[k], k).toEqual(BOSS_FRAMES);
-      expect(new Set(BOSS_FRAMES.map((f) => svg(k, f))).size, k).toBe(6);
+      expect(FRAMES[k], k).toEqual([...BOSS_FRAMES, ...BOSS_FRAMES.map((f) => `${f}_p2`)]);
+      expect(new Set(FRAMES[k].map((f) => svg(k, f))).size, k).toBe(12);
     }
+  });
+
+  it("phase 2 (option B, below 50% HP) changes every pose", () => {
+    for (const k of BOSS_KEYS) for (const f of BOSS_FRAMES) expect(svg(k, `${f}_p2`), `${k}@${f}`).not.toBe(svg(k, f));
   });
 
   it("the three bosses share one body: same frame, feet and centre", () => {
@@ -78,8 +82,10 @@ describe("vector sprites", () => {
   });
 
   it("stays inside the size budget", () => {
-    const total = all.reduce((n, { s }) => n + s.length, 0);
-    expect(total).toBeLessThan(700 * 1024);
+    // boot loads everything but the bosses; a run loads one boss (both phases)
+    const size = (keep: (k: string) => boolean) => all.filter(({ k }) => keep(k)).reduce((n, { s }) => n + s.length, 0);
+    expect(size((k) => !k.startsWith("boss_"))).toBeLessThan(300 * 1024);
+    for (const b of BOSS_KEYS) expect(size((k) => k === b), b).toBeLessThan(300 * 1024);
     // bosses are 160 px with many parts: their own per-frame budget
     for (const { k, f, s } of all) expect(s.length, `${k}@${f}`).toBeLessThan((k.startsWith("boss_") ? 24 : 16) * 1024);
   });

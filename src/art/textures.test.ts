@@ -47,10 +47,11 @@ describe("preloadSprites", () => {
 });
 
 describe("preloadBoss", () => {
-  it("queues the six frames of one boss only", () => {
+  it("queues the twelve frames (both phases) of one boss only", () => {
     const calls: string[] = [];
     preloadBoss({ load: { svg: (k: string) => calls.push(k) } } as unknown as Phaser.Scene, "boss_onion");
-    expect(calls).toEqual(["idle0", "idle1", "hit", "volley", "charge", "lob"].map((f) => `boss_onion@${f}`));
+    const poses = ["idle0", "idle1", "hit", "volley", "charge", "lob"];
+    expect(calls).toEqual([...poses, ...poses.map((f) => `${f}_p2`)].map((f) => `boss_onion@${f}`));
   });
 });
 

@@ -275,6 +275,8 @@ export const BLAST_R = 27;
 export const BOSS_KEYS = ["boss_harvester", "boss_onion", "boss_greenhouse"] as const;
 export type BossKey = (typeof BOSS_KEYS)[number];
 export const BOSS_FRAMES = ["idle0", "idle1", "hit", "volley", "charge", "lob"] as const;
+/** Every boss texture: the six poses, then the same six in phase 2 (`<pose>_p2`). */
+const BOSS_ALL = [...BOSS_FRAMES, ...BOSS_FRAMES.map((f) => `${f}_p2`)] as readonly string[];
 /** One shared body for all three looks (M4b sets the radius). */
 const BOSS_META: SpriteMeta = { w: 160, h: 160, feet: 154, cx: 80, cy: 96 };
 const BW = 3; // boss outline
@@ -285,18 +287,23 @@ const puffs = (pts: number[][]) => pts.map((p) => fade(dot(p[0], p[1], p[2], p[2
 const tomatoBall = (x: number, y: number, r: number) =>
   bpart(E(x, y, r, r * 0.92), C.red, C.redD, 2, dot(x - r * 0.35, y - r * 0.3, r * 0.3, r * 0.18, C.redL, -30)) + bpart(E(x, y - r * 0.85, r * 0.5, r * 0.26), C.green, null, 0);
 
-interface Boss { squint: number[][]; sqs: number; draw: (pose: string, f: number) => string }
+interface Boss { squint: number[][]; sqs: number; draw: (pose: string, f: number, B: boolean) => string }
+// phase 2 (below 50% HP), option B "unleashed" (board 8, chosen 2026-10-25): frames <pose>_p2
+const RED = "#ff3b3b";
+const fissure = (d: string, w = 1.3) => line(d, C.white, w, w + 1.6);
+const sparks = (pts: number[][]) => pts.map((p) => star(p[0], p[1], p[2], C.flame) + dot(p[0], p[1], p[2] * 0.3, p[2] * 0.3, C.white)).join("");
+const smoke = (pts: number[][]) => pts.map((p) => fade(dot(p[0], p[1], p[2], p[2], C.slate), 0.5)).join("");
 // ported as-is from the canvas vector.js (ES5 style kept so the two stay easy to diff)
 const BOSS: Record<BossKey, Boss> = {
-  boss_harvester: { squint: [[76.5, 45], [83.5, 45]], sqs: 2.2, draw: (pose: string, f: number) => {
+  boss_harvester: { squint: [[76.5, 45], [83.5, 45]], sqs: 2.2, draw: (pose: string, f: number, B: boolean) => {
     var s = "", ch = pose === "charge", vo = pose === "volley", lo = pose === "lob";
     [[48, 1], [94, -1]].forEach(function (L) { // mech legs with pepper thrusters
       var x = L[0], px = L[1] > 0 ? x - 10 : x + 20;
-      if (ch) s += cone(px + 5, 135, 5, px - 12, 156, 1.5) + ' fill="' + C.orange + '"/>' + cone(px + 5, 135, 3, px - 4, 150, 1) + ' fill="' + C.flame + '"/>';
+      if (ch || B) s += cone(px + 5, 135, 5, px - 12, 156, 1.5) + ' fill="' + C.orange + '"/>' + cone(px + 5, 135, 3, px - 4, 150, 1) + ' fill="' + C.flame + '"/>';
       s += bpart(Rr(x, 104, 18, 36, 5), C.gun, C.jacketD, 3) + bpart(E(x + 9, 108, 7, 7), C.slate, C.gun, 2) +
         bpart(Rr(x - 6, 138, 30, 14, 5), C.metal, C.metalD, 3, fade(box(x - 6, 138, 30, 3, 0, C.white), 0.35));
       s += bpart(E(px + 5, 122, 6, 11), C.red, C.redD, 3, dot(px + 3, 117, 1.4, 3.5, C.redL)) + bpart(E(px + 5, 111.5, 5, 2.4), C.green, C.greenD, 1) +
-        bpart(Rr(px + 1.5, 131, 7, 4, 1), K, null, 0) + (ch ? "" : fade(dot(px + 5, 137, 2.6, 2.2, C.flame), 0.6));
+        bpart(Rr(px + 1.5, 131, 7, 4, 1), K, null, 0) + (ch || B ? "" : fade(dot(px + 5, 137, 2.6, 2.2, C.flame), 0.6));
     });
     if (ch) s += streaks([62, 84, 106], 0, 22);
     var u = ch ? "translate(4 3) rotate(7 80 110)" : "translate(0 " + (f ? 1.5 : 0) + ")";
@@ -308,7 +315,7 @@ const BOSS: Record<BossKey, Boss> = {
     s += bpart(E(34, 66, 9, 9), C.metal, C.metalD, 2) + bpart(cone(34, 68, 7, 24, 98, 5.5), C.gun, C.jacketD, 3) +
       bpart(Pd("M30,98 L16,98 L12,112 L19,108 L22,114 L26,108 L33,112 Z"), C.metal, C.metalD, 2);
     // torso
-    var hz = ""; for (var i = -40; i < 70; i += 9) hz += '<path d="M' + (52 + i) + ",95 L" + (64 + i) + ",71 L" + (68.5 + i) + ",71 L" + (56.5 + i) + ',95 Z" fill="' + C.lime + '"/>';
+    var hz = ""; for (var i = -40; i < 70; i += 9) hz += '<path d="M' + (52 + i) + ",95 L" + (64 + i) + ",71 L" + (68.5 + i) + ",71 L" + (56.5 + i) + ',95 Z" fill="' + (B ? C.red : C.lime) + '"/>';
     s += bpart(Rr(36, 56, 88, 54, 12), C.jacket, C.jacketD, 6, box(40, 59, 50, 3, 1.5, C.slate)) +
       bpart(Rr(52, 71, 56, 24, 4), K, null, 0, hz) +
       fade(dot(80, 83, 10, 10, C.cyan), 0.3) + bpart(E(80, 83, 6.5, 6.5), C.cyan, C.cyanD, 2, dot(78, 81, 1.8, 1.8, C.white)) +
@@ -319,20 +326,25 @@ const BOSS: Record<BossKey, Boss> = {
     // front arm: carrot gatling (volley: raised level, barrels hot)
     var gy = vo ? 74 : 92, by = vo ? [78, 82, 86] : [96, 100, 104];
     s += bpart(E(126, 66, 9, 9), C.metal, C.metalD, 2) + bpart(cone(126, 68, 7, vo ? 138 : 136, vo ? 80 : 96, 6), C.gun, C.jacketD, 3) +
-      by.map(function (y) { return part(Rr(146, y - 1.3, 12, 2.6, 1), vo ? C.orange : C.gun, vo ? C.orangeD : null, vo ? 1 : 0, null, 1.6); }).join("") +
+      by.map(function (y) { var hot = vo || B; return part(Rr(146, y - 1.3, 12, 2.6, 1), hot ? C.orange : C.gun, hot ? C.orangeD : null, hot ? 1 : 0, null, 1.6); }).join("") +
       bpart(Rr(122, gy, 28, 16, 4), C.metal, C.metalD, 3, box(122, gy, 28, 3, 0, C.white).replace("/>", ' opacity="0.35"/>'));
     if (vo) s += fade(dot(152, 82, 13, 13, C.flame), 0.4) + star(154, 82, 9, C.flame) + dot(156, 82, 1.6, 1.6, C.white);
     else s += [126, 132, 138, 144].map(function (x) { return Pd("M" + x + ",108 l3,0 l-1.5,7 Z") + ' fill="' + C.orange + '"' + ol(1) + "/>"; }).join("");
-    // cockpit dome with the tomato pilot
-    var eye = vo ? C.flame : C.cyan;
+    // cockpit dome with the tomato pilot (phase 2: the glass is gone, only shards on the rim)
+    var eye = vo ? C.flame : B ? RED : C.cyan;
     s += bpart(Rr(56, 46, 48, 12, 4), C.metal, C.metalD, 2) + bpart(E(80, 46, 9.5, 8.5), C.red, C.redD, 3) +
       '<g class="face">' + Pd("M74,44 l4,1.5 0,2 -4,-0.8 Z") + ' fill="' + eye + '"/>' + Pd("M82,45.5 l4,-1.5 0,2.6 -4,0.6 Z") + ' fill="' + eye + '"/>' +
       line("M73,42 L78.5,44 M81.5,44 L87,42", K, 1.8) + box(76, 50, 8, 2.4, 1, K) + "</g>" +
-      glass(Pd("M58,48 C58,24 102,24 102,48 Z")) + Pd("M58,48 C58,24 102,24 102,48 Z") + ' fill="none"' + ol(BW) + "/>" +
-      line("M64,40 C66,33 72,30 78,29", C.white, 2) + dot(80, 23, 2.6, 2.6, ch ? C.flame : C.lime) + line("M80,26 L80,23", C.slate, 1.5, 3.5);
+      (B ? glass(Pd("M58,48 L58,37 L63,42 L66,33 L70,41 L73,48 Z"), 0.35) + Pd("M58,48 L58,37 L63,42 L66,33 L70,41 L73,48 Z") + ' fill="none"' + ol(2) + "/>" +
+        glass(Pd("M102,48 L102,38 L97,43 L94,35 L90,42 L87,48 Z"), 0.35) + Pd("M102,48 L102,38 L97,43 L94,35 L90,42 L87,48 Z") + ' fill="none"' + ol(2) + "/>" +
+        line("M80,26 L80,36", C.slate, 1.5, 3.5) + dot(80, 25, 2.6, 2.6, RED)
+      : glass(Pd("M58,48 C58,24 102,24 102,48 Z")) + Pd("M58,48 C58,24 102,24 102,48 Z") + ' fill="none"' + ol(BW) + "/>" +
+        line("M64,40 C66,33 72,30 78,29", C.white, 2) + dot(80, 23, 2.6, 2.6, ch ? C.flame : C.lime) + line("M80,26 L80,23", C.slate, 1.5, 3.5));
+    if (B) s += sparks([[114, 60, 6], [48, 100, 5], [128, 106, 4], [64, 58, 4]]) +
+      smoke([[30, 20, 5], [40, 10, 4], [26, 6, 3], [120, 6, 3.5]]) + fade(dot(80, 83, 16, 16, RED), 0.35);
     return s + "</g>";
   } },
-  boss_onion: { squint: [[66, 86], [94, 86]], sqs: 5, draw: (pose: string, f: number) => {
+  boss_onion: { squint: [[66, 86], [94, 86]], sqs: 5, draw: (pose: string, f: number, B: boolean) => {
     var s = "", ch = pose === "charge", vo = pose === "volley", lo = pose === "lob";
     var roots = ch ? [[62, 132, 56, 142], [80, 136, 80, 146], [98, 132, 104, 142]] : [[60, 128, 38, 152], [70, 132, 58, 154], [90, 132, 102, 154], [100, 128, 122, 152], [80, 134, 80, 155]];
     if (ch) s += streaks([70, 96, 122], 0, 26) + puffs([[34, 150, 5], [22, 146, 3.5], [46, 154, 3]]);
@@ -349,18 +361,24 @@ const BOSS: Record<BossKey, Boss> = {
       line("M80,40 C70,60 70,104 76,140", C.amberD, 1.4) + line("M80,40 C90,60 90,104 84,140", C.amberD, 1.4) + dot(58, 70, 5, 14, C.amberL, 20);
     var crack = Pd("M108,74 L116,82 L111,90 L118,99 L110,106 L104,96 L108,88 L102,80 Z") + ' fill="' + C.lime + '"' + ol(1.6) + "/>" +
       Pd("M108,82 L111,88 L107,94 L109,100") + ' fill="none" stroke="' + C.limeL + '" stroke-width="1.4"/>';
-    s += bpart(Pd("M80,34 C70,46 36,64 38,102 C40,132 60,142 80,142 C100,142 120,132 122,102 C124,64 90,46 80,34 Z"), C.amber, C.amberD, 8, layers + crack);
+    if (B) { // outer layer peeled off: the lime core, torn amber shreds round the base
+      var core = line("M80,48 C64,62 60,100 70,132", C.limeD, 2) + line("M80,48 C96,62 100,100 90,132", C.limeD, 2) + dot(62, 76, 4, 11, C.limeL, 20);
+      s += [[44, 118, 52, 140, 58, 120], [102, 120, 108, 140, 116, 116], [62, 130, 66, 146, 72, 132], [88, 132, 94, 146, 98, 130]].map(function (t) {
+        return bpart(Pd("M" + t[0] + "," + t[1] + " L" + t[2] + "," + t[3] + " L" + t[4] + "," + t[5] + " Z"), C.amber, C.amberD, 1.5); }).join("") +
+        fade(dot(80, 94, 40, 46, C.lime), 0.25) +
+        bpart(Pd("M80,42 C72,54 48,70 50,104 C52,128 66,138 80,138 C94,138 108,128 110,104 C112,70 88,54 80,42 Z"), C.lime, C.limeD, 6, core);
+    } else s += bpart(Pd("M80,34 C70,46 36,64 38,102 C40,132 60,142 80,142 C100,142 120,132 122,102 C124,64 90,46 80,34 Z"), C.amber, C.amberD, 8, layers + crack);
     // sprout + neon crown
     s += line("M80,36 C77,26 72,20 66,16", C.green, 3, 6.6) + line("M80,36 C82,24 86,18 92,13", C.greenD, 3, 6.6) + line("M80,36 C80,26 80,18 79,10", C.green, 3, 6.6);
     var crown = '<path d="M56,40 L60,22 L70,34 L80,16 L90,34 L100,22 L104,40 Z" fill="none"';
-    s += crown + ' stroke="' + C.cyan + '" stroke-width="7" stroke-linejoin="round" opacity="' + (vo ? 0.55 : 0.3) + '"/>' + crown + ol(6) + "/>" +
+    s += crown + ' stroke="' + C.cyan + '" stroke-width="7" stroke-linejoin="round" opacity="' + (vo || B ? 0.6 : 0.3) + '"/>' + crown + ol(6) + "/>" +
       crown + ' stroke="' + C.cyan + '" stroke-width="3" stroke-linejoin="round"/>' +
       [[60, 22], [80, 16], [100, 22]].map(function (p) { return part(E(p[0], p[1], 3, 3), C.pink, C.pinkD, 1); }).join("");
     // cyber implant plate + cable to the crown
     s += line("M46,64 C40,52 48,42 56,40", K, 2.6) + bpart(Rr(38, 62, 20, 22, 3), C.metal, C.metalD, 2.5, fade(box(38, 62, 20, 3, 0, C.white), 0.4)) +
       dot(42, 68, 1.4, 1.4, K) + dot(54, 68, 1.4, 1.4, K) + dot(48, 77, 3, 3, vo ? C.flame : C.pink);
     // face (lob: tears run, the gas is the tears)
-    var eye = vo ? C.flame : C.cyan;
+    var eye = vo ? C.flame : B ? RED : C.cyan;
     s += '<g class="face">' +
       Pd("M58,80 l16,5 0,7 -16,-3 Z") + ' fill="' + eye + '"' + ol(2) + "/>" + Pd("M86,85 l16,-5 0,9 -16,3 Z") + ' fill="' + eye + '"' + ol(2) + "/>" +
       line("M54,74 L76,82 L84,82 L106,74", K, 4) +
@@ -373,9 +391,10 @@ const BOSS: Record<BossKey, Boss> = {
     if (lo) [[26, 66], [136, 64], [120, 22]].forEach(function (p) { // tear-gas bulbs in the air
       s += fade(dot(p[0], p[1], 9, 9, C.lime), 0.25) + bpart(E(p[0], p[1], 5.5, 6), C.limeL, C.limeD, 2, dot(p[0] - 1.6, p[1] - 2, 1.4, 1.8, C.white)) + bpart(Rr(p[0] - 2.5, p[1] - 9, 5, 3.2, 1), C.metal, C.metalD, 1);
     });
+    if (B) s += smoke([[40, 30, 5], [120, 34, 4], [30, 20, 3]]) + sparks([[48, 60, 5], [114, 66, 4]]);
     return s + "</g>";
   } },
-  boss_greenhouse: { squint: [[75.5, 80], [84.5, 80]], sqs: 2.6, draw: (pose: string, f: number) => {
+  boss_greenhouse: { squint: [[75.5, 80], [84.5, 80]], sqs: 2.6, draw: (pose: string, f: number, B: boolean) => {
     var s = "", ch = pose === "charge", vo = pose === "volley", lo = pose === "lob", dy = ch ? 10 : f ? 1.5 : 0;
     [[44, 112, 12, 152, 22, 128], [58, 114, 40, 154, 46, 136], [102, 114, 120, 154, 114, 136], [116, 112, 148, 152, 138, 128]].forEach(function (l, i) {
       var kx = l[4] + (ch ? (i < 2 ? -8 : 8) : 0), ky = l[5] + (ch ? -12 : dy * 0.6), hy = l[1] + dy;
@@ -385,7 +404,7 @@ const BOSS: Record<BossKey, Boss> = {
     var u = ch ? "translate(4 10) rotate(6 80 100)" : "translate(0 " + dy + ")";
     s += '<g transform="' + u + '">';
     // base
-    s += bpart(Rr(30, 96, 100, 24, 7), C.jacket, C.jacketD, 4) + [40, 52, 108, 120].map(function (x) { return dot(x, 108, 2.4, 2.4, C.lime); }).join("") +
+    s += bpart(Rr(30, 96, 100, 24, 7), C.jacket, C.jacketD, 4) + [40, 52, 108, 120].map(function (x) { return dot(x, 108, 2.4, 2.4, B ? RED : C.lime); }).join("") +
       bpart(Rr(64, 100, 32, 14, 3), K, null, 0, [70, 78, 86].map(function (x) { return box(x, 103, 4, 8, 1, C.greenD); }).join(""));
     // back turret: tomato mortar (lob: the tomato is in flight)
     s += bpart(Rr(14, 90, 20, 16, 3), C.slate, C.gun, 2, box(14, 90, 20, 3, 0, lo ? C.orange : C.gun)) + bpart(E(24, 88, 7, 3), K, null, 0);
@@ -394,19 +413,25 @@ const BOSS: Record<BossKey, Boss> = {
     s += bpart(Rr(126, 98, 24, 10, 3), C.slate, C.gun, 2) + bpart(cone(146, 103, 5, 157, 103, 2), vo ? C.orangeL : C.orange, C.orangeD, 2) +
       (vo ? fade(dot(156, 103, 9, 9, C.flame), 0.35) + star(157, 103, 5.5, C.flame) + dot(157, 103, 1.4, 1.4, C.white) : "");
     // interior: vines, peas and a tomato heart
-    var eye = vo ? C.flame : C.cyan;
+    var eye = vo ? C.flame : B ? RED : C.cyan;
     var inside = line("M50,98 C46,78 60,70 56,52", C.greenD, 5) + line("M110,98 C116,80 98,72 104,52", C.greenD, 5) + line("M80,98 C72,80 92,64 80,40", C.green, 5) +
       [[58, 60], [100, 58], [76, 46]].map(function (p) { return part(E(p[0], p[1], 4.5, 4.5), C.greenL, C.green, 1.5); }).join("") +
-      fade(dot(80, 80, 15, 15, C.red), vo ? 0.55 : 0.35) + part(E(80, 80, 11, 10), C.red, C.redD, 3) +
+      fade(dot(80, 80, B ? 22 : 15, B ? 22 : 15, C.red), vo || B ? 0.6 : 0.35) + part(B ? E(80, 80, 13.5, 12.5) : E(80, 80, 11, 10), C.red, C.redD, 3) +
       '<g class="face">' + Pd("M73,78 l5,2 0,2.4 -5,-0.8 Z") + ' fill="' + eye + '"/>' + Pd("M82,80 l5,-2 0,3.2 -5,0.4 Z") + ' fill="' + eye + '"/>' +
       line("M71,75 L78,78 M82,78 L89,75", K, 2) + box(76, 85, 8, 2.6, 1.2, K) + "</g>";
     var dome = "M34,98 C34,40 126,40 126,98 Z";
     s += Pd(dome) + ' fill="#0f1a24"/>' + '<clipPath id="gh">' + Pd(dome) + "/></clipPath>" + '<g clip-path="url(#gh)">' + inside + "</g>" +
-      glass(Pd(dome), 0.18) +
-      line("M80,42 L80,98 M56,50 C60,70 60,86 58,98 M104,50 C100,70 100,86 102,98 M38,76 L122,76", C.metal, 1.6) +
-      line("M46,72 C48,58 58,50 70,46", C.white, 2.4) + Pd(dome) + ' fill="none"' + ol(BW) + "/>";
+      glass(Pd(dome), B ? 0.08 : 0.18) +
+      line(B ? "M80,62 L80,98 M58,74 C60,86 60,92 58,98 M104,70 C101,84 100,92 102,98 M38,76 L52,76 M110,76 L122,76" : "M80,42 L80,98 M56,50 C60,70 60,86 58,98 M104,50 C100,70 100,86 102,98 M38,76 L122,76", C.metal, 1.6) +
+      (B ? "" : line("M46,72 C48,58 58,50 70,46", C.white, 2.4)) + Pd(dome) + ' fill="none"' + ol(BW) + "/>" +
+      (B ? fissure("M62,52 L70,60 L66,68 L74,74") + fissure("M98,50 L92,60 L100,66") + fissure("M46,82 L54,86") : "");
+    // phase 2: vines burst out over the dome
+    var vine = function (d: string, leaves: number[][]) { return line(d, C.greenD, 4.4, 7) + leaves.map(function (p) { return part(E(p[0], p[1], 4.4, 2.4, p[2]), C.greenL, C.green, 1, null, 1.6); }).join(""); };
+    if (B) s += vine("M70,48 C64,36 52,34 44,26", [[44, 24, -40], [56, 34, 20]]) + vine("M96,48 C104,34 118,32 126,22", [[126, 20, -30], [110, 34, 30]]) +
+      vine("M38,84 C26,80 20,70 14,62", [[14, 60, 40]]) + vine("M122,82 C134,80 140,72 146,64", [[146, 62, -40]]);
     // roof vent + beacon
     s += bpart(Rr(72, 36, 16, 8, 2), C.metal, C.metalD, 1.5) + fade(dot(80, 32, 6, 6, ch ? C.flame : C.lime), 0.3) + bpart(E(80, 32, 3.4, 3.4), ch ? C.flame : C.lime, C.limeD, 1);
+    if (B) s += sparks([[126, 96, 5], [30, 94, 4], [80, 40, 4]]) + smoke([[24, 76, 4], [138, 80, 3.5]]);
     return s + "</g>";
   } },
 };
@@ -425,7 +450,7 @@ export const FRAMES: Record<SpriteKey, readonly string[]> = {
   player: WALK, enemy_pea: WALK, enemy_pepper: TELL, enemy_potato: WALK, enemy_carrot: TELL, enemy_tomato: TELL,
   pickup_scrap: ["0", "1"],
   ...(Object.fromEntries(Object.keys(X).map((k) => [k, k.startsWith("weapon_") ? ["t1", "t2", "t3", "t4"] : ["0"]])) as Record<WeaponKey | ShotKey, string[]>),
-  ...(Object.fromEntries(BOSS_KEYS.map((k) => [k, BOSS_FRAMES as readonly string[]])) as Record<BossKey, readonly string[]>),
+  ...(Object.fromEntries(BOSS_KEYS.map((k) => [k, BOSS_ALL])) as Record<BossKey, readonly string[]>),
 };
 
 /** Keyline filter (dilated alpha, light rim under the art); hit = everything white, face swapped for >< eyes. */
@@ -447,9 +472,9 @@ export function svg(key: SpriteKey, frame: string): string {
     const x = X[key as WeaponKey | ShotKey];
     return wrap(w, h, x.draw(THEME_CSS.tier[(+frame.slice(1) || 1) - 1]), "", !x.flat);
   }
-  if (key in BOSS) { // hit = the idle pose all white; idle1 = the 1.5 px settle
-    const b = BOSS[key as BossKey];
-    return wrap(w, h, b.draw(frame === "hit" ? "idle" : frame.replace(/[01]$/, ""), frame === "idle1" ? 1 : 0), frame === "hit" ? squint(b.squint, b.sqs) : "");
+  if (key in BOSS) { // hit = the idle pose all white; idle1 = the 1.5 px settle; _p2 = phase 2
+    const b = BOSS[key as BossKey], p2 = frame.endsWith("_p2"), pose = frame.replace(/_p2$/, "");
+    return wrap(w, h, b.draw(pose === "hit" ? "idle" : pose.replace(/[01]$/, ""), pose === "idle1" ? 1 : 0, p2), pose === "hit" ? squint(b.squint, b.sqs) : "");
   }
   const a = A[key as ActorKey];
   return wrap(w, h, a.draw(frame === "walk1" ? 1 : 0, frame === "tell"), frame === "hit" ? squint(a.squint) : "");
