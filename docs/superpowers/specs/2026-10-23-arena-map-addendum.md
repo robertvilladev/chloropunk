@@ -38,7 +38,7 @@ Below 50% HP it enters phase 2: shorter cooldowns, two patterns can overlap (loo
 - Same palette roles, same y-sorted 3/4 view, same texture keys and frame names, so game code keeps using sprites by key.
 - Hit areas grow with the art: pea r12, pepper r14, carrot r15, tomato r17, potato r26; player 32×32 and scrap 16×16 unchanged.
 - Scrap: **power bolt** (hex nut, lime ring core). Weapons get their own sprites with a baked tier-colour trim; animations add enemy attack tells, hit/death/spawn pops, weapon feedback and squash-and-bob movement.
-- Source of truth: [canvas "Chloropunk Sprites"](https://claude.ai/artifact/TnsQjaTcJEYoShEC5AyMXM) (keyline, cast, power bolt approved 2026-10-24; weapons, animations and boss sheets pending). Pixel option B (32×32 at 1.5×) was chosen first the same day and then superseded; its boards stay on the canvas's "Superseded" page.
+- Source of truth: [canvas "Chloropunk Sprites"](https://claude.ai/artifact/TnsQjaTcJEYoShEC5AyMXM) (keyline, cast, power bolt approved 2026-10-24; weapons, animations and boss sheets approved 2026-10-25). Pixel option B (32×32 at 1.5×) was chosen first the same day and then superseded; its boards stay on the canvas's "Superseded" page.
 - Delivery: four PRs, see the [art refresh plan](../plans/2026-10-23-art-refresh.md).
 
 ## 5. Delivery

@@ -45,10 +45,10 @@
 
 Done 2026-10-24: direction (keyline), cast, scrap (power bolt), boss proposals. Old pixel boards and the Colossus sit on the canvas's "Superseded" page.
 
-- [ ] **A1 Weapons board** (gate for PR 2): 6 weapons (pistol, shotgun, laser, blade, drone, rocket) drawn pointing right, each ×4 tier trims (grey `#a9b0b8`, cyan `#3ad8ff`, pink `#ff4f9a`, amber `#ffb13b`); projectiles (`projectile_basic`, `proj_pellet`, `proj_rocket`, `enemy_bolt`), laser beam style, blade swoosh, drone body, rocket blast ring, muzzle flash; shown orbiting the fighter at real size.
-- [ ] **A2 Animations board** (gate for PR 3): attack tells (pepper `tell` crouch, carrot `tell` aim, tomato `tell` fuse flare), player `hit` frame, death pop and spawn pop-in timings, squash-and-bob curve (shown as a looping preview).
-- [ ] **A3 Boss sheets** (gate for PR 4): Harvester-9, Onion King, Greenhouse, each `idle0`, `idle1`, `hit`, `volley`, `charge`, `lob`, plus each boss's projectile art (carrot round / layer shard / carrot bolt; tomato / tear-gas bulb / tomato).
-- [ ] After each gate: record the approval date in the addendum §4 and copy the canvas `project/vector.js` changes into `src/art/vector.ts` in that PR.
+- [x] **A1 Weapons board** (approved 2026-10-25) (gate for PR 2): 6 weapons (pistol, shotgun, laser, blade, drone, rocket) drawn pointing right, each ×4 tier trims (grey `#a9b0b8`, cyan `#3ad8ff`, pink `#ff4f9a`, amber `#ffb13b`); projectiles (`projectile_basic`, `proj_pellet`, `proj_rocket`, `enemy_bolt`), laser beam style, blade swoosh, drone body, rocket blast ring, muzzle flash; shown orbiting the fighter at real size.
+- [x] **A2 Animations board** (approved 2026-10-25) (gate for PR 3): attack tells (pepper `tell` crouch, carrot `tell` aim, tomato `tell` fuse flare), player `hit` frame, death pop and spawn pop-in timings, squash-and-bob curve (shown as a looping preview).
+- [x] **A3 Boss sheets** (approved 2026-10-25) (gate for PR 4): Harvester-9, Onion King, Greenhouse, each `idle0`, `idle1`, `hit`, `volley`, `charge`, `lob`, plus each boss's projectile art (carrot round / layer shard / carrot bolt; tomato / tear-gas bulb / tomato).
+- [x] Approvals recorded in the addendum §4 (2026-10-25). Owner calls on the boards: Harvester-9 gatling on the front arm (claw at the back), Greenhouse cannon front / mortar back, `enemy_bolt` orange-red (reads as danger), tell windows pepper last 0.4 s before a dash / carrot last 0.5 s before a shot / tomato within 90 px of the fighter, bob 3 hops/s with k = min(1, speed/90). Boss phase-2 looks are not drawn yet (open for PR 4). Each PR still copies its part of the canvas `project/vector.js` into `src/art/vector.ts`.
 
 ---
 
