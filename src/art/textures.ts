@@ -106,6 +106,11 @@ export function registerAnimations(scene: Phaser.Scene): void {
       repeat: -1,
     });
   }
+  // bosses breathe between idle0 and idle1 (the 1.5 px settle); M4b swaps in the attack poses
+  for (const key of BOSS_KEYS) {
+    if (anims.exists(`${key}_idle`)) continue;
+    anims.create({ key: `${key}_idle`, frames: [{ key, frame: "idle0" }, { key, frame: "idle1" }], frameRate: 3, repeat: -1 });
+  }
   if (!anims.exists("pickup_scrap_spin")) {
     anims.create({
       key: "pickup_scrap_spin",
