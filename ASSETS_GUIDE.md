@@ -56,6 +56,7 @@ Sprites are SVG strings in design px (vector style, keyline outline: [addendum �
 
 - `vector.ts` - `svg(key, frame)`, `SPRITE_META` (frame size, feet row, body centre `cx`/`cy`), `FRAMES`. Always draw facing right; flipping is runtime. `hit` = the walk0 art all white with `><` eyes (baked, no tint, so it also shows on Canvas).
 - Weapons `weapon_<id>`: drawn pointing right, tier trim baked per frame (`weaponFrame(tier)`), grip pivot `px`/`py` in `SPRITE_META` (the sprite's origin; flipped vertically when aiming left). Projectiles `projectile_basic`, `proj_pellet`, `proj_rocket`, `enemy_bolt` keep their `HIT_SIZE` boxes. Effects: `fx_muzzle`, `fx_beam` (one tile stretched along the laser, no keyline), `fx_swoosh` (120° arc scaled from `SWOOSH` to the blade reach), `fx_blast` (ring scaled from `BLAST_R` to the blast radius).
+- Icons (`icons.ts`, board U2): `icon_item_<id>` for every `items.json` id and `icon_stat_<stat>` for every `upgrades.json` stat, 32×32 design px, one texture each (64 px, LINEAR), drawn into card icon windows and HUD chips with `fitImage`. Stat icons carry no tier (the card frame shows it). A new item or level-up stat needs an icon: `icons.test.ts` fails both ways (missing or orphan).
 - `body.ts` - `fitCircle` / `fitBox`: hit areas in design px, centred on `(cx, cy)`; radii live in `enemies.json`, projectile boxes in `HIT_SIZE`.
 - To add an actor: add it to `A` in `vector.ts` and to `FRAMES`; `pnpm exec vitest run src/art` checks size, parse, ids, ASCII, frames and the body fit.
 

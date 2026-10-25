@@ -153,7 +153,7 @@ and readable, and is revisited after the loop is fun.
 - **Pink `#ff4f9a` = state**: the player, owned/selected things, XP, offset shadows.
 - **Decor (arena rooftop, owner pick 2026-10-24: Night violet)**: dim indigo/violet only (floor zones `#1a1730`, vent and helipad outlines `#6a4cc2`, rail posts `#7b5cff`, puddles `#5b3fd1` at ~20% alpha with a faint pink rim), always darker than anything that moves; tokens in `THEME_CSS.decor`. The pink billboard is the only bright decor.
 - Danger `#ff6b3d` (orange-red, kept apart from pink). Rarity: grey `#a9b0b8`, cyan `#3ad8ff`, pink `#ff4f9a`, amber `#ffb13b`.
-- Display font **Bungee**, UI font **IBM Plex Mono**, in-game numbers **VT323**.
+- Display font **Bungee**, UI font **IBM Plex Mono**; in-game numbers were **VT323** until the [UI art refresh](2026-10-25-ui-art-refresh-design.md) (2026-10-25): no pixel font, big numbers in Bungee with an ink stroke; cards and HUD now have vector item/stat icons.
 - Motifs: radius 0, hard 4px pink offset shadow under primary elements, tier chips on cards, RGB-split on the logo and wave banner only, a lime slime-drip edge on the main menu, barely-visible scanlines in menus.
 - Sprites: vector SVG, see [arena map addendum §4](2026-10-23-arena-map-addendum.md) (was 16×16 pixel grids at 3×), fighter in a pink hood with cyan visor; flames/fuses `#ffd23f`.
 

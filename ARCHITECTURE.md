@@ -5,7 +5,7 @@ Phaser scenes orchestrate; one manager per domain does the work; rules that don'
 ```
 src/
   main.ts, config/      Phaser config, constants (GAME_CONFIG, SCENE_KEYS, DEPTH), theme.ts tokens
-  scenes/               Boot, Menu, Loadout, Game (+ UIScene HUD, PauseScene overlay), Victory, LevelUp, Shop, Summary; ui.ts themed widget kit (button, panel, tierChip, statTile, scanlines), fonts.ts font-load gate
+  scenes/               Boot, Menu, Loadout, Game (+ UIScene HUD, PauseScene overlay), Victory, LevelUp, Shop, Summary; ui.ts themed widget kit (board U1/U3: num, panel/drawPanel, button, badge/tierBadge, statTile, iconWindow/fitImage, cardGlow, legendaryPop, scanlines), hud.ts pure layout of the HUD weapon slots + item chips, fonts.ts font-load gate
   managers/             Player, Input, World, Weapon, Enemy, Pickup
   entities/             enemyBehaviors.ts, weaponBehaviors.ts (pure movement/targeting geometry)
   core/                 pure logic: rng, waves (spawn schedule; spawn points just off-screen via offscreenPoint, edgePoint for an arena no bigger than the view; CATCH_UP far-enemy speed-up), edgeArrow (HUD arrows for off-screen telegraphs), progression (XP/levels), run (newRun),
@@ -22,7 +22,7 @@ scripts/playtest.mjs    `pnpm playtest`: Vite + Playwright Chromium autopilot ru
   fx/sfx.ts             initSfx (BootScene) + sfx(name): ZzFX buffers played on Phaser's WebAudio context through an SFX gain node; dropped while audio is locked/suspended
   fx/music.ts           initMusic (BootScene) + setMusic(state) / duckMusic(on): one streamed <audio> per track routed through a music gain node on Phaser's context; crossfades, ducks, waits for the autoplay unlock, pauses on blur; MUSIC_CREDITS for the menu overlay
   fx/sounds.ts          every SFX as a ZzFX parameter array + voice rule (one data file); fx/zzfx.ts = vendored ZzFX sample generator (MIT)
-  art/                  vector.ts (sprites, weapons, projectiles and effects as SVG strings + SPRITE_META), body.ts (ART_SCALE, fitCircle/fitBox hit areas), textures.ts loads the SVGs at 2x and bakes CanvasTextures + walk anims at boot; arena.ts bakes the floor (grid, rooftop decor from arena.json, lime edge) into one texture per arena size, shown by WorldManager as one image
+  art/                  vector.ts (sprites, weapons, projectiles and effects as SVG strings + SPRITE_META), icons.ts (15 item + 14 stat card/HUD icons, `icon_<kind>_<id>`), body.ts (ART_SCALE, fitCircle/fitBox hit areas), textures.ts loads the SVGs at 2x and bakes CanvasTextures + walk anims at boot; arena.ts bakes the floor (grid, rooftop decor from arena.json, lime edge) into one texture per arena size, shown by WorldManager as one image
   types/, utils/        shared types, math helpers
 assets/data/            enemies.json, waves.json, weapons.json, character.json, items.json, upgrades.json, arena.json (rooftop decor layout)
 ```

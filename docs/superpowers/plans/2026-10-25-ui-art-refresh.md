@@ -68,3 +68,14 @@ On the [sprites canvas](https://claude.ai/artifact/TnsQjaTcJEYoShEC5AyMXM), Vect
 - Browser (Playwright headless like PR 1–2): shop, level-up, HUD in a wave with 6 weapons + several items, summary, menu; WebGL and Canvas; console clean; fps with F2; boot vs PR 2.
 - Docs: ROADMAP (art refresh row: PR 5), ASSETS_GUIDE (icons section), ARCHITECTURE (`icons.ts`, `hud.ts`), MVP spec §6 note (no pixel font, icons now exist), this plan's outcome section.
 - Final whole-branch review, then report to the owner with the browser screenshots; push/PR only on the owner's word.
+
+## Outcome (2026-10-25)
+
+- Shipped on `feat/art-ui` (on top of `feat/art-weapons`): `src/art/icons.ts` (29 icons, byte-identical to the canvas apart from the ink colour), icon textures baked at boot; VT323 gone (`FONTS`, font loading, `index.html`, a guard test); `ui.ts` kit (`num`, `drawPanel`/`panel`, `button`, `badge`/`tierBadge`, `iconWindow`/`fitImage`, `cardGlow`, `legendaryPop`); shop and level-up cards per U3; `hud.ts` + HUD strip per U4; menu, loadout, pause, round complete and summary restyled; `DAMAGE_NUMBER` white / amber crit with pop; `legendary` sound.
+- Tests: 248 pass (2 skipped); `pnpm build` clean (the >500 kB chunk warning predates this branch).
+- Browser (headless Chrome via Playwright, WebGL and `?renderer=canvas`): menu, loadout, shop (T3/T4 glow, legendary buy), level-up (legendary pick applies once, then the next pick), HUD with 6 weapons and 13 item ids, 150 peas, pause, round complete, summary; no console errors or warnings.
+- fps with F2 (150 peas) + F3: 60 on both renderers.
+- Boot to menu (dev server, warm, median of 5): WebGL 723 ms vs 609 ms on PR 2 (+114), Canvas 472 vs 447 ms (+25). With PR 1–2 (about +360 ms) the art refresh stays inside its 500 ms budget.
+- Rulings (from the ledger): legendary effect overlays the card area instead of animating a card copy; level-up waits 0.9 s after a T4 pick (input ignored, one pick guaranteed); the legendary sound is one ZzFX voice (E5 leaping to E6 + echo + shimmer) rather than a 4-note arpeggio; damage-number "white" is the theme's text colour (colour guard); crisp text was already global (`installCrispText`); `getPlayerStats()` now returns `items` for the HUD; shop owned-weapon slots also show their sprite.
+- Carry-overs: the shop ITEMS list is still names, (proposed) item chips; legendary animation and sound refinement (owner); small Plex text (9–10 px) reads thin in downscaled screenshots, check on the owner's screen.
+
