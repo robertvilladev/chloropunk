@@ -1,3 +1,4 @@
+import { fitBox } from "@/art/body";
 import { GAME_CONFIG } from "@/config/constants";
 import { outsideSolids } from "@/core/arena";
 import { pickupDepth } from "@/core/depth";
@@ -39,7 +40,7 @@ export class PickupManager {
       return;
     }
     s.enableBody(true, x, y, true, true);
-    (s.body as Phaser.Physics.Arcade.Body).setSize(PICKUP_SIZE, PICKUP_SIZE); // never the 48x24 strip base frame
+    fitBox(s, "pickup_scrap", PICKUP_SIZE, PICKUP_SIZE); // never the 2-frame strip base frame
     s.setDepth(pickupDepth(y));
     s.setVelocity(0, 0);
     s.setData("value", amount);

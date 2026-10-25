@@ -1,5 +1,7 @@
-import { bodyOffset } from "@/art/body";
+import { bobCircle, feetOffset, fitBox, fitCircle } from "@/art/body";
+import type { SpriteKey } from "@/art/vector";
 import { ARENA, DEPTH, HIT_SIZE } from "@/config/constants";
+import { bob, popIn } from "@/core/bob";
 import type { Rng } from "@/core/rng";
 import { actorDepth, facingFlip } from "@/core/depth";
 import { outsideSolids } from "@/core/arena";
@@ -8,6 +10,7 @@ import {
   avoid,
   createEnemyState,
   steer,
+  tells,
   type EnemyState,
   type Steer,
 } from "@/entities/enemyBehaviors";
@@ -21,7 +24,7 @@ type Sprite = Phaser.Physics.Arcade.Sprite;
 const TELEGRAPH_S = 0.6;
 const EDGE_INSET = 40;
 const MIN_PLAYER_DIST = 160;
-const SPAWN_MARGIN = 50; // px outside the view: enemy radius <= 20 + the 24 px group spread
+export const SPAWN_MARGIN = 50; // px outside the view: largest enemy radius (potato 26) + the 24 px group spread
 const SPREAD = 24; // px a group spreads around its telegraph
 const MAX_ENEMIES = 250;
 const MAX_BOLTS = 100;
@@ -161,7 +164,7 @@ export class EnemyManager {
         def.params!.blastDamage
       );
     }
-    this.scene.events.emit("enemyKilled", x, y, def, drops);
+    this.scene.events.emit("enemyKilled", x, y, def, drops, enemy.flipX);
   }
 
   /** Push an enemy; tanks ignore it. */
@@ -289,15 +292,16 @@ export class EnemyManager {
     enemy.setFlipX(false);
     enemy.clearTint();
     enemy.enableBody(true, x, y, true, true);
-    enemy.setDepth(actorDepth(y)).setCollideWorldBounds(true);
-    const off = bodyOffset(def.sprite, def.radius);
-    (enemy.body as Phaser.Physics.Arcade.Body).setCircle(def.radius, off.x, off.y);
+    enemy.setDepth(actorDepth(y + feetOffset(def.sprite as SpriteKey))).setCollideWorldBounds(true);
+    fitCircle(enemy, def.sprite as SpriteKey, def.radius);
     enemy.anims.resume();
     enemy.play(`${def.sprite}_walk`, true);
     enemy.anims.setProgress(Math.random()); // cosmetic: keeps the seeded rng stream untouched
     enemy.setData("def", def);
     enemy.setData("state", createEnemyState(def, this.wave));
     enemy.setData("knock", { x: 0, y: 0 });
+    enemy.setData("life", { t: 0, hop: Math.random() }); // cosmetic hop phase, like the walk progress above
+    enemy.setAlpha(0);
   }
 
   private updateEnemies(dt: number, player: Vector2): void {
@@ -311,18 +315,42 @@ export class EnemyManager {
       const def = enemy.getData("def") as EnemyDef;
       const state = enemy.getData("state") as EnemyState;
       const knock = enemy.getData("knock") as Vector2;
-      steer(def.behavior, state, enemy, player, dt, this.params.get(def.id)!, out);
+      const params = this.params.get(def.id)!;
+      steer(def.behavior, state, enemy, player, dt, params, out);
       // dashes stay straight and stop on solids (the collider)
       if (state.phase !== "dash")
         avoid(enemy, def.radius, out, this.solids, this.neighbours(i, list as Sprite[], def.radius * 2), out, state);
       enemy.setVelocity(out.vx + knock.x, out.vy + knock.y);
       enemy.flipX = facingFlip(out.vx + knock.x, enemy.flipX);
-      const d = actorDepth(enemy.y);
+      const d = actorDepth(enemy.y + feetOffset(def.sprite as SpriteKey));
       if (Math.round(d * 100) !== Math.round(enemy.depth * 100)) enemy.setDepth(d); // only re-sort on a visible change
       knock.x *= decay;
       knock.y *= decay;
+      this.animate(enemy, def, tells(def.behavior, state, params, Math.hypot(player.x - enemy.x, player.y - enemy.y)), Math.hypot(out.vx, out.vy), dt);
       if (out.fire) this.fireBolt(enemy, def, state, player);
     }
+  }
+
+  /** Board A2: tell frame during wind-ups, spawn pop-in, squash-and-bob (hit circle stays put). */
+  private animate(enemy: Sprite, def: EnemyDef, tell: boolean, speed: number, dt: number): void {
+    const frame = enemy.frame.name;
+    if (frame !== "hit" && tell !== (frame === "tell")) {
+      if (tell) {
+        enemy.anims.pause();
+        enemy.setFrame("tell");
+      } else {
+        enemy.anims.resume();
+        enemy.setFrame(enemy.anims.currentFrame?.textureFrame ?? "walk0");
+      }
+    }
+    const life = enemy.getData("life") as { t: number; hop: number };
+    life.t += dt;
+    const pop = popIn(life.t), b = bob(life.t + life.hop, speed);
+    if (enemy.alpha !== pop.alpha) enemy.setAlpha(pop.alpha);
+    b.sx *= pop.scale;
+    b.sy *= pop.scale;
+    b.dy *= pop.scale;
+    bobCircle(enemy, def.sprite as SpriteKey, def.radius, b);
   }
 
   private cellOf(x: number, y: number): number {
@@ -377,7 +405,7 @@ export class EnemyManager {
     const angle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
     const speed = def.params!.boltSpeed;
     bolt.enableBody(true, enemy.x, enemy.y, true, true);
-    bolt.setSize(...HIT_SIZE.enemy_bolt);
+    fitBox(bolt, "enemy_bolt", ...HIT_SIZE.enemy_bolt);
     bolt.setDepth(DEPTH.PROJECTILES);
     bolt.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
     bolt.setData("damage", state.damage);

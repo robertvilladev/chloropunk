@@ -7,13 +7,19 @@ import { waveBoost } from "@/core/voices";
 import { sfx } from "@/fx/sfx";
 import type { SoundName } from "@/fx/sounds";
 import type { GameScene } from "@/scenes/GameScene";
-import { panel, text } from "@/scenes/ui";
+import { cardGlow, drawPanel, fitImage, iconArt, num, panel, text, weaponArt } from "@/scenes/ui";
+import { hudSlots } from "@/scenes/hud";
+import itemDefs from "@assets/data/items.json";
+import type { ItemDef, OwnedWeapon } from "@/types";
+import { frameSize } from "@/art/body";
 import Phaser from "phaser";
 
 const HP_W = 216; // inner width of the 220px HP bar (2px border)
 const XP_W = 140;
 const ARROWS = 12; // pooled off-screen telegraph arrows; more pending than this just go unmarked
 const ARROW_INSET = 12;
+const SCRAP_TEX = frameSize("pickup_scrap").w; // texture px of one scrap frame
+const items = itemDefs as Record<string, ItemDef>;
 
 /**
  * UIScene - Persistent UI overlay (HUD), per mockups/Hud.dc.html.
@@ -30,8 +36,8 @@ export class UIScene extends Phaser.Scene {
   private waveText!: Phaser.GameObjects.Text;
   private waveSplit: Phaser.GameObjects.Text[] = [];
   private timerText!: Phaser.GameObjects.Text;
-  private scrapBox!: Phaser.GameObjects.Rectangle;
-  private scrapGem!: Phaser.GameObjects.Rectangle;
+  private scrapBox!: Phaser.GameObjects.Graphics;
+  private scrapGem!: Phaser.GameObjects.Image;
   private scrapValue!: Phaser.GameObjects.Text;
   private scrapLabel!: Phaser.GameObjects.Text;
   private speedButtons: Phaser.GameObjects.Container[] = [];
@@ -59,7 +65,7 @@ export class UIScene extends Phaser.Scene {
     );
 
     // Top-left: HP bar, then XP bar + level
-    panel(this, 30, 16, 220, 24, { fill: THEME.surface2 }).setStrokeStyle(2, THEME.line).setDepth(DEPTH.UI);
+    panel(this, 30, 16, 220, 24, { fill: THEME.surface2 }).setDepth(DEPTH.UI);
     this.hpFill = this.add.rectangle(32, 18, HP_W, 20, THEME.danger).setOrigin(0).setDepth(DEPTH.UI);
     text(this, 36, 28, "HP", 11).setFontStyle("600").setOrigin(0, 0.5).setDepth(DEPTH.UI + 1);
     this.hpValue = text(this, 244, 28, "", 11).setFontStyle("600").setOrigin(1, 0.5).setDepth(DEPTH.UI + 1);
@@ -74,27 +80,17 @@ export class UIScene extends Phaser.Scene {
       text(this, w / 2 + 1, 10, "", 12, THEME_CSS.pink, "display").setOrigin(0.5, 0).setDepth(DEPTH.UI - 1),
       text(this, w / 2 - 1, 10, "", 12, THEME_CSS.tier[1], "display").setOrigin(0.5, 0).setDepth(DEPTH.UI - 1),
     ];
-    this.timerText = text(this, w / 2, 24, "", 40, THEME_CSS.text, "pixel").setOrigin(0.5, 0).setDepth(DEPTH.UI);
+    this.timerText = num(this, w / 2, 26, "", 26).setOrigin(0.5, 0).setDepth(DEPTH.UI);
 
     // Top-right: scrap (laid out right-to-left in layoutScrap so any digit count fits)
-    this.scrapBox = panel(this, w - 30, 16, 100, 36, { fill: THEME.surface2 })
-      .setOrigin(1, 0)
-      .setStrokeStyle(2, THEME.line)
-      .setDepth(DEPTH.UI);
-    this.scrapGem = this.add.rectangle(0, 34, 10, 10, THEME.lime).setAngle(45).setDepth(DEPTH.UI + 1);
-    this.scrapValue = text(this, 0, 20, "0", 26, THEME_CSS.lime, "pixel").setOrigin(1, 0).setDepth(DEPTH.UI + 1);
+    this.scrapBox = this.add.graphics().setDepth(DEPTH.UI);
+    this.scrapGem = this.add.image(0, 34, "pickup_scrap", "0").setScale(22 / SCRAP_TEX).setDepth(DEPTH.UI + 1);
+    this.scrapValue = num(this, 0, 23, "0", 18, THEME_CSS.lime).setOrigin(1, 0).setDepth(DEPTH.UI + 1);
     this.scrapLabel = text(this, 0, 30, "SCRAP", 10, THEME_CSS.textMuted).setLetterSpacing(1.4).setOrigin(1, 0).setDepth(DEPTH.UI + 1);
 
-    // Bottom-left: 6 weapon slots, framed by tier colour (no icons); weapons only change in the shop
-    const owned = (this.scene.get(SCENE_KEYS.GAME) as GameScene | undefined)?.getPlayerStats().weapons ?? [];
-    for (let i = 0; i < 6; i++) {
-      const wpn = owned[i];
-      this.add
-        .rectangle(30 + i * 42, h - 52, 36, 36, THEME.surface2)
-        .setOrigin(0)
-        .setStrokeStyle(2, wpn ? THEME.tier[wpn.tier - 1] : THEME.line)
-        .setDepth(DEPTH.UI);
-    }
+    // Bottom-left: weapons + owned items (board U4); both only change in the shop and this scene restarts each wave
+    const run = (this.scene.get(SCENE_KEYS.GAME) as GameScene | undefined)?.getPlayerStats();
+    if (run) this.drawInventory(run.weapons, run.items, w, h);
 
     if (import.meta.env.DEV) this.createSpeedControls(h);
 
@@ -133,13 +129,36 @@ export class UIScene extends Phaser.Scene {
     this.levelText.setText(`LV ${stats.level}${stats.pending > 0 ? ` (+${stats.pending})` : ""}`);
   };
 
+  /** Weapon slots (sprite at its tier frame, tier rim, T3/T4 glow) and item chips (rarity rim, stack count). */
+  private drawInventory(weapons: readonly OwnedWeapon[], owned: readonly string[], w: number, h: number): void {
+    const layout = hudSlots(weapons, owned, w, h);
+    const g = this.add.graphics().setDepth(DEPTH.UI);
+    for (const s of layout.weapons) {
+      const glow = cardGlow(this, s.x, s.y, s.size, s.size, s.tier);
+      if (glow) Object.values(glow).forEach((o) => o.setDepth(DEPTH.UI - 1));
+      drawPanel(g, s.x, s.y, s.size, s.size, { fill: THEME.surface2, frame: THEME.tier[s.tier - 1], keyline: false });
+      fitImage(this, s.x + s.size / 2, s.y + s.size / 2, weaponArt(s.id, s.tier), s.size - 6).setDepth(DEPTH.UI + 1);
+    }
+    for (const c of layout.items) {
+      drawPanel(g, c.x, c.y, c.size, c.size, { fill: THEME.surface2, frame: THEME.tier[(items[c.id]?.rarity ?? 1) - 1], keyline: false });
+      fitImage(this, c.x + c.size / 2, c.y + c.size / 2, iconArt("item", c.id), c.size - 4).setDepth(DEPTH.UI + 1);
+      if (c.count > 1) num(this, c.x + c.size + 1, c.y + c.size + 2, String(c.count), 9).setOrigin(1, 1).setDepth(DEPTH.UI + 2);
+    }
+    if (layout.more) {
+      const m = layout.more;
+      drawPanel(g, m.x, m.y, m.size, m.size, { fill: THEME.surface2, keyline: false });
+      num(this, m.x + m.size / 2, m.y + m.size / 2, `+${m.n}`, 9, THEME_CSS.textMuted).setOrigin(0.5).setDepth(DEPTH.UI + 1);
+    }
+  }
+
   /** Right-align label, value and gem inside a box sized to the text. */
   private layoutScrap(): void {
     const right = GAME_CONFIG.WIDTH - 30;
     this.scrapLabel.setX(right - 10);
     this.scrapValue.setX(this.scrapLabel.x - this.scrapLabel.width - 8);
-    this.scrapGem.setX(this.scrapValue.x - this.scrapValue.width - 8 - 5);
-    this.scrapBox.setSize(right - (this.scrapGem.x - 5) + 10, 36);
+    this.scrapGem.setX(this.scrapValue.x - this.scrapValue.width - 6 - 11);
+    const left = this.scrapGem.x - 11 - 8;
+    drawPanel(this.scrapBox.clear(), left, 16, right - left, 36, { fill: THEME.surface2 });
   }
 
   /**

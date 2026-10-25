@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { loadFonts } from "./fonts";
+import { FONT_SPECS, loadFonts } from "./fonts";
 
 afterEach(() => vi.useRealTimers());
 
@@ -24,5 +24,12 @@ describe("loadFonts", () => {
   it("swallows a rejecting load", async () => {
     const load = vi.fn().mockRejectedValue(new Error("nope"));
     await expect(loadFonts({ load }, ["a"], 3000)).resolves.toBeUndefined();
+  });
+});
+
+describe("FONT_SPECS", () => {
+  it("loads Bungee and Plex Mono only", () => {
+    expect(FONT_SPECS.join(" ")).not.toMatch(/VT323/);
+    expect(FONT_SPECS.some((f) => f.includes("Bungee"))).toBe(true);
   });
 });

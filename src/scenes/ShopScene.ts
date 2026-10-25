@@ -20,9 +20,11 @@ import type { ItemDef, Offer, RunState, StatKey, Stats, WeaponDef } from "@/type
 import itemDefs from "@assets/data/items.json";
 import weaponDefs from "@assets/data/weapons.json";
 import Phaser from "phaser";
-import { truncate } from "@/core/labels";
+import { TIER_NAMES, truncate } from "@/core/labels";
 import { sfx } from "@/fx/sfx";
-import { button, lockIcon, lockedTab, onKeys, panel, text, tierTab } from "./ui";
+import { button, cardGlow, fitImage, iconArt, iconWindow, legendaryPop, lockIcon, num, onKeys, panel, text, tierBadge, weaponArt } from "./ui";
+import { pickSound } from "@/fx/sounds";
+import { frameSize } from "@/art/body";
 
 const weapons = weaponDefs as Record<string, WeaponDef>;
 const items = itemDefs as Record<string, ItemDef>;
@@ -91,13 +93,19 @@ export class ShopScene extends Phaser.Scene {
   private buy(i: number): void {
     const o = this.shop.offers[i];
     const r = buy(this.shop, this.run, i);
-    if (o && (r === "add" || r === "merge" || r === "item")) {
+    const bought = o && (r === "add" || r === "merge" || r === "item");
+    if (bought) {
       this.log.bought.push({ ...o });
-      sfx("buy");
+      sfx(pickSound(o.tier, "buy"));
     }
     if (r === "poor") this.say("Not enough scrap");
     else if (r === "blocked") this.say("No free slot and no matching weapon to merge");
     else if (r !== "empty") this.render();
+    // Legendary (board U3): effect over the bought card; outside this.ui so the re-render keeps it
+    if (bought && o.tier === 4) {
+      const b = offerBox(i);
+      legendaryPop(this, b.x, b.y, b.w, b.h);
+    }
   }
 
   private lock(i: number): void {
@@ -243,16 +251,16 @@ export class ShopScene extends Phaser.Scene {
     add(text(this, 24, 24, `WAVE ${String(this.run.wave).padStart(2, "0")} CLEARED`, 10, THEME_CSS.textMuted));
     add(this.add.text(24, 40, "BLACK MARKET", { fontFamily: FONTS.display, fontSize: "28px", color: THEME_CSS.text }));
     const cost = rerollCost(this.run.wave, this.shop.rerolls);
-    add(panel(this, 500, 28, 128, 44, { border: THEME.line, fill: THEME.surface2 }));
-    add(this.add.rectangle(518, 50, 10, 10, THEME.lime).setAngle(45));
-    add(text(this, 620, 50, `${this.run.scrap}`, 28, THEME_CSS.lime, "pixel").setOrigin(1, 0.5));
+    add(panel(this, 500, 28, 128, 44, { fill: THEME.surface2 }));
+    add(this.add.image(524, 50, "pickup_scrap", "0").setScale(22 / SCRAP_TEX));
+    add(num(this, 620, 50, `${this.run.scrap}`, 24, THEME_CSS.lime).setOrigin(1, 0.5));
     add(button(this, 704, 50, `REROLL ${cost}`, () => this.reroll(), false, this.run.scrap >= cost, { w: 120, h: 44, size: 13 }));
 
     this.shop.offers.forEach((o, i) => this.renderOffer(add, o, i, stats));
 
     // Weapons panel
     const pairs = combinePairs(this.run.weapons);
-    add(panel(this, 24, 292, 536, 236, { border: THEME.line, fill: THEME.surface2 }));
+    add(panel(this, 24, 292, 536, 236, { fill: THEME.surface2 }));
     add(text(this, 36, 302, `WEAPONS ${this.run.weapons.length} / 6`, 10, THEME_CSS.textMuted));
     add(text(this, 548, 302, "TAB FOCUS · S SELL · C COMBINE", 10, THEME_CSS.textMuted).setOrigin(1, 0));
     for (let i = 0; i < 6; i++) {
@@ -260,15 +268,16 @@ export class ShopScene extends Phaser.Scene {
       const y = 326;
       const w = this.run.weapons[i];
       if (!w) {
-        add(this.add.rectangle(x, y, 78, 116).setOrigin(0).setStrokeStyle(2, THEME.line, 0.6));
+        add(this.add.rectangle(x, y, 78, 116).setOrigin(0).setStrokeStyle(2, THEME.line, 0.6)); // empty slot: dashed-feel outline only
         continue;
       }
       const def = weapons[w.id];
       const focused = i === this.focus;
-      add(this.add.rectangle(x, y, 78, 116, THEME.surface).setOrigin(0).setStrokeStyle(focused ? 3 : 2, focused ? THEME.pink : THEME.tier[w.tier - 1]));
-      add(tierTab(this, x + 6, y, w.tier, true));
+      add(panel(this, x, y, 78, 116, { frame: focused ? THEME.pink : THEME.tier[w.tier - 1], frameW: focused ? 3 : 2 }));
+      add(fitImage(this, x + 46, y + 18, weaponArt(w.id, w.tier), 34));
+      add(tierBadge(this, x + 5, y + 6, w.tier));
       add(
-        text(this, x + 6, y + 12, truncate(def.name.toUpperCase(), 22), 10)
+        text(this, x + 6, y + 32, truncate(def.name.toUpperCase(), 22), 9)
           .setWordWrapWidth(66, true)
           .setMaxLines(2)
       );
@@ -287,7 +296,7 @@ export class ShopScene extends Phaser.Scene {
     );
 
     // Stats panel
-    add(panel(this, 576, 292, 200, 236, { border: THEME.line, fill: THEME.surface2 }));
+    add(panel(this, 576, 292, 200, 236, { fill: THEME.surface2 }));
     add(text(this, 588, 302, "STATS", 10, THEME_CSS.textMuted));
     this.statBox = add(this.add.container(588, 322));
     this.drawStats();
@@ -303,41 +312,36 @@ export class ShopScene extends Phaser.Scene {
     i: number,
     stats: Stats
   ): void {
-    const x = 24 + i * 191;
-    const y = 100;
-    const w = 177;
-    const h = 176;
+    const { x, y, w, h } = offerBox(i);
     const locked = this.shop.locked[i];
     const focused = i === this.offerFocus;
-    const tc = o ? THEME.tier[o.tier - 1] : THEME.line;
-    const border = locked && o ? THEME.pink : tc;
-    if (locked && o) add(this.add.rectangle(x + 4, y + 4, w, h, THEME.pink).setOrigin(0));
-    else if (o?.tier === 4) add(this.add.rectangle(x - 4, y - 4, w + 8, h + 8, tc, 0.18).setOrigin(0));
-    const card = add(
-      this.add.rectangle(x, y, w, h, THEME.surface).setOrigin(0).setStrokeStyle(focused ? 3 : 2, focused ? THEME.lime : border)
-    );
-    if (locked && o) add(this.add.rectangle(x, y, w, h, THEME.pink, 0.08).setOrigin(0));
     if (!o) {
-      add(text(this, x + w / 2, y + h / 2, "SOLD", 16, THEME_CSS.textMuted).setOrigin(0.5));
+      add(panel(this, x, y, w, h, { fill: THEME.surface2, frame: focused ? THEME.lime : undefined }));
+      add(text(this, x + w / 2, y + h / 2, "SOLD", 16, THEME_CSS.textMuted, "display").setOrigin(0.5));
       return;
     }
+    const tc = THEME.tier[o.tier - 1];
+    const glow = cardGlow(this, x, y, w, h, o.tier);
+    if (glow) Object.values(glow).forEach(add);
+    add(panel(this, x, y, w, h, { frame: focused ? THEME.lime : locked ? THEME.pink : tc, frameW: focused ? 3 : 2, ...(locked ? { shadow: THEME.pink } : {}) }));
+    if (glow?.shine) this.ui.bringToTop(glow.shine);
     const status = offerStatus(this.shop, this.run, i);
     const def = o.kind === "weapon" ? weapons[o.id] : items[o.id];
-    add(tierTab(this, x + 10, y, o.tier));
-    if (locked) add(lockedTab(this, x + w - 10, y));
-    add(text(this, x + 12, y + 12, `[${i + 1}]`, 10, THEME_CSS.textMuted));
+    add(iconWindow(this, x + 8, y + 10, 54, tc, o.kind === "weapon" ? weaponArt(o.id, o.tier, -30) : iconArt("item", o.id)));
+    add(tierBadge(this, x + 4, y + 54, o.tier));
+    add(text(this, x + 70, y + 10, `[${i + 1}]`, 9, THEME_CSS.textMuted));
     add(
       this.add
-        .text(x + 12, y + 28, truncate(def.name.toUpperCase(), 30), { fontFamily: FONTS.display, fontSize: "12px", color: THEME_CSS.text })
-        .setWordWrapWidth(153, true)
+        .text(x + 70, y + 24, truncate(def.name.toUpperCase(), 30), { fontFamily: FONTS.display, fontSize: "12px", color: THEME_CSS.text })
+        .setWordWrapWidth(98, true)
         .setMaxLines(2)
     );
     const owned = this.run.weapons.filter((w) => w.id === o.id).length;
     const kind =
       o.kind === "weapon"
-        ? `WEAPON · ${weapons[o.id].tags.join(" · ").toUpperCase()}${owned ? ` · OWNED ×${owned}` : ""}`
-        : "ITEM";
-    add(text(this, x + 12, y + 62, kind, 9, owned ? THEME_CSS.pink300 : THEME_CSS.textMuted).setWordWrapWidth(153, true).setMaxLines(2));
+        ? `${TIER_NAMES[o.tier - 1]} · WEAPON · ${weapons[o.id].tags.join(" · ").toUpperCase()}${owned ? ` · OWNED ×${owned}` : ""}`
+        : `${TIER_NAMES[o.tier - 1]} · ITEM`;
+    add(text(this, x + 10, y + 70, kind, 9, owned ? THEME_CSS.pink300 : THEME_CSS.tier[o.tier - 1]).setWordWrapWidth(157, true).setMaxLines(2));
     const lines: [string, string][] =
       o.kind === "weapon"
         ? (() => {
@@ -348,18 +352,27 @@ export class ShopScene extends Phaser.Scene {
             `${signed(v!)} ${STAT_LABELS[k as keyof Stats]}`,
             v! > 0 ? THEME_CSS.lime : THEME_CSS.danger,
           ]);
-    lines.forEach(([t, c], n) => add(text(this, x + 12, y + 90 + n * 14, truncate(t, 24), 12, c)));
+    lines.forEach(([t, c], n) => add(text(this, x + 10, y + 92 + n * 14, truncate(t, 24), 12, c)));
 
-    add(this.add.rectangle(x + 10, y + h - 38, w - 20, 28, THEME.surface2).setOrigin(0).setStrokeStyle(2, THEME.line));
-    add(
-      text(this, x + w / 2, y + h - 24, status === "blocked" ? "NO SLOT" : `◆ ${o.price}`, 14, status === "ok" ? THEME_CSS.lime : THEME_CSS.danger).setOrigin(0.5)
-    );
-    const bw = locked ? 68 : 56;
-    const lockBtn = add(button(this, x + w - bw / 2 - 8, y + 14, locked ? "UNLOCK" : "LOCK", () => this.lock(i), false, true, { w: bw, h: 18, size: 9 }));
-    lockBtn.add(lockIcon(this, 10 - bw / 2, locked));
+    add(panel(this, x + 8, y + h - 38, w - 16, 28, { fill: THEME.surface2 }));
+    if (status === "blocked") add(text(this, x + w / 2, y + h - 24, "NO SLOT", 13, THEME_CSS.danger, "display").setOrigin(0.5));
+    else {
+      const price = add(num(this, x + w / 2 + 10, y + h - 24, `${o.price}`, 14, status === "ok" ? THEME_CSS.lime : THEME_CSS.danger).setOrigin(0.5));
+      add(this.add.image(price.x - price.width / 2 - 11, y + h - 24, "pickup_scrap", "0").setScale(16 / SCRAP_TEX));
+    }
+    const bw = locked ? 60 : 50;
+    const hit = add(this.add.zone(x, y, w, h).setOrigin(0).setInteractive({ useHandCursor: true }));
+    const lockBtn = add(button(this, x + w - bw / 2 - 6, y + 14, locked ? "LOCKED" : "LOCK", () => this.lock(i), false, true, {
+      w: bw, h: 16, size: 8, ...(locked ? { face: THEME.pink } : {}),
+    }));
+    lockBtn.add(lockIcon(this, 9 - bw / 2, locked));
 
-    card.setInteractive({ useHandCursor: true });
-    card.on("pointerover", () => this.preview(i));
-    card.on("pointerdown", () => this.buy(i));
+    // The hit zone sits under the lock button, so a click on LOCK never also buys
+    hit.on("pointerover", () => this.preview(i));
+    hit.on("pointerdown", () => this.buy(i));
   }
 }
+
+const SCRAP_TEX = frameSize("pickup_scrap").w; // texture px of one scrap frame
+/** Offer card i (board U3): today's 177 x 176 boxes. */
+const offerBox = (i: number) => ({ x: 24 + i * 191, y: 100, w: 177, h: 176 });

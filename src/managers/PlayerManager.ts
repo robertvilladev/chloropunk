@@ -1,6 +1,5 @@
-import { boxOffset } from "@/art/body";
+import { feetOffset, fitBox } from "@/art/body";
 import { ARENA, GAME_CONFIG } from "@/config/constants";
-import { THEME } from "@/config/theme";
 import { actorDepth, facingFlip } from "@/core/depth";
 import type { Rng } from "@/core/rng";
 import { damageTaken } from "@/core/stats";
@@ -8,6 +7,7 @@ import type { Stats } from "@/types";
 
 const DODGE_IFRAMES_MS = 500;
 const PLAYER_BODY = 32; // pre-M3 32x32 square body
+const PLAYER_FEET = feetOffset("player");
 import Phaser from "phaser";
 
 /**
@@ -51,10 +51,9 @@ export class PlayerManager {
 
     // Set player physics properties
     this.player.setCollideWorldBounds(true);
-    const off = boxOffset("player", PLAYER_BODY, PLAYER_BODY);
-    (this.player.body as Phaser.Physics.Arcade.Body).setSize(PLAYER_BODY, PLAYER_BODY).setOffset(off.x, off.y);
+    fitBox(this.player, "player", PLAYER_BODY, PLAYER_BODY);
     this.player.play("player_walk");
-    this.player.setDepth(actorDepth(this.player.y));
+    this.player.setDepth(actorDepth(this.player.y + PLAYER_FEET));
 
     console.log("✓ PlayerManager: Player created");
   }
@@ -71,7 +70,7 @@ export class PlayerManager {
     // Set velocity
     body.setVelocity(velocityX * speed, velocityY * speed);
     this.player.flipX = facingFlip(velocityX * speed, this.player.flipX);
-    const d = actorDepth(this.player.y);
+    const d = actorDepth(this.player.y + PLAYER_FEET);
     if (Math.round(d * 100) !== Math.round(this.player.depth * 100)) this.player.setDepth(d);
 
     // Normalize diagonal movement
@@ -141,10 +140,13 @@ export class PlayerManager {
 
     this.scene.events.emit("playerHit");
 
-    // Flash red
-    this.player.setTint(THEME.danger);
+    // Hit frame for 100 ms (board A2): a baked frame, since the Canvas renderer can't draw tints
+    this.player.anims.pause();
+    this.player.setFrame("hit");
     this.scene.time.delayedCall(100, () => {
-      this.player.clearTint();
+      if (!this.player.active || this.player.frame.name !== "hit") return;
+      this.player.anims.resume();
+      this.player.setFrame(this.player.anims.currentFrame?.textureFrame ?? "walk0");
     });
 
     // Check if dead

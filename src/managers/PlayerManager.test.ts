@@ -8,16 +8,23 @@ vi.mock("phaser", () => ({ default: {} }));
 
 function makePlayer(dodge: number, rollValue: number) {
   const emitted: string[] = [];
-  const sprite = { setCollideWorldBounds: () => sprite, setDepth: () => sprite, setTint() {}, clearTint() {}, play() {}, body: { setSize() { return this; }, setOffset() { return this; } } };
+  const later: (() => void)[] = [];
+  // no setTint: the Canvas renderer can't draw tints, so the hurt flash must be the baked "hit" frame
+  const sprite = {
+    active: true, frame: { name: "walk0" }, anims: { paused: false, currentFrame: { textureFrame: "walk1" }, pause() { this.paused = true; }, resume() { this.paused = false; } },
+    setCollideWorldBounds: () => sprite, setDepth: () => sprite, setScale: () => sprite, play() {},
+    setFrame(f: string) { sprite.frame = { name: f }; return sprite; },
+    body: { setSize() { return this; }, setOffset() { return this; } },
+  };
   const scene = {
     events: { emit: (name: string) => emitted.push(name) },
-    time: { delayedCall() {} },
+    time: { delayedCall: (_ms: number, fn: () => void) => later.push(fn) },
     physics: { add: { sprite: () => sprite } },
   };
   const rng = seqRng(rollValue);
   const pm = new PlayerManager(scene as never);
   pm.create({ ...BASE_STATS, dodge }, rng);
-  return { pm, rng, emitted };
+  return { pm, rng, emitted, sprite, later };
 }
 
 describe("PlayerManager.takeDamage", () => {
@@ -35,5 +42,17 @@ describe("PlayerManager.takeDamage", () => {
     pm.takeDamage(10);
     expect(pm.getHealth()).toBe(90);
     expect(rng.draws).toBe(0);
+  });
+});
+
+describe("PlayerManager hurt flash", () => {
+  it("shows the baked hit frame, then goes back to walking", () => {
+    const { pm, sprite, later } = makePlayer(0, 0);
+    pm.takeDamage(10);
+    expect(sprite.frame.name).toBe("hit");
+    expect(sprite.anims.paused).toBe(true);
+    later.forEach((fn) => fn());
+    expect(sprite.anims.paused).toBe(false);
+    expect(sprite.frame.name).toBe("walk1");
   });
 });
