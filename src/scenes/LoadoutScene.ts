@@ -10,7 +10,7 @@ import character from "@assets/data/character.json";
 import weaponDefs from "@assets/data/weapons.json";
 import Phaser from "phaser";
 import { sfx } from "@/fx/sfx";
-import { button, onKeys, panel, scanlines, text } from "./ui";
+import { badge, button, drawPanel, fitImage, onKeys, panel, scanlines, text, weaponArt } from "./ui";
 
 const STARTERS = ["pistol", "shotgun", "blade"] as const;
 const TOP = 134;
@@ -34,23 +34,21 @@ export class LoadoutScene extends Phaser.Scene {
 
     this.characterPanel();
 
-    const faces: Phaser.GameObjects.Rectangle[] = [];
-    const shadows: Phaser.GameObjects.Rectangle[] = [];
+    // Selected card: lime rim on a pink offset plate (board U4)
+    const faces: Phaser.GameObjects.Graphics[] = [];
     const refresh = () =>
       faces.forEach((f, i) => {
         const on = i === this.selected;
-        f.setStrokeStyle(2, on ? THEME.pink : THEME.line);
-        shadows[i].setVisible(on);
+        drawPanel(f.clear(), 0, 0, 160, H, on ? { frame: THEME.lime, shadow: THEME.pink } : {});
       });
     STARTERS.forEach((id, i) => {
       const def = (weaponDefs as Record<string, WeaponDef>)[id];
       const ws = weaponStats(def, 1, BASE_STATS);
       const x = 256 + i * 176;
-      shadows.push(this.add.rectangle(x + 4, TOP + 4, 160, H, THEME.pink).setOrigin(0));
-      const face = this.add.rectangle(x, TOP, 160, H, THEME.surface).setOrigin(0);
-      faces.push(face);
-      this.add.rectangle(x + 16, TOP + 16, 128, 72, THEME.surface2).setOrigin(0);
-      text(this, x + 80, TOP + 52, String(i + 1), 40, THEME_CSS.faint, "display").setOrigin(0.5);
+      faces.push(this.add.graphics({ x, y: TOP }));
+      drawPanel(this.add.graphics(), x + 16, TOP + 16, 128, 72, { fill: THEME.bg, frame: THEME.tier[0], keyline: false });
+      fitImage(this, x + 80, TOP + 52, weaponArt(id, 1), 96);
+      badge(this, x + 12, TOP + 12, String(i + 1), THEME.text);
       text(this, x + 16, TOP + 104, def.name.toUpperCase(), 14, THEME_CSS.text, "display").setWordWrapWidth(128);
       text(this, x + 16, TOP + 152, [...def.tags, def.behavior.replace(/^melee-?/, "")].filter(Boolean).join(" · ").toUpperCase(), 9, THEME_CSS.textMuted)
         .setLetterSpacing(1.2)
@@ -59,7 +57,7 @@ export class LoadoutScene extends Phaser.Scene {
         .setFontStyle("600")
         .setWordWrapWidth(128);
       text(this, x + 16, TOP + 214, def.blurb, 11, THEME_CSS.textMuted).setWordWrapWidth(128);
-      face.setInteractive({ useHandCursor: true });
+      const face = this.add.zone(x, TOP, 160, H).setOrigin(0).setInteractive({ useHandCursor: true });
       face.on("pointerover", () => {
         this.selected = i;
         refresh();
