@@ -5,6 +5,7 @@ import { createRng, type Rng } from "@/core/rng";
 import { autopilot } from "@/core/autopilot";
 import { aimReport } from "@/core/run";
 import { endRun, saveRun, startWave, type DamageSource, type Outcome, type WaveLog } from "@/core/runlog";
+import { recordBest } from "@/core/summary";
 import { addXp, xpToNext } from "@/core/progression";
 import { computeStats } from "@/core/stats";
 import { clampDelta } from "@/core/time";
@@ -428,10 +429,11 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  /** Finish the run log and keep it (localStorage, last 50). */
+  /** Finish the run log and keep it (localStorage, last 50), plus the best wave (quits don't count). */
   private saveLog(outcome: Outcome): void {
     endRun(this.run.log, outcome);
     saveRun(this.run.log);
+    recordBest(this.run.log);
     console.info(aimReport(this.run.aim, this.run.wave));
   }
 
@@ -447,8 +449,8 @@ export class GameScene extends Phaser.Scene {
     this.waveLog.deathTime = this.waveLog.duration;
     // after hurt() has logged the killing blow (this runs inside takeDamage)
     queueMicrotask(() => this.saveLog("died"));
-    this.scene.pause();
-    this.scene.launch(SCENE_KEYS.GAME_OVER);
+    // The start is queued to the next game step, after the save above
+    this.scene.start(SCENE_KEYS.SUMMARY, { run: this.run, outcome: "defeat" });
   }
 
   /**

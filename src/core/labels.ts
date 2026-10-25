@@ -10,3 +10,10 @@ export function formatClock(seconds: number): string {
 }
 
 export const truncate = (s: string, max: number): string => (s.length <= max ? s : `${s.slice(0, max - 1)}…`);
+
+/** 412 → "412", 18 400 → "18.4k", 2 500 000 → "2.5M". */
+export function formatCount(n: number): string {
+  const r = Math.round(n);
+  if (r < 1000) return String(r);
+  return r < 1e6 ? `${(r / 1e3).toFixed(1)}k` : `${(r / 1e6).toFixed(1)}M`;
+}
