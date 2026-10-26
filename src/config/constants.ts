@@ -1,10 +1,8 @@
 /**
  * Game constants and configuration
  */
-import { arenaFromSearch } from "./arena";
-
 /** Playfield size (physics bounds, spawns, y-sort). GAME_CONFIG.WIDTH/HEIGHT is the 800x600 design space for layout. */
-export const ARENA = arenaFromSearch(typeof window === "undefined" ? "" : window.location.search, import.meta.env.DEV);
+export const ARENA = { w: 1600, h: 1200 } as const;
 
 export const GAME_CONFIG = {
   // Canvas dimensions

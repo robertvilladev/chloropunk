@@ -16,17 +16,6 @@ export interface Rect {
   h: number;
 }
 
-export const GameState = {
-  MENU: "MENU",
-  WAVE_PREPARATION: "WAVE_PREPARATION",
-  WAVE_ACTIVE: "WAVE_ACTIVE",
-  WAVE_COMPLETE: "WAVE_COMPLETE",
-  SHOP: "SHOP",
-  GAME_OVER: "GAME_OVER",
-} as const;
-
-export type GameState = (typeof GameState)[keyof typeof GameState];
-
 export type EnemyBehavior =
   | "chaser"
   | "dasher"

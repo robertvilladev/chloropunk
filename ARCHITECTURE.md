@@ -15,7 +15,7 @@ src/
                         runlog (versioned per-run log: wave/shop/level-up records, localStorage store of the last 50, summarise + fitParams for `pnpm runs`)
 scripts/runs.mjs        `pnpm runs <file|folder>` wrapper: runs src/core/runlog.report.test.ts under Vitest with RUNS_PATH set
 scripts/playtest.mjs    `pnpm playtest`: Vite + Playwright Chromium autopilot run, saves localStorage `vv.runs` to runs/playtest-<seed>.json
-  config/constants.ts  ARENA {w,h} = playfield, 1600×1200 (physics bounds, spawns, y-sort, autopilot; dev `?arena=small` = 800×600, config/arena.ts); GAME_CONFIG.WIDTH/HEIGHT = 800×600 design space for layout only (arena.guard.test.ts)
+  config/constants.ts  ARENA {w,h} = playfield, 1600×1200 (physics bounds, spawns, y-sort, autopilot); GAME_CONFIG.WIDTH/HEIGHT = 800×600 design space for layout only (arena.guard.test.ts)
   config/view.ts       RENDER_SCALE = 2: canvas is 1600×1200, each scene's main camera is zoomed 2× onto the 800×600 design space (applyView, wired in gameConfig postBoot), except GameScene's, which then follows the fighter inside the arena (followView); installCrispText renders all Text at 2×. Scenes keep 800×600 coordinates, so use GAME_CONFIG.WIDTH/HEIGHT (not camera/scale size) and no setScrollFactor(0): screen-fixed things go in UIScene
   fx/glow.ts            isWebGL() guard + applyGlow() (single camera bloom, WebGL only); renderer picked via ?renderer=canvas|webgl (config/renderer.ts)
   fx/Juice.ts           world-space hit/kill feedback (numbers, flash, shake, death pops, bursts, blasts) and their SFX; the wave banner, low-HP vignette and off-screen spawn arrows live in UIScene

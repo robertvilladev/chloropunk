@@ -24,9 +24,7 @@
       "@entities/*": ["src/entities/*"],
       "@managers/*": ["src/managers/*"],
       "@config/*": ["src/config/*"],
-      "@ecs/*": ["src/ecs/*"],
       "@utils/*": ["src/utils/*"],
-      "@ui/*": ["src/ui/*"],
       "@types/*": ["src/types/*"],
       "@assets/*": ["assets/*"]
     },

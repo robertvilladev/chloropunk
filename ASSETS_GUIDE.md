@@ -1,6 +1,6 @@
 # Importing Assets Guide
 
-> Only JSON data is in use today. Sprites are SVG strings in `src/art/vector.ts` (code, not files; see below); SFX are ZzFX parameter arrays (see Audio below); music is two OGG files in `assets/audio/`. `@ecs` and `@ui` aliases exist in `vite.config.ts` but their folders do not.
+> Only JSON data is in use today. Sprites are SVG strings in `src/art/vector.ts` (code, not files; see below); SFX are ZzFX parameter arrays (see Audio below); music is two OGG files in `assets/audio/`.
 
 ## JSON Data Files
 
@@ -62,7 +62,7 @@ Sprites are SVG strings in design px (vector style, keyline outline: [addendum �
 
 ## Rooftop layout (`assets/data/arena.json`)
 
-`{ w, h, props }` for the 1600×1200 arena: each prop is `{ kind, x, y, w, h, label?, solid? }` in arena px (top-left), kind one of `vent`, `sign`, `pad`, `puddle`, `rail`, `zone`, `crate` (`ArenaProp`, `src/types`). `solid: true` makes a prop an obstacle (today the 4 vents): it blocks the player, enemies, enemy bolts and scrap, player shots fly over, enemies steer around it, and spawns and drops are moved off it. `src/art/arena.ts` draws solids as raised blocks (drop shadow, dark front face with violet hazard stripes, lighter top with a bright `solidRim` edge, `THEME_CSS.decor.solid*`), so they read apart from the flat decor; collision adds no sprite. `src/art/arena.ts` bakes it once into `arena_floor_1600x1200` (zones under the grid, the rest on top). Rules (checked by `src/core/arena.test.ts`): props inside the arena and clear of the 160 px circle around the centre start; solids at most 144×96 and at least 80 px from the arena edge and from each other (a potato fits through); pink only for the billboard (`sign`), since pink is the telegraph colour. Colours come from `THEME_CSS.decor` (Night violet, `#rrggbbaa` with alpha baked in); decor stays darker than anything that moves, and cyan/amber are reserved for projectiles. Any other arena size (`?arena=small`) gets the plain grid.
+`{ w, h, props }` for the 1600×1200 arena: each prop is `{ kind, x, y, w, h, label?, solid? }` in arena px (top-left), kind one of `vent`, `sign`, `pad`, `puddle`, `rail`, `zone`, `crate` (`ArenaProp`, `src/types`). `solid: true` makes a prop an obstacle (today the 4 vents): it blocks the player, enemies, enemy bolts and scrap, player shots fly over, enemies steer around it, and spawns and drops are moved off it. `src/art/arena.ts` draws solids as raised blocks (drop shadow, dark front face with violet hazard stripes, lighter top with a bright `solidRim` edge, `THEME_CSS.decor.solid*`), so they read apart from the flat decor; collision adds no sprite. `src/art/arena.ts` bakes it once into `arena_floor_1600x1200` (zones under the grid, the rest on top). Rules (checked by `src/core/arena.test.ts`): props inside the arena and clear of the 160 px circle around the centre start; solids at most 144×96 and at least 80 px from the arena edge and from each other (a potato fits through); pink only for the billboard (`sign`), since pink is the telegraph colour. Colours come from `THEME_CSS.decor` (Night violet, `#rrggbbaa` with alpha baked in); decor stays darker than anything that moves, and cyan/amber are reserved for projectiles.
 
 ## Audio
 

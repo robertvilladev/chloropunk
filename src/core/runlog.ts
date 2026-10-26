@@ -77,7 +77,7 @@ export interface RunLog {
   dataHash: string; // of assets/data, so old balance versions never mix
   seed: number;
   starter: string;
-  arena?: { w: number; h: number }; // playfield size (dev ?arena=small = 800x600); logs before A3 lack it
+  arena?: { w: number; h: number }; // playfield size; logs before A3 lack it, and old ones may be 800x600 (the removed ?arena=small)
   result: { wave: number; outcome: Outcome; time: number } | null;
   waves: WaveLog[];
   shops: ShopLog[];
