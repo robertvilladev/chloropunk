@@ -74,5 +74,44 @@
       "blastRadius": 70,
       "blastDamage": 12
     }
+  },
+  "boss": {
+    "id": "boss",
+    "name": "Boss",
+    "hp": 6500,
+    "damage": 12,
+    "speed": 40,
+    "scrap": 0,
+    "behavior": "boss",
+    "sprite": "boss_harvester",
+    "radius": 48,
+    "color": "#ff7a1a",
+    "shakeOnKill": true,
+    "params": {
+      "phase2At": 0.5,
+      "teleVolley": 0.8,
+      "teleCharge": 0.7,
+      "teleBarrage": 1.1,
+      "recVolley": 0.4,
+      "recCharge": 1.2,
+      "recBarrage": 0.4,
+      "gap1": 1.6,
+      "gap2": 1.4,
+      "brood1": 5,
+      "brood2": 3.5,
+      "broodCount": 3,
+      "volleyMin": 5,
+      "volleyMax": 7,
+      "volleySpread": 50,
+      "boltSpeed": 240,
+      "boltDamage": 6,
+      "chargeSpeed": 520,
+      "chargeDamage": 14,
+      "barrageMin": 3,
+      "barrageMax": 5,
+      "barrageSpread": 140,
+      "blastRadius": 60,
+      "blastDamage": 10
+    }
   }
 }

@@ -32,7 +32,8 @@ export type EnemyBehavior =
   | "dasher"
   | "tank"
   | "shooter"
-  | "exploder";
+  | "exploder"
+  | "boss";
 
 export interface EnemyDef {
   id: string;
@@ -60,6 +61,7 @@ export interface SpawnGroup {
 
 export interface WaveDef {
   wave: number;
+  boss?: boolean; // no timer, no groups: the boss and its pea brood (M4b)
   groups: SpawnGroup[];
 }
 
