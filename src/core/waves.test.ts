@@ -22,6 +22,11 @@ describe("waveDuration", () => {
 });
 
 describe("buildSpawnSchedule", () => {
+  it("throws on a group with every <= 0", () => {
+    const def = { wave: 3, groups: [{ enemy: "x", start: 0, every: 0, count: 1 }] } as never;
+    expect(() => buildSpawnSchedule(def)).toThrow(/wave 3.*every=0/);
+  });
+
   it("expands a group", () => {
     const s = buildSpawnSchedule({
       wave: 1,
