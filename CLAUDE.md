@@ -4,7 +4,7 @@ Phaser 3.90 + TypeScript (strict) + Vite + Vitest. Read [README.md](README.md), 
 
 ## Package manager: pnpm only
 
-Use `pnpm` for everything (`pnpm install`, `pnpm add -D x`, `pnpm <script>`, `pnpm exec <bin>`, one-off tools with `pnpm dlx`); never `npm`/`npx`/`yarn`, and never commit a `package-lock.json`. Script args go straight after the name: `pnpm runs runs`, `pnpm playtest --seed 2` (no `--`). Dependency build scripts must be approved in `pnpm-workspace.yaml` (`allowBuilds`).
+Use `pnpm` for everything (`pnpm install`, `pnpm add -D x`, `pnpm <script>`, `pnpm exec <bin>`, one-off tools with `pnpm dlx`); never `npm`/`npx`/`yarn`, and never commit a `package-lock.json`. Script args go straight after the name: `pnpm runs runs`, `pnpm playtest --seed 2` (no `--`). A dependency that needs a build script must be approved in `pnpm-workspace.yaml` (`allowBuilds`); none does today, so the file is absent.
 
 - A fresh worktree has no `node_modules`: run `pnpm install` first.
 - Dev server for the preview tool: `.claude/launch.json` (git-ignored, one per worktree) with `"runtimeExecutable": "pnpm"`, `"runtimeArgs": ["dev", "--port", "<N>", "--strictPort"]` and `"port": <N>`. Pick a port no other worktree uses; `--strictPort` stops Vite from silently moving to a port another session's server owns.

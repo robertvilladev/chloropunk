@@ -133,6 +133,13 @@ From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) an
 - **Music (proposed):** neither track loops seamlessly (NLV fades out then restarts on its drop; Spring cuts from full level back to its start) and the levels were matched by meter (NLV trimmed to 0.7): the owner should listen. Safari before 18.4 can't play Ogg and gets no music; an M4A fallback is the fix if that matters. The autoplay-unlock path (music starting on the first click) couldn't be exercised in the preview, which allows autoplay
 - **Dev only:** after editing `assets/data/*.json` with a page open, Vite HMR logs one "Failed to load module script … application/json" console error; a fresh load is clean
 
+## Owner ideas to explore (2026-10-24)
+Not designed yet; each needs its own deep dive (and a spec note where it changes spec numbers) before building. All (proposed).
+
+- **Run tracker:** a row of dots, one per wave, past waves filled, a marker on the current one, the boss icon on the last; shown on the pause screen (Brotato-style). Built from the wave count in `waves.json`, never a hardcoded 10, so it still works if the run grows (see the 15/20-wave ideas below) or shrinks
+- ~~**Longer waves (50 s)**~~: covered by the [wave length pass](#balance--progression-) (`32 + 2·(n−1)` s, owner-approved); a flat 50 s was not picked
+- **Spawn in packs:** merged into the enemy-variety idea in the parking lot below
+
 ## Ideas parking lot (post-MVP)
 Named by the spec as non-goals / later:
 
@@ -144,7 +151,7 @@ Named by the spec as non-goals / later:
 - (proposed) Opt-in upload of finished run logs to a small endpoint (Postgres `runs` table), accounts linked to an anonymous player id — a spec change, needs the owner's call ([balance design §9.5](docs/superpowers/specs/2026-10-20-balance-design.md#95-path-to-a-server-proposed))
 - (proposed) 20-wave run: extend the balance model (bands for waves 11–20, longer reference builds, more AoE content for density) — [balance design §5](docs/superpowers/specs/2026-10-20-balance-design.md#5-the-model-approved)
 - (proposed, owner 2026-10-24) 15-wave run as a step towards 20; after the MVP, because the boss (M4b) is built for wave 10
-- (proposed, owner 2026-10-24) Enemy variety after Brotato-style play: spawn some groups as tight clusters, not every enemy straight at the player (wanderers, flankers, chargers that pause), tune enemy size and how far out they appear
+- (proposed, owner 2026-10-24) Enemy variety after Brotato-style play: spawn some groups as tight clusters, not every enemy straight at the player (wanderers, flankers, chargers that pause), tune enemy size and how far out they appear. Packs: spawn events already carry a `count` (`src/core/waves.ts`); the change is where they land (one telegraphed spot + spread) and tuning threat so packs don't spike difficulty, with kills/scrap arriving in bursts
 - Endless mode (waves generated at runtime from the threat budget), difficulty tiers
 - Opt-in online upload of run logs to **Postgres** (owner, 2026-10-21: local-first now, upload later). Plan: the versioned RunLog JSON is the contract; finished runs POST to a small endpoint; a `runs` table with indexed columns (data hash, version, starter, wave reached, date) + the full log as JSONB; per-wave medians via SQL; registration later links accounts to the anonymous player id. Needs a spec amendment (spec §2 lists online features as a non-goal) — [balance design §9](docs/superpowers/specs/2026-10-20-balance-design.md#9-measuring-real-games-proposed)
 - (proposed, owner 2026-10-24) Scrap tiers: a kill's scrap splits into several smaller pieces of tiered value, so collecting feels like harvesting; needs a rethink of drop values (enemies drop 1–3 today)
