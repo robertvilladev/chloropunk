@@ -248,7 +248,7 @@ export class ShopScene extends Phaser.Scene {
     };
     const stats = this.stats();
 
-    add(text(this, 24, 24, `WAVE ${String(this.run.wave).padStart(2, "0")} CLEARED`, 10, THEME_CSS.textMuted));
+    add(text(this, 24, 24, `WAVE ${String(this.run.wave - 1).padStart(2, "0")} CLEARED`, 10, THEME_CSS.textMuted));
     add(this.add.text(24, 40, "BLACK MARKET", { fontFamily: FONTS.display, fontSize: "28px", color: THEME_CSS.text }));
     const cost = rerollCost(this.run.wave, this.shop.rerolls);
     add(panel(this, 500, 28, 128, 44, { fill: THEME.surface2 }));

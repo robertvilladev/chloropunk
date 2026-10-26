@@ -115,7 +115,7 @@ function arcade(key: SpriteKey) {
     setOffset(x: number, y: number) { this.offset = { x, y }; return this; },
   };
   const s = {
-    x: 300, y: 200, scaleX: 1, scaleY: 1, displayOriginX: (w * ART_SCALE) / 2, displayOriginY: (h * ART_SCALE) / 2, body,
+    x: 300, y: 200, flipX: false, scaleX: 1, scaleY: 1, displayOriginX: (w * ART_SCALE) / 2, displayOriginY: (h * ART_SCALE) / 2, body,
     setScale(x: number, y = x) { this.scaleX = x; this.scaleY = y; return this; },
     setDisplayOrigin(x: number, y: number) { this.displayOriginX = x; this.displayOriginY = y; return this; },
   };
@@ -129,7 +129,12 @@ function arcade(key: SpriteKey) {
       feet: s.y + s.scaleY * (SPRITE_META[key].feet * ART_SCALE - s.displayOriginY),
     };
   };
-  return { s: s as unknown as Phaser.Physics.Arcade.Sprite, read };
+  /** World x of the art centre: Phaser draws texture px u of a flipped frame where px (W - u) would be. */
+  const artX = () => {
+    const u = SPRITE_META[key].cx * ART_SCALE;
+    return s.x + s.scaleX * ((s.flipX ? w * ART_SCALE - u : u) - s.displayOriginX);
+  };
+  return { s: s as unknown as Phaser.Physics.Arcade.Sprite, read, artX };
 }
 
 describe("bobCircle", () => {
@@ -148,6 +153,20 @@ describe("bobCircle", () => {
         expect(now.cx, `${key} cx`).toBeCloseTo(rest.cx, 6);
         expect(now.cy, `${key} cy`).toBeCloseTo(rest.cy, 6);
         expect(now.feet, `${key} feet`).toBeCloseTo(rest.feet + b.dy, 6);
+      }
+    }
+  });
+});
+
+describe("hit circle on a flipped sprite", () => {
+  it("stays on the art centre facing either way (the carrot's art is off-centre)", () => {
+    for (const e of Object.values(enemies)) {
+      const key = e.sprite as SpriteKey;
+      for (const flip of [false, true]) {
+        const { s, read, artX } = arcade(key);
+        s.flipX = flip;
+        bobCircle(s, key, e.radius, { sx: 1, sy: 1, dy: 0 });
+        expect(read().cx, `${key} flip ${flip}`).toBeCloseTo(artX(), 6);
       }
     }
   });

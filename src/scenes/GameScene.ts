@@ -450,7 +450,9 @@ export class GameScene extends Phaser.Scene {
     // after hurt() has logged the killing blow (this runs inside takeDamage)
     queueMicrotask(() => this.saveLog("died"));
     // The start is queued to the next game step, after the save above
-    this.scene.start(SCENE_KEYS.SUMMARY, { run: this.run, outcome: "defeat" });
+    // The fatal wave's XP is never banked; show the level the HUD showed
+    const run = { ...this.run, level: addXp(this.run, this.waveEarned).level };
+    this.scene.start(SCENE_KEYS.SUMMARY, { run, outcome: "defeat" });
   }
 
   /**
