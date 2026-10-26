@@ -129,13 +129,14 @@ export function bossTelegraphs(s: BossState, p: BossParams): { cmd: BossCommand;
 const POSE: Record<BossAttack, string> = { volley: "volley", charge: "charge", barrage: "lob" };
 
 /**
- * Frame name: the phase-1 `hit` during the phase switch flash, else `hit` on damage,
- * the attack pose while one runs, else idle0/idle1 at 3 fps; `_p2` twins in phase 2.
+ * Frame name: the phase-1 `hit` during the phase switch flash, else the attack pose while
+ * one runs, else `hit` on damage, else idle0/idle1 at 3 fps; `_p2` twins in phase 2.
  */
 export function bossPose(s: BossState, hitLeft: number, switchLeft: number): string {
   if (switchLeft > 0) return "hit";
   const busy = bossBusy(s);
-  const pose = hitLeft > 0 ? "hit" : busy ? POSE[busy] : Math.floor(s.t * 3) % 2 ? "idle1" : "idle0";
+  // the attack pose is part of the telegraph, so damage flashes never hide it
+  const pose = busy ? POSE[busy] : hitLeft > 0 ? "hit" : Math.floor(s.t * 3) % 2 ? "idle1" : "idle0";
   return s.phase === 2 ? `${pose}_p2` : pose;
 }
 

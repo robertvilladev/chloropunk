@@ -111,7 +111,8 @@
       "barrageMax": 5,
       "barrageSpread": 140,
       "blastRadius": 60,
-      "blastDamage": 10
+      "blastDamage": 10,
+      "holdDistance": 200
     }
   }
 }

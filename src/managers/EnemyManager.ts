@@ -167,13 +167,42 @@ export class EnemyManager {
     this.scene.events.emit("enemyKilled", x, y, def, drops, enemy.flipX);
   }
 
-  /** Push an enemy; tanks ignore it. */
+  /** Push an enemy; tanks and the boss ignore it. */
   knockback(enemy: Sprite, angle: number, force: number): void {
     const def = enemy.getData("def") as EnemyDef;
-    if (def.behavior === "tank") return;
+    if (def.behavior === "tank" || def.behavior === "boss") return;
     const k = enemy.getData("knock") as Vector2;
     k.x = Math.cos(angle) * force;
     k.y = Math.sin(angle) * force;
+  }
+
+  /** Boss support spawn: `count` of an enemy behind a spawn telegraph at (x, y), like a wave group. */
+  telegraphAt(id: string, count: number, x: number, y: number): void {
+    const def = (enemyDefs as Record<string, EnemyDef>)[id];
+    const p = outsideSolids({ x, y }, this.solids, SPREAD);
+    const marker = this.markers.get(p.x, p.y, "spawn_telegraph") as Phaser.GameObjects.Image;
+    marker.setActive(true).setVisible(true).setDepth(DEPTH.GROUND_EFFECTS);
+    this.pending.push({ x: p.x, y: p.y, left: TELEGRAPH_S, def, count, marker });
+  }
+
+  /** Put the boss sprite in the enemy group (weapons, contact and clearAll see it; BossManager steers it). */
+  addBoss(boss: Sprite, def: EnemyDef, hp: number): void {
+    this.enemies.add(boss);
+    boss.setData("def", def);
+    boss.setData("state", { ...createEnemyState(def, this.wave), hp, maxHp: hp });
+    boss.setData("knock", { x: 0, y: 0 });
+  }
+
+  /** One pooled enemy bolt (shooters and the boss volley); `key` picks the art, rotated along its flight. */
+  spawnBolt(x: number, y: number, angle: number, speed: number, damage: number, key = "enemy_bolt"): void {
+    const bolt = this.bolts.get(x, y, key) as Sprite | null;
+    if (!bolt) return;
+    bolt.setTexture(key, "0").setRotation(key === "enemy_bolt" ? 0 : angle);
+    bolt.enableBody(true, x, y, true, true);
+    fitBox(bolt, "enemy_bolt", ...HIT_SIZE.enemy_bolt);
+    bolt.setDepth(DEPTH.PROJECTILES);
+    bolt.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
+    bolt.setData("damage", damage);
   }
 
   removeBolt(bolt: Sprite): void {
@@ -313,6 +342,7 @@ export class EnemyManager {
       const enemy = list[i] as Sprite;
       if (!enemy.active) continue;
       const def = enemy.getData("def") as EnemyDef;
+      if (def.behavior === "boss") continue; // BossManager moves it
       const state = enemy.getData("state") as EnemyState;
       const knock = enemy.getData("knock") as Vector2;
       const params = this.params.get(def.id)!;
@@ -400,15 +430,8 @@ export class EnemyManager {
     state: EnemyState,
     player: Vector2
   ): void {
-    const bolt = this.bolts.get(enemy.x, enemy.y, "enemy_bolt") as Sprite | null;
-    if (!bolt) return;
     const angle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
-    const speed = def.params!.boltSpeed;
-    bolt.enableBody(true, enemy.x, enemy.y, true, true);
-    fitBox(bolt, "enemy_bolt", ...HIT_SIZE.enemy_bolt);
-    bolt.setDepth(DEPTH.PROJECTILES);
-    bolt.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
-    bolt.setData("damage", state.damage);
+    this.spawnBolt(enemy.x, enemy.y, angle, def.params!.boltSpeed, state.damage);
   }
 
   private updateBolts(): void {

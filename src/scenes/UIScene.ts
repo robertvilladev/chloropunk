@@ -15,6 +15,7 @@ import { frameSize } from "@/art/body";
 import Phaser from "phaser";
 
 const HP_W = 216; // inner width of the 220px HP bar (2px border)
+const BOSS_W = 276; // inner width of the 280px boss bar
 const XP_W = 140;
 const ARROWS = 12; // pooled off-screen telegraph arrows; more pending than this just go unmarked
 const ARROW_INSET = 12;
@@ -42,6 +43,7 @@ export class UIScene extends Phaser.Scene {
   private scrapLabel!: Phaser.GameObjects.Text;
   private speedButtons: Phaser.GameObjects.Container[] = [];
   private arrows: Phaser.GameObjects.Triangle[] = [];
+  private bossFill?: Phaser.GameObjects.Rectangle;
   private gameSpeed: number = 1;
 
   constructor() {
@@ -81,6 +83,15 @@ export class UIScene extends Phaser.Scene {
       text(this, w / 2 - 1, 10, "", 12, THEME_CSS.tier[1], "display").setOrigin(0.5, 0).setDepth(DEPTH.UI - 1),
     ];
     this.timerText = num(this, w / 2, 26, "", 26).setOrigin(0.5, 0).setDepth(DEPTH.UI);
+    // Boss wave: the boss's name and HP bar replace the timer (M4b)
+    const boss = (this.scene.get(SCENE_KEYS.GAME) as GameScene | undefined)?.getBoss();
+    this.bossFill = undefined;
+    if (boss) {
+      this.timerText.setVisible(false);
+      text(this, w / 2, 30, boss.name, 10, THEME_CSS.danger, "display").setLetterSpacing(1.4).setOrigin(0.5, 0).setDepth(DEPTH.UI);
+      panel(this, w / 2 - 140, 46, 280, 12, { fill: THEME.surface2 }).setDepth(DEPTH.UI);
+      this.bossFill = this.add.rectangle(w / 2 - 138, 48, BOSS_W, 8, THEME.danger).setOrigin(0).setDepth(DEPTH.UI);
+    }
 
     // Top-right: scrap (laid out right-to-left in layoutScrap so any digit count fits)
     this.scrapBox = this.add.graphics().setDepth(DEPTH.UI);
@@ -111,7 +122,7 @@ export class UIScene extends Phaser.Scene {
       this.refresh();
       // This scene starts with each wave, after GameScene.create
       const wave = (gameScene as GameScene).getPlayerStats().wave;
-      this.banner(`WAVE ${String(wave).padStart(2, "0")}`, wave);
+      this.banner(boss ? boss.name : `WAVE ${String(wave).padStart(2, "0")}`, wave);
     }
   }
 
@@ -221,6 +232,12 @@ export class UIScene extends Phaser.Scene {
       if (a) this.arrows[used++].setPosition(a.x, a.y).setRotation(a.angle).setVisible(true);
     }
     for (; used < ARROWS; used++) this.arrows[used].setVisible(false);
+    const boss = game.getBoss();
+    if (boss && this.bossFill) {
+      const { hp, max } = boss.hp;
+      this.bossFill.width = BOSS_W * Phaser.Math.Clamp(hp / max, 0, 1);
+      this.bossFill.setFillStyle(boss.phase === 2 ? THEME.pink : THEME.danger);
+    }
   }
 
   updateHealth(current: number, max: number) {

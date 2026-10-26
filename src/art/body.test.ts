@@ -92,8 +92,8 @@ describe("hit areas", () => {
     expect(r).toMatchObject({ pea: 12, pepper: 14, carrot: 15, tomato: 17, potato: 26 });
   });
 
-  it("SPAWN_MARGIN covers the largest enemy plus the group spread", () => {
-    const max = Math.max(...Object.values(enemies).map((e) => e.radius));
+  it("SPAWN_MARGIN covers the largest wave enemy plus the group spread", () => {
+    const max = Math.max(...Object.values(enemies).filter((e) => e.behavior !== "boss").map((e) => e.radius)); // the boss enters at the helipad
     expect(SPAWN_MARGIN).toBeGreaterThanOrEqual(max + 24);
   });
 });

@@ -175,7 +175,7 @@ Spawn rate: 0.8 enemies/s in wave 1, 1.3 in wave 5, 2.1 in wave 9 and 2.3 in wav
 
 - **A3 spawn distance (2026-10-24).** At `spawnDist` 480 alone the typical build ran short of scrap and died in wave 8; the far-enemy catch-up (§3) clears that. The blade starter's 12/16 in wave 1 went away with the longer waves (§11: 22/25).
 - **Waves 8–9 too easy for the scripted shopper** (since §11; before it, wave 8 only): 98–101% HP left, 97% kills in wave 9. These are the only failed targets at the calibrated centre. The shopper banks more early scrap and snowballs, while the owner's own runs sit in the pressure band (34–39% HP). Leave it for the playtest; the fallback is prices ×1.1 (§11).
-- **Wave 10 kills the typical build** without a boss. Its targets are written with the M4 boss.
+- **Wave 10 is the boss** (M4b, 2026-10-26): `bossTargets` wants the typical build to kill it with 20–60% HP left and the never-shop pistol not to win it. The sim's boss is one big foe plus its attacks as a damage rate (`bossHit` 0.3 of attacks land, a guess until real boss logs); typical wins in ~53 s with 29% HP. Boss HP 6500.
 - **Sensitivity.** Across aim 0.6–0.8 × contact rate 0.15–0.35, the knobs miss 1–4 targets per corner:
   - low aim is harder mid-run;
   - high aim is easier late.

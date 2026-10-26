@@ -3,7 +3,7 @@ import enemies from "@assets/data/enemies.json";
 import { describe, expect, it } from "vitest";
 import { BOSS_INTRO_S, bossBusy, bossParams, bossPose, bossStep, bossTelegraphs, createBossState, type BossCommand } from "./bossBrain";
 
-const P = bossParams(enemies.boss.params);
+const P = bossParams(enemies.boss.params as Record<string, number>);
 const DT = 1 / 60;
 const self = { x: 500, y: 500 };
 const player = { x: 800, y: 600 };
@@ -106,6 +106,7 @@ describe("bossBrain", () => {
     bossStep(s, 0.25, 1, self, player, P, createRng(1), out);
     expect(bossTelegraphs(s, P)[0].k).toBeGreaterThan(0);
     expect(["volley", "charge", "lob"]).toContain(bossPose(s, 0, 0));
+    expect(bossPose(s, 0.05, 0)).toBe(bossPose(s, 0, 0)); // a hit never hides the telegraph pose
     s.phase = 2;
     expect(bossPose(s, 0, 0)).toMatch(/_p2$/);
     expect(bossPose(s, 0, 0.1)).toBe("hit");

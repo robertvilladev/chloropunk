@@ -9,7 +9,10 @@ import { recordBest } from "@/core/summary";
 import { addXp, xpToNext } from "@/core/progression";
 import { computeStats } from "@/core/stats";
 import { clampDelta } from "@/core/time";
-import { waveDuration } from "@/core/waves";
+import { isBossWave, waveDuration } from "@/core/waves";
+import { bossKey, pickBossSkin, type BossSkin } from "@/core/bossSkin";
+import { buildBoss, preloadBoss } from "@/art/textures";
+import { BossManager } from "@/managers/BossManager";
 import { Juice } from "@/fx/Juice";
 import { EnemyManager } from "@/managers/EnemyManager";
 import { InputManager } from "@/managers/InputManager";
@@ -64,6 +67,9 @@ export class GameScene extends Phaser.Scene {
   private enemyManager!: EnemyManager;
   private weaponManager!: WeaponManager;
   private pickupManager!: PickupManager;
+  private boss: BossManager | null = null;
+  // Set when the boss dies mid-update; the wave ends once the frame's systems are done
+  private bossDown = false;
   private juice!: Juice;
   // Death-burst colour per enemy id, parsed once
   private burstColors = new Map<string, number>();
@@ -71,6 +77,8 @@ export class GameScene extends Phaser.Scene {
   // Round timer
   private roundTimeRemaining: number = 20;
   private roundDuration: number = 20;
+  // Seconds into this wave (a boss wave has no timer, so not duration − remaining)
+  private elapsed = 0;
   private rng!: Rng;
   // Separate stream for combat rolls (crits) so spawns stay reproducible per seed
   private combatRng!: Rng;
@@ -100,6 +108,18 @@ export class GameScene extends Phaser.Scene {
    */
   init(data: { run: RunState }) {
     this.run = data.run;
+  }
+
+  /** Same seed, same boss look (its own stream of the run seed). */
+  private bossSkin(): BossSkin {
+    return pickBossSkin(createRng(this.run.seed + 31337));
+  }
+
+  /** The boss wave loads its one boss (both phases, ~190 ms) before create. */
+  preload() {
+    if (!isBossWave(this.run.wave)) return;
+    const key = bossKey(this.bossSkin());
+    if (!this.textures.exists(key)) preloadBoss(this, key);
   }
 
   /**
@@ -145,6 +165,16 @@ export class GameScene extends Phaser.Scene {
     }
     this.juice = new Juice(this);
 
+    // 7c. Boss wave: the boss enters at the helipad (its brain has its own seed stream)
+    this.boss = null;
+    this.bossDown = false;
+    if (isBossWave(this.run.wave)) {
+      const skin = this.bossSkin();
+      buildBoss(this, bossKey(skin));
+      const rng = createRng(this.run.seed + this.run.wave + 104729);
+      this.boss = new BossManager(this, this.enemyManager, this.juice, this.worldManager.getSolidRects(), rng, skin);
+    }
+
     // 6. Weapons (after Juice: rockets use its blast)
     this.weaponManager = new WeaponManager(this);
     this.weaponManager.create({
@@ -173,6 +203,7 @@ export class GameScene extends Phaser.Scene {
 
     // 10. Initialize round timer
     this.roundTimeRemaining = this.roundDuration;
+    this.elapsed = 0;
     this.enemiesKilled = 0;
     this.gameSpeed = 1;
     this.physics.world.timeScale = 1;
@@ -212,7 +243,8 @@ export class GameScene extends Phaser.Scene {
     // Clamp stalls (tab switch) then apply game speed
     const dt = clampDelta(delta) * this.gameSpeed;
 
-    // Update round timer
+    // Update round timer (Infinity on the boss wave: it ends on a death)
+    this.elapsed += dt / 1000;
     this.roundTimeRemaining -= dt / 1000;
     if (this.roundTimeRemaining <= 0) {
       this.roundTimeRemaining = 0;
@@ -230,11 +262,8 @@ export class GameScene extends Phaser.Scene {
     this.playerManager.update(movement.x, movement.y, dt);
 
     // 3. Update enemy system (elapsed = seconds into this wave)
-    this.enemyManager.update(
-      dt,
-      this.roundDuration - this.roundTimeRemaining,
-      player
-    );
+    this.enemyManager.update(dt, this.elapsed, player);
+    this.boss?.update(dt / 1000, player);
 
     // 3b. Pull nearby scrap toward the player
     this.pickupManager.update(player, this.stats.pickupRadius);
@@ -251,6 +280,12 @@ export class GameScene extends Phaser.Scene {
     w.peakAlive = Math.max(w.peakAlive, this.enemyManager.getEnemyCount());
     if (this.touching) w.contactTime += dt / 1000;
     this.touching = false;
+
+    // The boss died this frame (and the player did not, or update would have stopped)
+    if (this.bossDown) {
+      this.onRoundComplete();
+      return;
+    }
 
     // 6. Update UI (via events)
     this.updateUI();
@@ -398,7 +433,7 @@ export class GameScene extends Phaser.Scene {
    */
   private updateUI(): void {
     const uiScene = this.scene.get(SCENE_KEYS.UI);
-    if (uiScene && uiScene.scene.isActive()) {
+    if (uiScene && uiScene.scene.isActive() && !this.boss) {
       // Send timer update
       this.events.emit("timerUpdate", this.roundTimeRemaining);
       // Other UI updates happen via events from managers
@@ -418,7 +453,7 @@ export class GameScene extends Phaser.Scene {
     const t = this.weaponManager.tally;
     this.run.aim = { shots: a.shots + t.shots, hits: a.hits + t.hits, kills: a.kills + this.enemiesKilled };
     Object.assign(this.waveLog, {
-      duration: this.roundDuration - this.roundTimeRemaining,
+      duration: this.elapsed,
       spawned: this.enemyManager.spawned,
       spawnDist: this.enemyManager.spawnDistSum / Math.max(1, this.enemyManager.spawned),
       killed: this.enemiesKilled,
@@ -464,9 +499,10 @@ export class GameScene extends Phaser.Scene {
     this.bankAim();
     // Clear enemies and bolts first so nothing can hurt the player after the
     // wave is over (no drops, no blasts)
+    this.boss?.clear();
     this.enemyManager.clearAll();
     this.weaponManager.clear();
-    this.events.emit("banner", "WAVE CLEARED", this.run.wave, "waveClear");
+    this.events.emit("banner", this.boss ? "BOSS DOWN" : "WAVE CLEARED", this.run.wave, "waveClear");
 
     // Leftover scrap is auto-collected
     const leftover = this.pickupManager.collectAll();
@@ -508,7 +544,8 @@ export class GameScene extends Phaser.Scene {
 
     this.juice.deathPop(x, y, def.sprite, flipX, def.radius, this.burstColors.get(def.id)!);
     this.juice.deathBurst(x, y, this.burstColors.get(def.id)!);
-    if (def.shakeOnKill) this.juice.shake("kill");
+    if (def.shakeOnKill) this.juice.shake(def.behavior === "boss" ? "boss" : "kill");
+    if (def.behavior === "boss") this.bossDown = true;
 
     if (drops) this.pickupManager.spawnScrap(x, y, def.scrap);
   }
@@ -520,7 +557,8 @@ export class GameScene extends Phaser.Scene {
   ): void {
     this.waveLog.damageDealt += amount;
     this.juice.damageNumber(enemy.x, enemy.y - 16, amount, crit);
-    this.juice.hitFlash(enemy);
+    if (this.boss?.isBoss(enemy)) this.boss.flash();
+    else this.juice.hitFlash(enemy);
   }
 
   private onPlayerHit(): void {
@@ -579,6 +617,11 @@ export class GameScene extends Phaser.Scene {
   /** Pending spawn telegraphs in world px (UIScene draws arrows for off-screen ones). */
   getTelegraphs(): readonly Vector2[] {
     return this.enemyManager.telegraphs;
+  }
+
+  /** The boss on the boss wave (UIScene: name, HP bar), else null. */
+  getBoss(): BossManager | null {
+    return this.boss;
   }
 
   getPlayerStats() {
