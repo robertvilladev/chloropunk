@@ -17,11 +17,21 @@ Use `pnpm` for everything (`pnpm install`, `pnpm add -D x`, `pnpm <script>`, `pn
 
 ## Docs are part of the work
 
-Every agent working here must check the docs before finishing and update them when the change touches them:
+This is a rule, not a suggestion. Every change, however small, goes through these steps:
 
-- **ROADMAP.md** — tick/retarget feature status, add new carry-overs or known issues, move new ideas to the parking lot. Never invent features the spec doesn't name; mark inferred ones "(proposed)".
-- **README.md / ARCHITECTURE.md / ASSETS_GUIDE.md** — update if you add, rename or delete scenes, managers, `src/core` modules, data files, scripts or run flow.
+1. **Before you start:** make sure your branch is up to date with `origin/main` (`git fetch` first), then read the docs your change touches. Docs on a stale branch are stale by definition.
+2. **Before you finish:** go through the list below and update every doc the change touches, in the same PR as the code.
+3. **Check consistency, don't assume it.** When a doc disagrees with the code, with git, or with another doc, check the source of truth (the code, `git log`, `gh pr list`) and fix the doc. If you can't tell which side is right, or the fix would change intent (the spec, an owner decision, a feature's scope), **ask the user** instead of guessing.
+
+What to update:
+
+- **ROADMAP.md** — tick/retarget feature status, add new carry-overs or known issues, move new ideas to the parking lot. Never invent features the spec doesn't name; mark inferred ones "(proposed)". Keep section headers (✅/🚧/⬜) and the milestone table in sync with the bullets under them.
+- **README.md / ARCHITECTURE.md / ASSETS_GUIDE.md** — update if you add, rename or delete scenes, managers, `src/core` modules, data files, scripts, dev flags or run flow.
+- **CLAUDE.md** — update if you change tooling, scripts, branch/commit conventions or files it names.
 - **Spec / plans** under `docs/superpowers/` — the spec is binding; if the work deviates from it, say so in the plan or ask. Add a plan's outcome/carry-overs section when a milestone ends.
-- Fix stale statements you notice (even outside your task) or list them in your report. Keep docs short and link instead of duplicating.
 
-Include doc changes in the same PR as the code.
+How to write them:
+
+- Don't write states that go stale on merge ("not merged yet", "on branch X", "this PR"). Write what is true once the PR lands, and link the plan or PR.
+- Fix stale statements you notice, even outside your task, or list them in your report. Keep docs short and link instead of duplicating.
+- Say in your final report which docs you updated, or why none needed it.
