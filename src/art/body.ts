@@ -19,9 +19,15 @@ export function feetOffset(key: SpriteKey): number {
 // Arcade bodies take sizes and offsets in texture px and scale them with the sprite, so `radius`/`w`/`h`
 // stay in design px here. Both set the scale too: a recycled pool sprite may carry another key's state.
 
+/** Art centre x in design px; Arcade doesn't mirror body offsets on flipX, so off-centre art (the carrot) does it here. */
+function centreX(s: Phaser.Physics.Arcade.Sprite, key: SpriteKey): number {
+  const { w, cx } = SPRITE_META[key];
+  return s.flipX ? w - cx : cx;
+}
+
 /** Circle of `radius` design px centred on the sprite's body centre. */
 export function fitCircle(s: Phaser.Physics.Arcade.Sprite, key: SpriteKey, radius: number): void {
-  const { cx, cy } = SPRITE_META[key];
+  const { cy } = SPRITE_META[key], cx = centreX(s, key);
   const r = radius * ART_SCALE;
   s.setScale(1 / ART_SCALE);
   (s.body as Phaser.Physics.Arcade.Body).setCircle(r, cx * ART_SCALE - r, cy * ART_SCALE - r);
@@ -40,7 +46,7 @@ export function fitBox(s: Phaser.Physics.Arcade.Sprite, key: SpriteKey, w: numbe
  * fixed: Arcade sizes and places the body from the sprite's scale and display origin, so both are compensated.
  */
 export function bobCircle(s: Phaser.Physics.Arcade.Sprite, key: SpriteKey, radius: number, b: Bob): void {
-  const { w, h, feet, cx, cy } = SPRITE_META[key];
+  const { w, h, feet, cy } = SPRITE_META[key], cx = centreX(s, key);
   const A = ART_SCALE, r = radius * A, body = s.body as Phaser.Physics.Arcade.Body;
   const ox = (w * A) / 2, oy = A * (feet - (feet - h / 2 + b.dy) / b.sy);
   s.setScale(b.sx / A, b.sy / A).setDisplayOrigin(ox, oy);
