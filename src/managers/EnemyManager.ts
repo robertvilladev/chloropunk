@@ -189,7 +189,7 @@ export class EnemyManager {
   addBoss(boss: Sprite, def: EnemyDef, hp: number): void {
     this.enemies.add(boss);
     boss.setData("def", def);
-    boss.setData("state", { ...createEnemyState(def, this.wave), hp, maxHp: hp });
+    boss.setData("state", { ...createEnemyState(def, this.wave), hp, maxHp: hp, damage: def.damage }); // tuned for wave 10 as is
     boss.setData("knock", { x: 0, y: 0 });
   }
 
