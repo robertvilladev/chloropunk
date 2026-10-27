@@ -4,7 +4,7 @@
  */
 import type { EnemyDef, Mods, RunState, SpawnGroup, WaveDef } from "@/types";
 import { newRun } from "./run";
-import { DEFAULT_PARAMS, LIVE_DATA, simulateRun, type Buy, type SimData, type SimParams } from "./sim";
+import { DEFAULT_PARAMS, LIVE_DATA, simulateRun, type Buy, type RunWave, type SimData, type SimParams } from "./sim";
 
 export interface ReferenceBuild {
   name: string;
@@ -101,7 +101,7 @@ const BANDS = [
   { name: "onboarding", waves: [1, 2, 3], kill: [85, 100], hpLeft: [60, 100] },
   { name: "build checks", waves: [4, 5, 6, 7], kill: [75, 98], hpLeft: [25, 100] },
   { name: "pressure", waves: [8, 9], kill: [70, 95], hpLeft: [1, 85] },
-] as const; // wave 10 is the boss wave (M4); its targets come with the boss
+] as const; // wave 10 is the boss wave: bossTargets
 
 /** One wave of a typical run: simulated, or medians of real run logs (core/runlog `summarise`). */
 export interface TargetRow {
@@ -131,6 +131,19 @@ export function checkRows(rows: TargetRow[], who = "typical"): string[] {
   return out;
 }
 
+/** M4b plan: the typical build kills the boss with 20–60% HP left; the never-shop build does not win it. */
+export function bossTargets(typical: RunWave[], bare: RunWave[]): string[] {
+  const out: string[] = [];
+  const b = typical.find((r) => r.bossLeft !== undefined);
+  if (!b) return ["typical never reached the boss"];
+  const hp = (100 * b.hpLeft) / b.stats.maxHp;
+  if (b.bossLeft! > 0) out.push(`boss: typical loses (boss ${Math.round(100 * b.bossLeft!)}% left)`);
+  else if (hp < 20 || hp > 60) out.push(`boss: typical hp left ${hp.toFixed(0)}% not in 20,60`);
+  const n = bare.find((r) => r.bossLeft !== undefined);
+  if (n && n.bossLeft === 0 && n.hpLeft > 0) out.push("boss: never-shop pistol beats the boss");
+  return out;
+}
+
 /** Every way `data` misses the balance targets; empty = on target. */
 export function checkTargets(data: SimData = LIVE_DATA, p: SimParams = DEFAULT_PARAMS): string[] {
   const [bare, typical, ...starters] = REFERENCE_BUILDS.map((b) =>
@@ -145,6 +158,7 @@ export function checkTargets(data: SimData = LIVE_DATA, p: SimParams = DEFAULT_P
     const r = typical[n - 1];
     if (r && r.spawned / r.duration < 1.75) out.push(`w${n}: only ${(r.spawned / r.duration).toFixed(1)} enemies/s`);
   }
+  out.push(...bossTargets(typical, bare));
   // A player who never shops still gets through onboarding, but fails by wave 7
   if (bare.length < 4) out.push(`never-shop pistol dies in wave ${bare.length}`);
   if (bare.length >= 7 && (100 * bare[6].kills) / bare[6].spawned > 60) out.push("never-shop pistol still fine at wave 7");

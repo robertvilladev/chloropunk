@@ -12,6 +12,7 @@ const MAX_POPS = 24; // death pops in flight (200 ms each)
 const SHAKES = {
   hit: { ms: 120, intensity: 0.006 },
   kill: { ms: 80, intensity: 0.003 },
+  boss: { ms: 250, intensity: 0.008 }, // phase switch, boss death
 };
 
 /**
@@ -89,7 +90,7 @@ export class Juice {
     });
   }
 
-  shake(kind: "hit" | "kill"): void {
+  shake(kind: keyof typeof SHAKES): void {
     if (kind === "hit") sfx("hurt"); // the "hit" shake = the player got hit
     if (this.reducedShake) return;
     const s = SHAKES[kind];

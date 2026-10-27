@@ -13,7 +13,7 @@ function table(title: string, rows: RunWave[]): string {
   const lines = rows.map((r) =>
     [
       pad(r.wave, 4),
-      pad(r.duration, 4),
+      pad(Math.round(r.duration), 4),
       pad(r.spawned, 5),
       pad(r.kills, 4),
       pad(Math.round((100 * r.kills) / Math.max(1, r.spawned)), 5),
@@ -26,7 +26,7 @@ function table(title: string, rows: RunWave[]): string {
       pad(r.level, 3),
       pad(r.damageTaken.toFixed(0), 6),
       pad(r.hpLeft.toFixed(0), 7),
-      "  " + r.bought.join(","),
+      "  " + r.bought.join(",") + (r.bossLeft === undefined ? "" : `  boss ${Math.round(100 * r.bossLeft)}% left`),
     ].join(" ")
   );
   return [`\n## ${title}`, head, ...lines].join("\n");
@@ -41,7 +41,7 @@ function report(label: string, data: SimData): string {
 const waves = (data: SimData) =>
   "\n## waves (count×enemy/every s)\n" +
   data.waves
-    .map((w) => `${pad(w.wave, 2)}: ` + w.groups.map((g) => `${g.count}×${g.enemy}/${g.every}s`).join("  "))
+    .map((w) => `${pad(w.wave, 2)}: ` + ("boss" in w && w.boss ? "boss + pea brood" : "") + w.groups.map((g) => `${g.count}×${g.enemy}/${g.every}s`).join("  "))
     .join("\n");
 
 const targets = (label: string, data: SimData) => {

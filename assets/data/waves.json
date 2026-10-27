@@ -262,38 +262,8 @@
     },
     {
       "wave": 10,
-      "groups": [
-        {
-          "enemy": "pea",
-          "count": 2,
-          "every": 1.43,
-          "start": 0
-        },
-        {
-          "enemy": "pepper",
-          "count": 1,
-          "every": 2.04,
-          "start": 2
-        },
-        {
-          "enemy": "tomato",
-          "count": 1,
-          "every": 4.75,
-          "start": 3
-        },
-        {
-          "enemy": "carrot",
-          "count": 1,
-          "every": 9.9,
-          "start": 4
-        },
-        {
-          "enemy": "potato",
-          "count": 1,
-          "every": 14.08,
-          "start": 5
-        }
-      ]
+      "boss": true,
+      "groups": []
     }
   ]
 }
