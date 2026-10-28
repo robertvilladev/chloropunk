@@ -278,7 +278,7 @@ export class BossManager {
   }
 }
 
-/** Boss entrance: the helipad centre (arena.json), clamped into the arena (`?arena=small`). */
+/** Boss entrance: the helipad centre (arena.json), clamped into the arena. */
 function spawnPoint(): Vector2 {
   const pad = arenaData.props.find((p) => p.kind === "pad");
   const at = pad ? { x: pad.x + pad.w / 2, y: pad.y + pad.h / 2 } : { x: ARENA.w * 0.7, y: ARENA.h * 0.6 };
