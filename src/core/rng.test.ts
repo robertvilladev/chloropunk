@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import { createRng } from "./rng";
 
 describe("createRng", () => {
+  it("int throws when max < min", () => {
+    expect(() => createRng(1).int(5, 4)).toThrow(/max 4 < min 5/);
+  });
+
   it("same seed gives same sequence", () => {
     const a = createRng(42);
     const b = createRng(42);

@@ -16,7 +16,10 @@ export function createRng(seed: number): Rng {
   };
   return {
     next,
-    int: (min, maxInclusive) => min + Math.floor(next() * (maxInclusive - min + 1)),
+    int: (min, maxInclusive) => {
+      if (maxInclusive < min) throw new Error(`int: max ${maxInclusive} < min ${min}`);
+      return min + Math.floor(next() * (maxInclusive - min + 1));
+    },
     pick: (items) => {
       if (items.length === 0) throw new Error("pick from empty list");
       return items[Math.floor(next() * items.length)];

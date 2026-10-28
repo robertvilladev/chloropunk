@@ -116,8 +116,7 @@ From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) an
 - **Balance:** see [Balance & progression](#balance--progression-); boss targets in `bossTargets` (sim), the sim's `bossHit` is a guess until real boss logs
 - **Perf:** measured in M3 (visible pane, 6 tier-2 weapons, 90–150 peas): 72 fps (the display's refresh) on WebGL with and without bloom and on Canvas, steady 13.9 ms frames; not measured on a slower machine. A2 (2026-10-24, follow camera, 1600×1200, ~130–150 peas): 117–140 fps on WebGL and Canvas.
 - **Canvas renderer (pre-M3):** death bursts use `particleTint`, which Phaser's Canvas renderer doesn't draw (bursts white). The player hit flash is the baked `hit` frame since art refresh PR 3, so it shows on Canvas.
-- **Weapons (M2 review):** drone hit map is keyed by pooled enemy sprites (a recycled enemy can be drone-immune ≤0.5 s); weapon textures and the starter list are hardcoded in `BootScene`/`LoadoutScene` (move colour + `starter` into `weapons.json`); pierce assumes enemies line up in the sim (pistol has pierce 1 since the balance pass)
-- **Robustness:** `rng.int` unguarded for max<min; `buildSpawnSchedule` hangs if `every<=0`
+- **Weapons (M2 review):** weapon textures and the starter list are hardcoded in `BootScene`/`LoadoutScene` (move colour + `starter` into `weapons.json`); pierce assumes enemies line up in the sim (pistol has pierce 1 since the balance pass)
 - **Dev only:** `debugSpawn` draws from the spawn RNG; F2 peas aren't counted in the run log's `spawned` (kill % can pass 100)
 - **Playtest determinism:** the same seed ends a wave or two apart between `pnpm playtest` runs (variable frame deltas, 3× steps up to 300 ms)
 - **Level-up (likely fixed):** in one playtest (2026-10-21) a single `1` keypress right after a reroll applied the same pick twice and never reproduced; since `4edfb21` a level-up screen ignores all input after its first pick (tested). Reopen if it shows up again

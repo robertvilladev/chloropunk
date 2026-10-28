@@ -14,6 +14,7 @@ export function buildSpawnSchedule(def: WaveDef): SpawnEvent[] {
   const limit = waveDuration(def.wave);
   const events: SpawnEvent[] = [];
   for (const g of def.groups) {
+    if (!(g.every > 0)) throw new Error(`wave ${def.wave}: group "${g.enemy}" has every=${g.every}, must be > 0`);
     const end = g.end ?? limit;
     // index-based to avoid float accumulation drift
     for (let i = 0, t = g.start; t < end; t = g.start + ++i * g.every) {

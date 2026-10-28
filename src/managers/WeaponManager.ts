@@ -41,7 +41,7 @@ interface Equipped {
   muzzle: Phaser.GameObjects.Image | null; // ranged weapons: flash at the barrel tip
   muzzleLeft: number;
   orbit: number; // drone angle
-  hits: Map<Sprite, number>; // drone: enemy -> clock time of last hit
+  hits: WeakMap<object, number>; // drone: per-spawn enemy state -> clock time of last hit (pooled sprites are reused)
 }
 
 const radiusOf = (e: Sprite): number => (e.getData("def") as EnemyDef).radius;
@@ -115,7 +115,7 @@ export class WeaponManager {
         muzzle: ranged ? this.scene.add.image(0, 0, "fx_muzzle").setScale(1 / ART_SCALE).setDepth(DEPTH.PROJECTILES).setVisible(false) : null,
         muzzleLeft: 0,
         orbit: (i / o.weapons.length) * Math.PI * 2,
-        hits: new Map(),
+        hits: new WeakMap(),
       };
     });
     this.scene.physics.add.overlap(this.projectiles, o.enemyGroup, (p, e) =>
@@ -163,7 +163,7 @@ export class WeaponManager {
     const list = this.projectiles.children.entries;
     for (let i = 0; i < list.length; i++) this.removeProjectile(list[i] as Sprite);
     for (const w of this.equipped) {
-      w.hits.clear();
+      w.hits = new WeakMap();
       w.fxLeft = 0;
       w.fx?.setVisible(false);
       w.muzzleLeft = 0;
@@ -289,9 +289,10 @@ export class WeaponManager {
       const dy = e.y - y;
       const r = reach + radiusOf(e);
       if (dx * dx + dy * dy > r * r) continue;
-      const last = w.hits.get(e);
+      const state = e.getData("state") as object;
+      const last = w.hits.get(state);
       if (last !== undefined && this.clock - last < w.ws.cooldown) continue;
-      w.hits.set(e, this.clock);
+      w.hits.set(state, this.clock);
       this.directHit(w, e, Math.atan2(dy, dx));
     }
   }
