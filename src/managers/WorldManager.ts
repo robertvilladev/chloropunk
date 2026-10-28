@@ -37,17 +37,15 @@ export class WorldManager {
     console.log("✓ WorldManager: World created");
   }
 
-  /** Baked rooftop floor; the layout is authored for 1600x1200, so `?arena=small` gets the plain grid. */
+  /** Baked rooftop floor; the layout is authored for 1600x1200. */
   private createBackground(): void {
-    const fits = layout.w === ARENA.w && layout.h === ARENA.h;
-    const key = bakeArena(this.scene, fits ? (layout.props as ArenaProp[]) : [], ARENA);
+    const key = bakeArena(this.scene, layout.props as ArenaProp[], ARENA);
     this.scene.add.image(0, 0, key).setOrigin(0).setDepth(DEPTH.BACKGROUND);
   }
 
   /** Invisible static bodies over the solid props (already drawn in the floor). */
   private createSolids(): void {
-    const fits = layout.w === ARENA.w && layout.h === ARENA.h;
-    this.rects = fits ? solidRects(layout.props as ArenaProp[]) : [];
+    this.rects = solidRects(layout.props as ArenaProp[]);
     this.solids = this.scene.physics.add.staticGroup();
     for (const r of this.rects) this.solids.add(this.scene.add.zone(r.x + r.w / 2, r.y + r.h / 2, r.w, r.h));
   }

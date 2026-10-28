@@ -99,8 +99,7 @@ export type ViewRect = { x: number; y: number; width: number; height: number };
  * the view grown by `margin`, clamped into the arena `inset` px from its walls.
  * A point the clamp pulls back within `margin` of the view, or that sits
  * within `minDist` of the player, uses the opposite side of the ring instead.
- * An arena no bigger than the ring uses edgePoint, so `?arena=small` keeps the
- * old edge spawns. One input value, so callers draw a fixed RNG count.
+ * One input value, so callers draw a fixed RNG count.
  */
 export function offscreenPoint(
   u: number,
@@ -115,8 +114,6 @@ export function offscreenPoint(
   const y0 = view.y - margin;
   const w = view.width + 2 * margin;
   const h = view.height + 2 * margin;
-  const fallback = () => edgePoint(u, player, arena.w, arena.h, inset, minDist);
-  if (x0 <= inset && y0 <= inset && x0 + w >= arena.w - inset && y0 + h >= arena.h - inset) return fallback();
   const per = 2 * (w + h);
   for (const t of [u * per, u * per + per / 2]) {
     const r = rectWalk(x0, y0, w, h, t);
@@ -128,5 +125,5 @@ export function offscreenPoint(
     if (off && Math.hypot(p.x - player.x, p.y - player.y) >= minDist) return p;
   }
   // ponytail: unreachable on the 1600x1200 map (tested); edgePoint may land on-screen in odd arena sizes
-  return fallback();
+  return edgePoint(u, player, arena.w, arena.h, inset, minDist);
 }

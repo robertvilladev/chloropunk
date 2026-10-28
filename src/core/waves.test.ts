@@ -172,15 +172,6 @@ describe("offscreenPoint", () => {
     expect(p).toEqual({ x: 350 + 0.1 * 3200, y: 250 }); // top side starts at the ring's top-left
   });
 
-  it("arena no bigger than the view: same points as edgePoint", () => {
-    const small = { w: 800, h: 600 };
-    const v = { x: 0, y: 0, width: 800, height: 600 };
-    const player = { x: 400, y: 300 };
-    for (let i = 0; i < 20; i++) {
-      expect(offscreenPoint(i / 20, player, v, small, M, 40, 160)).toEqual(edgePoint(i / 20, player, 800, 600, 40, 160));
-    }
-  });
-
   it("is deterministic for equal u", () => {
     const v = viewAt(100, 100);
     expect(offscreenPoint(0.37, { x: 100, y: 100 }, v, arena, M, 40, 160)).toEqual(
