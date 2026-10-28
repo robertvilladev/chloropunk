@@ -6,6 +6,7 @@ import {
   buildSpawnSchedule,
   advanceCursor,
   edgePoint,
+  isBossWave,
   offscreenPoint,
   scaleEnemy,
   waveDuration,
@@ -18,6 +19,13 @@ describe("waveDuration", () => {
     expect(waveDuration(9)).toBe(48);
     expect(waveDuration(15)).toBe(60);
     expect(waveDuration(20)).toBe(60);
+  });
+
+  it("wave 10 is the boss wave: no timer, no scheduled groups", () => {
+    expect(isBossWave(10)).toBe(true);
+    expect(isBossWave(9)).toBe(false);
+    expect(waveDuration(10)).toBe(Infinity);
+    expect(buildSpawnSchedule(wavesJson.waves[9])).toEqual([]);
   });
 });
 
@@ -99,9 +107,9 @@ describe("waves.json", () => {
 });
 
 describe("shakeOnKill flag", () => {
-  it("is set only on the potato", () => {
+  it("is set only on the potato and the boss", () => {
     const flagged = Object.values(enemies).filter((e) => (e as { shakeOnKill?: boolean }).shakeOnKill);
-    expect(flagged.map((e) => e.id)).toEqual(["potato"]);
+    expect(flagged.map((e) => e.id)).toEqual(["potato", "boss"]);
   });
 });
 

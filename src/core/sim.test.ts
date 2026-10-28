@@ -1,7 +1,7 @@
 import enemies from "@assets/data/enemies.json";
 import { describe, expect, it } from "vitest";
-import { LIVE_DATA, simulateRun, simulateWave, walkIn } from "./sim";
-import { REFERENCE_BUILDS, budgetWave, checkTargets, runAtWave } from "./sim.targets";
+import { DEFAULT_PARAMS, LIVE_DATA, simulateRun, simulateWave, walkIn } from "./sim";
+import { REFERENCE_BUILDS, bossTargets, budgetWave, checkTargets, runAtWave } from "./sim.targets";
 import { MAX_ALIVE } from "./waves";
 
 const pistol = { weapons: [{ id: "pistol", tier: 1 as const }], items: [], levelMods: {} };
@@ -31,6 +31,21 @@ describe("sim", () => {
   const KNOWN_MISSES = ["w8 pressure", "w9 pressure"];
   it("the live balance meets its targets (known misses listed above)", () => {
     expect(checkTargets().filter((v) => !KNOWN_MISSES.some((k) => v.startsWith(k)))).toEqual([]);
+  });
+
+  it("boss wave: ends on the boss's death, brood spawns peas, typical wins with HP to spare", () => {
+    const t = REFERENCE_BUILDS[1];
+    const run = simulateRun(t.start, t.plan, t.picks, t.loopFrom);
+    const w10 = run[9];
+    expect(w10.bossLeft).toBe(0);
+    expect(w10.duration).toBeLessThan(DEFAULT_PARAMS.bossCap);
+    expect(w10.spawned).toBeGreaterThan(0);
+    expect(bossTargets(run, [])).toEqual([]);
+    // a weak build runs out of HP (or time) before the boss dies
+    const weak = simulateWave(pistol, 10);
+    expect(weak.bossLeft).toBeGreaterThan(0);
+    expect(bossTargets(run.slice(0, 9), [])).toEqual(["typical never reached the boss"]);
+    expect(bossTargets(run, [w10])).toEqual(["boss: never-shop pistol beats the boss"]);
   });
 
   it("budgetWave spends the threat budget", () => {

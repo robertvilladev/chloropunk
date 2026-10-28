@@ -13,7 +13,7 @@ Status: ✅ done · 🚧 in progress · ⬜ planned. "(proposed)" = inferred by 
 | Balance & progression | ✅ applied (PR #22; waves 1–3 playtested, 4–9 by sim only) | [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) |
 | Arena map (A1–A5) | ✅ A1–A5 done (owner-approved 2026-10-23/25) | [arena addendum](docs/superpowers/specs/2026-10-23-arena-map-addendum.md) §5 |
 | Art refresh | ✅ done — PRs #45, #47, #48, #50, #51 | [art refresh plan](docs/superpowers/plans/2026-10-23-art-refresh.md), [UI plan](docs/superpowers/plans/2026-10-25-ui-art-refresh.md) |
-| M4 Boss & run end | 🚧 M4a run end done; M4b boss planned | [M4a](docs/superpowers/plans/2026-10-23-m4-run-end.md), [M4b](docs/superpowers/plans/2026-10-23-m4-boss.md) |
+| M4 Boss & run end | 🚧 M4a run end and M4b boss done; owner boss playtest and final README pass left | [M4a](docs/superpowers/plans/2026-10-23-m4-run-end.md), [M4b](docs/superpowers/plans/2026-10-23-m4-boss.md) |
 
 ## M1 — Waves & feel ✅
 Spec: [§4 run loop, §5 systems](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md)
@@ -99,7 +99,8 @@ Spec: [arena map addendum](docs/superpowers/specs/2026-10-23-arena-map-addendum.
 ## M4 — Boss & run end 🚧
 Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md). Plans: [M4a run end](docs/superpowers/plans/2026-10-23-m4-run-end.md), [M4b boss](docs/superpowers/plans/2026-10-23-m4-boss.md) (after A5 and the boss art). Boss design: [arena map addendum §3](docs/superpowers/specs/2026-10-23-arena-map-addendum.md#3-boss-three-looks-one-fight-revised-2026-10-24).
 
-- ⬜ Wave 10 boss, one of three looks picked per run (Harvester-9, The Onion King, The Greenhouse; same fight): no timer, 3 attack patterns, pea spawns as support
+- ✅ Wave 10 boss (M4b), one of three looks picked per run (Harvester-9, The Onion King, The Greenhouse; same fight): no timer, HP bar in place of the timer, volley / charge / barrage with danger-coloured telegraphs (≥ 0.7 s), pea brood support spawns, phase 2 below 50% HP (`_p2` frames, white flash, burst, shake, PHASE 2 banner; shorter cadence, two attacks may overlap). Pure `entities/bossBrain.ts` + `BossManager`; sim boss row and `bossTargets` (typical wins with 29% HP). Verified headless on WebGL and Canvas for all three looks — [outcome](docs/superpowers/plans/2026-10-23-m4-boss.md#outcome-2026-10-26)
+- ⬜ Owner playtest of the boss (`?wave=10&build=typical` and a full run): difficulty, telegraph readability, fight length
 - ✅ Victory / defeat run summary (M4a): `SummaryScene` per the mockup (VICTORY / FLATLINED, wave n/10, kills, damage, level, final build as tier/rarity chips with a `+N` overflow chip, best wave), ONE MORE RUN (Enter → loadout) and MENU (Esc); `core/summary.ts` (`summariseRun`). Replaces the GameOverScene "RUN COMPLETE" stopgap. Defeat line is generic (no killer tracking). Verified in the browser on WebGL and Canvas: wave-1 death, wave-10 win via `?wave=10&build=typical`, overflowing build, keyboard and mouse
 - ✅ Pause menu (resume, settings, quit run) — moved forward from M4 by the owner: Esc/P or window blur opens `PauseScene`; settings has the reduced-shake toggle and master / music / SFX volume; quit asks for confirmation
 - ✅ Best-wave high-score record: localStorage `vv.best`, updated when a died or won run is saved (quits don't count), shown on the summary (with NEW BEST) and as `BEST WAVE n` on the main menu
@@ -110,7 +111,7 @@ Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-
 ## Carry-overs / known issues
 From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) and the [M2 outcome](docs/superpowers/plans/2026-10-18-m2-build-crafting.md):
 
-- **Balance:** see [Balance & progression](#balance--progression-); wave 10 (boss) targets come with M4
+- **Balance:** see [Balance & progression](#balance--progression-); boss targets in `bossTargets` (sim), the sim's `bossHit` is a guess until real boss logs
 - **Perf:** measured in M3 (visible pane, 6 tier-2 weapons, 90–150 peas): 72 fps (the display's refresh) on WebGL with and without bloom and on Canvas, steady 13.9 ms frames; not measured on a slower machine. A2 (2026-10-24, follow camera, 1600×1200, ~130–150 peas): 117–140 fps on WebGL and Canvas.
 - **Canvas renderer (pre-M3):** death bursts use `particleTint`, which Phaser's Canvas renderer doesn't draw (bursts white). The player hit flash is the baked `hit` frame since art refresh PR 3, so it shows on Canvas.
 - **Weapons (M2 review):** drone hit map is keyed by pooled enemy sprites (a recycled enemy can be drone-immune ≤0.5 s); weapon textures and the starter list are hardcoded in `BootScene`/`LoadoutScene` (move colour + `starter` into `weapons.json`); pierce assumes enemies line up in the sim (pistol has pierce 1 since the balance pass)

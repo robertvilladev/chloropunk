@@ -50,6 +50,10 @@ export class EnemyManager {
 }
 ```
 
+### Boss data
+
+`enemies.json` `boss` (behaviour `"boss"`) is the one wave-10 boss for all three looks: `hp` (not scaled by wave), contact `damage`, walk `speed`, `radius`, and flat `params` read by `bossParams` (`entities/bossBrain.ts`): telegraph (`tele*`, ≥ 0.5 s) and recover (`rec*`) times per attack, `gap1`/`gap2` and `brood1`/`brood2` (phase 1/2 cadence), `broodCount`, volley/barrage counts, plus what `BossManager` uses (`boltSpeed`, `boltDamage`, `volleySpread`°, `chargeSpeed`, `chargeDamage`, `blastRadius`, `blastDamage`, `holdDistance`). A wave with `"boss": true` in `waves.json` has no timer and no groups.
+
 ## Vector sprites (`src/art/`)
 
 Sprites are SVG strings in design px (vector style, keyline outline: [addendum §4](docs/superpowers/specs/2026-10-23-arena-map-addendum.md)), ported from the [sprites canvas](https://claude.ai/artifact/TnsQjaTcJEYoShEC5AyMXM) file `project/vector.js`, which stays the source of truth: change the art there, then copy it into `vector.ts`. At boot `textures.ts` loads each frame as a base64 SVG at 2x, composes one CanvasTexture per key (frames `walk0`/`walk1`/`hit`, plus `tell` on pepper, carrot and tomato, scrap `0`/`1`, weapons `t1`–`t4`, projectiles and effects `0`, bosses `idle0`/`idle1`/`hit`/`volley`/`charge`/`lob` and their phase-2 twins `<pose>_p2` (baked per run by `preloadBoss`/`buildBoss`, not at boot); shadow baked under actors, LINEAR filter; animations `<key>_walk`) plus an 8x `player_portrait` for the menu and loadout. Sprites are drawn at scale 1/2 (`ART_SCALE`). Game code refers to sprites only by texture key.

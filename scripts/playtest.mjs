@@ -48,7 +48,7 @@ try {
   await server.close();
 }
 
-/** Step the scene flow until the run ends (Game Over screen). */
+/** Step the scene flow until the run ends (summary screen). */
 async function play(page, seed) {
   const deadline = Date.now() + TIMEOUT_MS;
   while (Date.now() < deadline) {
@@ -58,7 +58,7 @@ async function play(page, seed) {
       return { active, speed: g?.scene.getScene("UIScene")?.gameSpeed };
     });
     const on = (k) => s.active.includes(k);
-    if (on("GameOverScene")) return;
+    if (on("SummaryScene")) return; // run summary (M4a), victory or defeat
     if (on("VictoryScene")) await click(page, "VictoryScene", "CONTINUE");
     else if (on("LevelUpScene")) await page.keyboard.press("Digit1");
     else if (on("ShopScene")) await page.keyboard.press("Enter"); // ponytail: buys nothing; follow a reference build if shop runs matter

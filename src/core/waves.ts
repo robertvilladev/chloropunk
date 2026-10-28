@@ -1,7 +1,12 @@
 import type { SpawnEvent, Vector2, WaveDef, WaveScaling } from "@/types";
 import wavesData from "@assets/data/waves.json";
 
+/** Wave 10 is the boss wave (spec §4 step 2): `boss: true` in waves.json. */
+export const isBossWave = (wave: number): boolean => wavesData.waves.some((w) => w.wave === wave && "boss" in w && w.boss);
+
+/** Seconds of a wave; a boss wave has no timer (Infinity) and ends when the boss or the player dies. */
 export function waveDuration(wave: number): number {
+  if (isBossWave(wave)) return Infinity;
   return Math.min(32 + 2 * (wave - 1), 60); // wave-length addendum (2026-10-24)
 }
 
