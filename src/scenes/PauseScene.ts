@@ -20,7 +20,8 @@ interface Item {
 /**
  * PauseScene - overlay on a paused GameScene + UIScene (both are paused by
  * GameScene.openPause). Views: main, settings, quit confirmation. Mouse and
- * keyboard (up/down + Enter; Esc backs out, P resumes).
+ * keyboard (up/down + Enter; Esc backs out, P resumes). MenuScene launches it
+ * with `{ fromMenu: true }` for settings only: BACK/Esc close it, no music duck.
  */
 export class PauseScene extends Phaser.Scene {
   private view: View = "main";
@@ -28,16 +29,18 @@ export class PauseScene extends Phaser.Scene {
   private buttons: Phaser.GameObjects.Container[] = [];
   private focus = 0;
   private body?: Phaser.GameObjects.Container;
+  private fromMenu = false;
 
   constructor() {
     super({ key: SCENE_KEYS.PAUSE });
   }
 
-  create() {
+  create(data?: { fromMenu?: boolean }) {
     const { WIDTH: width, HEIGHT: height } = GAME_CONFIG;
+    this.fromMenu = data?.fromMenu === true;
     this.view = "main";
     this.scene.bringToTop();
-    duckMusic(true);
+    if (!this.fromMenu) duckMusic(true);
     // Dim the frozen arena; also swallows clicks so nothing underneath reacts
     this.add.rectangle(0, 0, width, height, THEME.bg, 0.7).setOrigin(0).setInteractive();
     scanlines(this);
@@ -45,7 +48,8 @@ export class PauseScene extends Phaser.Scene {
     panel(this, width / 2 - pw / 2, height / 2 - ph / 2, pw, ph, { frame: THEME.lime, shadow: THEME.pink });
 
     onKeys(this, (e) => {
-      if (e.code === "KeyP") this.resume();
+      if (this.fromMenu && (e.code === "Escape" || e.code === "KeyP")) this.close();
+      else if (e.code === "KeyP") this.resume();
       else if (e.code === "Escape") (this.view === "main" ? this.resume() : this.show("main"));
       else if (e.code === "ArrowUp" || e.code === "KeyW") this.moveFocus(-1);
       else if (e.code === "ArrowDown" || e.code === "KeyS") this.moveFocus(1);
@@ -54,7 +58,7 @@ export class PauseScene extends Phaser.Scene {
         this.items[this.focus]?.run();
       }
     });
-    this.show("main");
+    this.show(this.fromMenu ? "settings" : "main");
   }
 
   private show(view: View): void {
@@ -82,7 +86,7 @@ export class PauseScene extends Phaser.Scene {
         { label: `MASTER VOLUME: ${Math.round(s.masterVolume * 100)}%`, run: () => this.cycleVolume("masterVolume") },
         { label: `MUSIC VOLUME: ${Math.round(s.musicVolume * 100)}%`, run: () => this.cycleVolume("musicVolume") },
         { label: `SFX VOLUME: ${Math.round(s.sfxVolume * 100)}%`, run: () => this.cycleVolume("sfxVolume") },
-        { label: "BACK", run: () => this.show("main"), primary: true },
+        { label: "BACK", run: () => (this.fromMenu ? this.close() : this.show("main")), primary: true },
       ];
     } else {
       title = "QUIT RUN?";
@@ -138,6 +142,11 @@ export class PauseScene extends Phaser.Scene {
     this.show("settings");
     this.focus = keep;
     this.applyFocus();
+  }
+
+  /** Menu mode: just remove the overlay; the menu underneath was never paused. */
+  private close(): void {
+    this.scene.stop();
   }
 
   private resume(): void {

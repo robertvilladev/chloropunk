@@ -9,7 +9,14 @@ export interface Settings {
 }
 
 const KEY = "vv.settings";
-const DEFAULTS: Settings = { reducedShake: false, sfxVolume: 0.6, musicVolume: 0.4, masterVolume: 1 };
+// `pnpm dev` starts muted: each worktree's dev server is its own origin with no saved settings,
+// so every new preview would otherwise blast the menu music at 100%
+const DEFAULTS: Settings = {
+  reducedShake: false,
+  sfxVolume: 0.6,
+  musicVolume: 0.4,
+  masterVolume: import.meta.env.MODE === "development" ? 0 : 1,
+};
 
 const vol = (v: unknown, def: number): number => (typeof v === "number" && v >= 0 && v <= 1 ? v : def);
 
