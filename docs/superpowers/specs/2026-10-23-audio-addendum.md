@@ -25,7 +25,7 @@ About 10 events, in a glitchy/digital/bitcrushed cyberpunk style. No weapon-fire
 - **One AudioContext.** SFX play through Phaser's own (`this.sound.context`) into Phaser's master output. Phaser's autoplay unlock, mute and blur handling therefore apply to SFX and, later, to music.
 - **Voice limiting.** Each sound has a cap on how many copies play at once and a minimum gap between repeats. 40 enemies dying on one frame then sound like a crunch, not a wall of noise.
 - **Variation.** Each play gets about ±6% random pitch and ±10% volume, so repeats don't sound robotic. This uses `Math.random`, never the seeded run RNG, so seeds stay deterministic.
-- **Setting.** The pause menu has an SFX volume setting (0–100% in 20% steps, saved with the other settings). A scene pause freezes gameplay SFX; window blur suspends the AudioContext.
+- **Setting.** Settings (main menu and pause menu, owner 2026-10-28) have an SFX volume setting (0–100% in 20% steps, saved with the other settings). A scene pause freezes gameplay SFX; window blur suspends the AudioContext.
 - **Readability.** The same rule as visual FX: sounds must not mask each other. Hits are quiet and short, and big events (wave, level up, death) are louder and rarer.
 
 ## Music (owner approved 2026-10-23)
@@ -39,7 +39,7 @@ Two CC-BY 4.0 tracks, picked by the owner (licences checked 2026-10-23; full att
 
 Rules (the owner took every recommendation in the [music plan](../plans/2026-10-23-music.md#open-questions-for-the-owner)):
 
-- **Mixer.** Master = Phaser's own `sound.volume`; a music bus and the existing SFX bus are gain nodes under it. Each has a 0–100% setting (20% steps) in Pause → Settings.
+- **Mixer.** Master = Phaser's own `sound.volume`; a music bus and the existing SFX bus are gain nodes under it. Each has a 0–100% setting (20% steps) in Settings (main menu and pause menu).
 - **One track at a time.** Changing state crossfades (~1.5 s). Requesting the track that's already playing does nothing, so scene restarts can't stack copies.
 - **Ducking.** Pause, game over and victory overlays lower music to ~30%; resuming restores it.
 - **Streaming, not decoding.** Music plays from an `<audio>` element routed into Phaser's AudioContext (`createMediaElementSource`), so a 5-minute track isn't decoded into ~120 MB of RAM and startup isn't blocked. It still goes through Phaser's master gain, unlock and blur suspend.
