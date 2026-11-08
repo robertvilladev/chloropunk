@@ -15,12 +15,13 @@ describe("sim", () => {
   });
 
   // Browser playtests, seed 1, pistol, standing still. Before the balance pass
-  // (2026-10-20, old data) the game gave 8 kills / 40 HP and the sim 7 / 43.
-  // That playtest had a 20 s wave 1 (before the wave-length addendum), so the pin runs 20 s.
-  it("matches the post-balance playtest: wave 1 → 15 kills, 15 scrap, 100 HP left", () => {
+  // (2026-10-20, old data) the game gave 8 kills / 40 HP and the sim 7 / 43; after it, 15 kills.
+  // The pin runs a 20 s wave 1 like that playtest. Since the hunt & horde pass (2× density,
+  // faster pistol) the sim says 30; ponytail: re-pin from a standing playtest of the new data.
+  it("wave 1 standing still: ~30 kills, scrap = kills, no damage", () => {
     const r = simulateWave(pistol, 1, { ...LIVE_DATA, duration: () => 20 });
-    expect(r.kills).toBeGreaterThanOrEqual(13);
-    expect(r.kills).toBeLessThanOrEqual(17);
+    expect(r.kills).toBeGreaterThanOrEqual(26);
+    expect(r.kills).toBeLessThanOrEqual(34);
     expect(r.scrap).toBe(r.kills);
     expect(r.hpLeft).toBeGreaterThan(90);
   });

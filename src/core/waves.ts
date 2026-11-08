@@ -44,8 +44,8 @@ export function advanceCursor(
  */
 export const CATCH_UP = { dist: 360, mult: 2 } as const;
 
-/** Spawns are skipped while this many enemies are alive (balance design §5). */
-export const MAX_ALIVE = 40;
+/** Spawns are skipped while this many enemies are alive (hunt & horde addendum; was 40). Spec perf budget: 150. */
+export const MAX_ALIVE = 120;
 
 /** Enemy HP × (1 + hp·w + hpQuad·w²) and damage × (1 + damage·w), w = wave − 1, rounded. */
 export function scaleEnemy(

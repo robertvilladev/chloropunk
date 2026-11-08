@@ -14,6 +14,7 @@ Status: ✅ done · 🚧 in progress · ⬜ planned. "(proposed)" = inferred by 
 | Arena map (A1–A5) | ✅ A1–A5 done (owner-approved 2026-10-23/25) | [arena addendum](docs/superpowers/specs/2026-10-23-arena-map-addendum.md) §5 |
 | Art refresh | ✅ done — PRs #45, #47, #48, #50, #51 | [art refresh plan](docs/superpowers/plans/2026-10-23-art-refresh.md), [UI plan](docs/superpowers/plans/2026-10-25-ui-art-refresh.md) |
 | M4 Boss & run end | 🚧 M4a run end and M4b boss done; owner boss playtest and final README pass left | [M4a](docs/superpowers/plans/2026-10-23-m4-run-end.md), [M4b](docs/superpowers/plans/2026-10-23-m4-boss.md) |
+| Hunt & horde | 🚧 PR 1 pacing + packs applied; PR 2 enemy roles and PR 3 boss movement planned | [addendum](docs/superpowers/specs/2026-11-08-hunt-and-horde-addendum.md) |
 
 ## M1 — Waves & feel ✅
 Spec: [§4 run loop, §5 systems](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md)
@@ -110,6 +111,14 @@ Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-
 - ✅ (proposed, owner 2026-10-28, dev only) Start muted in `pnpm dev`: every worktree's dev server runs on its own port, so its own origin, so `vv.settings` starts empty and the menu music plays at the 100% master default in each new agent preview. `pnpm dev` (Vite mode `development`) defaults master volume to 0 when nothing is saved; tests and production builds keep 100%
 - ⬜ Final README pass
 
+## Hunt & horde 🚧
+Owner playtest 2026-11-08: enemies don't hunt, the boss kites easily, waves trickle in one by one and the game feels slow. Spec: [hunt & horde addendum](docs/superpowers/specs/2026-11-08-hunt-and-horde-addendum.md) (owner decisions 2026-11-08). One PR each, in order.
+
+- ✅ PR 1 pacing and horde: speeds ×≈1.3 (player 210, enemies, all bolts and shots), packs per telegraph (pea 5, pepper 3, tomato 2, carrot 2, potato 1), threat budget ×2 (25 → 50 enemies in wave 1, 100 → 201 in wave 9), `MAX_ALIVE` 120, faster starters (pistol 18 dmg / 0.42 s), prices ×1.8, boss HP 18000, scrap drops split into 1-value pieces. Sim on target (same known misses: waves 8–9 too easy for the scripted shopper). Autopilot never-shop seeds 1–3: all reach wave 10 and die to the boss (A5: all won); from wave 7 they sit at the 120 cap. FPS at the cap still to be checked in a visible window
+- ⬜ PR 2 enemy roles: pea pack hunter, pepper charger (stop, tell, dash at your predicted path), carrot orbiting kiter with leading shots, tomato interceptor, potato herder
+- ⬜ PR 3 boss: pursues and strafes at near player speed, telegraphs track then lock, phase-2 charge chains; re-tune `bossTargets`
+- ⬜ Owner playtest after each PR; re-pin the sim's wave-1 playtest (`sim.test.ts`) and recalibrate `contactRate` / `spawnDist` with `pnpm runs`
+
 ## Carry-overs / known issues
 From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) and the [M2 outcome](docs/superpowers/plans/2026-10-18-m2-build-crafting.md):
 
@@ -133,7 +142,7 @@ Not designed yet; each needs its own deep dive (and a spec note where it changes
 
 - **Run tracker:** a row of dots, one per wave, past waves filled, a marker on the current one, the boss icon on the last; shown on the pause screen (Brotato-style). Built from the wave count in `waves.json`, never a hardcoded 10, so it still works if the run grows (see the 15/20-wave ideas below) or shrinks
 - ~~**Longer waves (50 s)**~~: covered by the [wave length pass](#balance--progression-) (`32 + 2·(n−1)` s, owner-approved); a flat 50 s was not picked
-- **Spawn in packs:** merged into the enemy-variety idea in the parking lot below
+- **Spawn in packs:** done in [Hunt & horde](#hunt--horde-) PR 1
 
 ## Ideas parking lot (post-MVP)
 Named by the spec as non-goals / later:
@@ -146,8 +155,8 @@ Named by the spec as non-goals / later:
 - (proposed) Opt-in upload of finished run logs to a small endpoint (Postgres `runs` table), accounts linked to an anonymous player id — a spec change, needs the owner's call ([balance design §9.5](docs/superpowers/specs/2026-10-20-balance-design.md#95-path-to-a-server-proposed))
 - (proposed) 20-wave run: extend the balance model (bands for waves 11–20, longer reference builds, more AoE content for density) — [balance design §5](docs/superpowers/specs/2026-10-20-balance-design.md#5-the-model-approved)
 - (proposed, owner 2026-10-24) 15-wave run as a step towards 20; after the MVP, because the boss (M4b) is built for wave 10
-- (proposed, owner 2026-10-24) Enemy variety after Brotato-style play: spawn some groups as tight clusters, not every enemy straight at the player (wanderers, flankers, chargers that pause), tune enemy size and how far out they appear. Packs: spawn events already carry a `count` (`src/core/waves.ts`); the change is where they land (one telegraphed spot + spread) and tuning threat so packs don't spike difficulty, with kills/scrap arriving in bursts
+- ~~(proposed, owner 2026-10-24) Enemy variety and packs~~: moved to [Hunt & horde](#hunt--horde-) (packs in PR 1, roles for the existing 5 enemies in PR 2; new enemy types stay out of the MVP)
 - Endless mode (waves generated at runtime from the threat budget), difficulty tiers
 - Opt-in online upload of run logs to **Postgres** (owner, 2026-10-21: local-first now, upload later). Plan: the versioned RunLog JSON is the contract; finished runs POST to a small endpoint; a `runs` table with indexed columns (data hash, version, starter, wave reached, date) + the full log as JSONB; per-wave medians via SQL; registration later links accounts to the anonymous player id. Needs a spec amendment (spec §2 lists online features as a non-goal) — [balance design §9](docs/superpowers/specs/2026-10-20-balance-design.md#9-measuring-real-games-proposed)
-- (proposed, owner 2026-10-24) Scrap tiers: a kill's scrap splits into several smaller pieces of tiered value, so collecting feels like harvesting; needs a rethink of drop values (enemies drop 1–3 today)
+- (proposed, owner 2026-10-24) Scrap tiers: partly done in [Hunt & horde](#hunt--horde-) PR 1 (a kill drops one piece per scrap point, no tiered values; owner chose no currency rescale 2026-11-08)
 - Swapping Claude-authored sprites for an artist's sheets — no code change needed, sprites are used by key

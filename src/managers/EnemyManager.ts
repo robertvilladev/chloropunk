@@ -24,10 +24,11 @@ type Sprite = Phaser.Physics.Arcade.Sprite;
 const TELEGRAPH_S = 0.6;
 const EDGE_INSET = 40;
 const MIN_PLAYER_DIST = 160;
-export const SPAWN_MARGIN = 50; // px outside the view: largest enemy radius (potato 26) + the 24 px group spread
-const SPREAD = 24; // px a group spreads around its telegraph
+export const SPAWN_MARGIN = 64; // px outside the view: largest enemy radius (potato 26) + a 5-pack's spread (36)
+const SPREAD = 16; // px a group spreads around its telegraph, × √count so a pack lands as a cluster
+export const spread = (count: number) => Math.round(SPREAD * Math.sqrt(count));
 const MAX_ENEMIES = 250;
-const MAX_BOLTS = 100;
+const MAX_BOLTS = 160;
 const KNOCK_DECAY = 8; // per second
 const BOLT_MARGIN = 20;
 const CELL = 48; // spatial hash cell: >= 2x the largest enemy radius (20)
@@ -179,7 +180,7 @@ export class EnemyManager {
   /** Boss support spawn: `count` of an enemy behind a spawn telegraph at (x, y), like a wave group. */
   telegraphAt(id: string, count: number, x: number, y: number): void {
     const def = (enemyDefs as Record<string, EnemyDef>)[id];
-    const p = outsideSolids({ x, y }, this.solids, SPREAD);
+    const p = outsideSolids({ x, y }, this.solids, spread(count));
     const marker = this.markers.get(p.x, p.y, "spawn_telegraph") as Phaser.GameObjects.Image;
     marker.setActive(true).setVisible(true).setDepth(DEPTH.GROUND_EFFECTS);
     this.pending.push({ x: p.x, y: p.y, left: TELEGRAPH_S, def, count, marker });
@@ -295,10 +296,11 @@ export class EnemyManager {
           .setAlpha(1 - (p.left / TELEGRAPH_S) * 0.5);
         continue;
       }
+      const r = spread(p.count);
       for (let n = 0; n < p.count; n++) {
         // draw first so the spawn RNG stream doesn't depend on the cap
         const { x, y } = outsideSolids(
-          { x: p.x + this.rng.int(-SPREAD, SPREAD), y: p.y + this.rng.int(-SPREAD, SPREAD) },
+          { x: p.x + this.rng.int(-r, r), y: p.y + this.rng.int(-r, r) },
           this.solids,
           p.def.radius
         );

@@ -4,7 +4,7 @@
     "name": "Pea Pod",
     "hp": 9,
     "damage": 4,
-    "speed": 90,
+    "speed": 120,
     "scrap": 1,
     "behavior": "chaser",
     "sprite": "enemy_pea",
@@ -16,14 +16,14 @@
     "name": "Hot Pepper",
     "hp": 9,
     "damage": 5,
-    "speed": 70,
+    "speed": 90,
     "scrap": 1,
     "behavior": "dasher",
     "sprite": "enemy_pepper",
     "radius": 14,
     "color": "#e53935",
     "params": {
-      "dashSpeed": 320,
+      "dashSpeed": 420,
       "dashEvery": 2.5,
       "dashTime": 0.35
     }
@@ -33,7 +33,7 @@
     "name": "Spud Tank",
     "hp": 80,
     "damage": 8,
-    "speed": 45,
+    "speed": 60,
     "scrap": 3,
     "behavior": "tank",
     "sprite": "enemy_potato",
@@ -46,7 +46,7 @@
     "name": "Carrot Sniper",
     "hp": 25,
     "damage": 5,
-    "speed": 60,
+    "speed": 80,
     "scrap": 2,
     "behavior": "shooter",
     "sprite": "enemy_carrot",
@@ -55,7 +55,7 @@
     "params": {
       "range": 260,
       "fireEvery": 2,
-      "boltSpeed": 220,
+      "boltSpeed": 290,
       "keepDistance": 200
     }
   },
@@ -64,7 +64,7 @@
     "name": "Tomato Bomb",
     "hp": 18,
     "damage": 0,
-    "speed": 85,
+    "speed": 110,
     "scrap": 1,
     "behavior": "exploder",
     "sprite": "enemy_tomato",
@@ -78,7 +78,7 @@
   "boss": {
     "id": "boss",
     "name": "Boss",
-    "hp": 6500,
+    "hp": 18000,
     "damage": 12,
     "speed": 40,
     "scrap": 0,

@@ -9,10 +9,11 @@ import Phaser from "phaser";
 
 type Sprite = Phaser.Physics.Arcade.Sprite;
 const PICKUP_SIZE = 16;
+const SCATTER = 12; // px pieces of one drop spread apart
 const STREAK_MS = 400; // pickups closer together than this raise the pickup sound's pitch
 
 /**
- * PickupManager - pooled scrap pickups. Each scrap is worth `value` scrap
+ * PickupManager - pooled scrap pickups, one per scrap point. Each is worth `value` (1) scrap
  * and `value` XP. Scrap near the player is pulled in (magnet).
  */
 export class PickupManager {
@@ -31,19 +32,28 @@ export class PickupManager {
     });
   }
 
+  /** A kill's scrap as `amount` pieces worth 1, fanned around the drop point (hunt & horde addendum). */
   spawnScrap(dropX: number, dropY: number, amount: number): void {
+    for (let i = 0; i < amount; i++) {
+      const a = (i * Math.PI * 2) / amount;
+      const r = amount > 1 ? SCATTER : 0;
+      this.spawnPiece(dropX + Math.cos(a) * r, dropY + Math.sin(a) * r);
+    }
+  }
+
+  private spawnPiece(dropX: number, dropY: number): void {
     const { x, y } = outsideSolids({ x: dropX, y: dropY }, this.solids, PICKUP_SIZE / 2); // never inside a vent
     const s = this.group.get(x, y, "pickup_scrap", "0") as Sprite | null;
     if (!s) {
       // Pool exhausted: bank the value immediately rather than lose it
-      this.scene.events.emit("scrapCollected", amount);
+      this.scene.events.emit("scrapCollected", 1);
       return;
     }
     s.enableBody(true, x, y, true, true);
     fitBox(s, "pickup_scrap", PICKUP_SIZE, PICKUP_SIZE); // never the 2-frame strip base frame
     s.setDepth(pickupDepth(y));
     s.setVelocity(0, 0);
-    s.setData("value", amount);
+    s.setData("value", 1);
     s.play("pickup_scrap_spin", true);
   }
 
