@@ -264,7 +264,7 @@ export class GameScene extends Phaser.Scene {
 
     // 3. Update enemy system (elapsed = seconds into this wave)
     this.enemyManager.update(dt, this.elapsed, player, (player.body as Phaser.Physics.Arcade.Body).velocity);
-    this.boss?.update(dt / 1000, player);
+    this.boss?.update(dt / 1000, player, (player.body as Phaser.Physics.Arcade.Body).velocity);
 
     // 3b. Pull nearby scrap toward the player
     this.pickupManager.update(player, this.stats.pickupRadius);

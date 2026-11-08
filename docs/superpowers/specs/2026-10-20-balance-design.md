@@ -118,7 +118,7 @@ The **reference builds** live in `REFERENCE_BUILDS`:
 
 ## 5. The model (approved)
 
-> **Updated 2026-11-08 by the [hunt & horde addendum](2026-11-08-hunt-and-horde-addendum.md):** threat budget `first` 7 → 14 with packs per enemy (`MIX.pack`), `MAX_ALIVE` 40 → 120, prices ×1.8 (`PRICE_BASE`), faster starters (pistol 18 dmg / 0.42 s), boss HP 18000. The table below is the 2026-10-20 model; the targets in §4 still hold.
+> **Updated 2026-11-08 by the [hunt & horde addendum](2026-11-08-hunt-and-horde-addendum.md):** threat budget `first` 7 → 14 with packs per enemy (`MIX.pack`), `MAX_ALIVE` 40 → 120, prices ×1.8 (`PRICE_BASE`), faster starters (pistol 18 dmg / 0.42 s), boss HP 18000 (16000 since PR 3, with `bossHit` 0.4 for the tracked aim). The table below is the 2026-10-20 model; the targets in §4 still hold.
 
 The numbers now live in the game data: `waves.json` (`scaling` and the generated waves), `enemies.json`, `weapons.json`, the price constants in `core/weapons.ts` and `MAX_ALIVE` in `core/waves.ts`. `THREAT` and `budgetWave` in `src/core/sim.targets.ts` re-author waves. `pnpm sim` prints the tables for the live data.
 

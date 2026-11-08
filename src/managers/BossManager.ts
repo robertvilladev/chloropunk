@@ -1,6 +1,6 @@
 import { feetOffset, fitCircle } from "@/art/body";
 import type { SpriteKey } from "@/art/vector";
-import { ARENA, DEPTH } from "@/config/constants";
+import { ARENA, DEPTH, GAME_CONFIG } from "@/config/constants";
 import { THEME } from "@/config/theme";
 import { BOSS_ART, BOSS_NAMES, bossKey, type BossSkin } from "@/core/bossSkin";
 import { actorDepth, facingFlip } from "@/core/depth";
@@ -8,11 +8,13 @@ import type { Rng } from "@/core/rng";
 import { avoid, type EnemyState } from "@/entities/enemyBehaviors";
 import {
   bossBusy,
+  bossMove,
   bossParams,
   bossPose,
   bossStep,
   bossTelegraphs,
   createBossState,
+  flipStrafe,
   type BossCommand,
   type BossParams,
   type BossState,
@@ -114,18 +116,18 @@ export class BossManager {
     this.hitLeft = HIT_MS;
   }
 
-  update(dt: number, player: Vector2): void {
+  update(dt: number, player: Vector2, playerVel: Vector2): void {
     this.gfx.clear();
     if (!this.alive) return;
     const s = this.sprite;
     const state = this.state;
     this.out.length = 0;
-    bossStep(this.brain, dt, state.hp / state.maxHp, s, player, this.params, this.rng, this.out);
+    bossStep(this.brain, dt, state.hp / state.maxHp, s, player, playerVel, this.params, this.rng, this.out);
     for (const c of this.out) this.run(c, player);
     this.hitLeft -= dt;
     this.switchLeft -= dt;
 
-    // Move: charge dash, else stand still while winding up, else walk up to holdDistance around the vents
+    // Move: charge dash, else stand still while an attack runs (readable telegraphs), else hunt around the vents
     const body = s.body as Phaser.Physics.Arcade.Body;
     let vx = 0;
     let vy = 0;
@@ -137,12 +139,12 @@ export class BossManager {
         vy = this.charge.dir.y * this.flat.chargeSpeed;
       }
     } else if (!bossBusy(this.brain)) {
-      const dx = player.x - s.x;
-      const dy = player.y - s.y;
-      const d = Math.hypot(dx, dy) || 1;
-      // keeps its distance: body contact is untelegraphed, so the damage comes from the attacks
-      const speed = d > this.flat.holdDistance ? this.def.speed : 0;
-      const v = avoid(s, this.def.radius, { vx: (dx / d) * speed, vy: (dy / d) * speed }, this.solids, [], { vx: 0, vy: 0 }, state);
+      // a wall stops the circling: turn the other way (at most every 0.3 s)
+      if (!body.blocked.none && this.brain.t - this.brain.flipped > 0.3) flipStrafe(this.brain, this.params, this.rng);
+      // pursues out of its band, strafes inside it: body contact is untelegraphed, so the damage comes from the attacks
+      const base = GAME_CONFIG.INITIAL_PLAYER_SPEED;
+      const m = bossMove(this.brain, s, player, this.params, base * this.flat.chaseMul, base * this.flat.strafeMul);
+      const v = avoid(s, this.def.radius, { vx: m.x, vy: m.y }, this.solids, [], { vx: 0, vy: 0 }, state);
       vx = v.vx;
       vy = v.vy;
     }
@@ -188,7 +190,7 @@ export class BossManager {
       return;
     }
     if (c.kind === "telegraph") {
-      if (c.pattern === "barrage") for (const p of c.points) this.lob(clampArena(p), f.teleBarrage);
+      if (c.pattern === "barrage") for (const p of c.points) this.lob(p, f.teleBarrage); // the lob follows its marker until the lock
       return;
     }
     if (c.pattern === "volley") {
@@ -229,7 +231,8 @@ export class BossManager {
       const l = this.lobs[i];
       l.t += dt;
       const k = Math.min(1, l.t / l.dur);
-      l.img.setPosition(l.from.x + (l.to.x - l.from.x) * k, l.from.y + (l.to.y - l.from.y) * k - Math.sin(k * Math.PI) * LOB_ARC);
+      const to = clampArena(l.to);
+      l.img.setPosition(l.from.x + (to.x - l.from.x) * k, l.from.y + (to.y - l.from.y) * k - Math.sin(k * Math.PI) * LOB_ARC);
       l.img.setRotation(k * Math.PI * 2);
       if (k >= 1) {
         l.img.setVisible(false);
@@ -239,13 +242,13 @@ export class BossManager {
     }
   }
 
-  /** Danger-coloured telegraphs, fading in over the wind-up: volley fan lines, charge lane, barrage markers. */
+  /** Danger-coloured telegraphs: faint while the aim tracks the player, solid once it locks. Volley fan lines, charge lane, barrage markers. */
   private drawTelegraphs(): void {
     const g = this.gfx;
     const s = this.sprite;
     const f = this.flat;
-    for (const { cmd, k } of bossTelegraphs(this.brain, this.params)) {
-      const alpha = 0.25 + 0.55 * k;
+    for (const { cmd, k, locked } of bossTelegraphs(this.brain, this.params)) {
+      const alpha = locked ? 0.9 : 0.2 + 0.15 * k;
       if (cmd.pattern === "volley") {
         const base = Math.atan2(cmd.aim.y - s.y, cmd.aim.x - s.x);
         const spread = Phaser.Math.DegToRad(f.volleySpread);

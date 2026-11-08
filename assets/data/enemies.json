@@ -91,9 +91,9 @@
   "boss": {
     "id": "boss",
     "name": "Boss",
-    "hp": 18000,
+    "hp": 16000,
     "damage": 12,
-    "speed": 40,
+    "speed": 144,
     "scrap": 0,
     "behavior": "boss",
     "sprite": "boss_harvester",
@@ -116,16 +116,25 @@
       "volleyMin": 5,
       "volleyMax": 7,
       "volleySpread": 50,
-      "boltSpeed": 240,
-      "boltDamage": 6,
+      "boltSpeed": 300,
+      "boltDamage": 5,
       "chargeSpeed": 520,
-      "chargeDamage": 14,
+      "chargeDamage": 12,
       "barrageMin": 3,
       "barrageMax": 5,
       "barrageSpread": 140,
       "blastRadius": 60,
-      "blastDamage": 10,
-      "holdDistance": 200
+      "blastDamage": 8,
+      "aimLock": 0.35,
+      "aimLead": 0.7,
+      "chargeChain1": 1,
+      "chargeChain2": 2,
+      "bandMin": 220,
+      "bandMax": 320,
+      "chaseMul": 0.8,
+      "strafeMul": 0.55,
+      "flipMin": 2,
+      "flipMax": 4
     }
   }
 }

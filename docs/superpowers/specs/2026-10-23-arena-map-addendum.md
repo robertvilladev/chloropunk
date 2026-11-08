@@ -32,6 +32,8 @@ The owner dropped the stitched-vegetable *Compost Colossus* (2026-10-24: "looks 
 
 Below 50% HP it enters phase 2: shorter cooldowns, two patterns can overlap (looks, owner 2026-10-25 option B "unleashed": Harvester-9's dome glass shatters / the Onion King's outer layer peels to a lime core / the Greenhouse's glass breaks open and vines burst out). The switch is marked by a white flash, a burst in the boss's colour, a short shake and a "PHASE 2" banner. Wave 10 has no timer and ends when the boss or the player dies (spec §4). Numbers are the builder's call, checked with the sim and playtests.
 
+**Movement and aim (hunt & horde addendum §5, 2026-11-08).** The boss pursues at 0.8× player speed outside a 220–320 px band and circles the player inside it (the direction flips every 2–4 s). It stands still while an attack winds up. Each telegraph tracks the player with a lead and locks for its last 0.35 s: faint while tracking, solid once locked; the total stays ≥ 0.5 s. In phase 2 a charge is two dashes, each with its own telegraph.
+
 ## 4. Art refresh direction (revised 2026-10-24)
 
 - **Vector, not pixel art** (owner 2026-10-24), Brotato-inspired, own designs: thick ink outline plus a thin light **keyline** rim (reads on the dark floor), flat fill with one shade, simple angry faces, clearly different enemy sizes. Amends MVP spec §6 "Sprites: 16×16 pixel grids drawn at 3×" and the pixel-data pipeline: sprites are Claude-authored **SVG strings** (`src/art/vector.ts`), rasterised at boot at 2× and drawn at ½ scale.
