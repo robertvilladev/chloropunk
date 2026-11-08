@@ -1,7 +1,8 @@
 // Headless full-run playtest (balance design §9): starts Vite, plays /?seed=N&autopilot in
-// Chromium at 3x, takes the first level-up pick, buys nothing, and writes the run log
-// (localStorage `vv.runs`) to runs/playtest-<seed>.json. Feed it to `pnpm runs runs`.
-//   pnpm playtest [--seed 1] [--runs 1] [--wave N --build typical] [--headed]
+// Chromium at 3x, takes the first level-up pick, shops (--shop typical: ShopScene.autoShop,
+// the sim's typical plan from the offers rolled; --shop never: buys nothing), and writes the run
+// log (localStorage `vv.runs`) to runs/playtest-<seed>.json. Feed it to `pnpm runs runs`.
+//   pnpm playtest [--seed 1] [--runs 1] [--shop typical|never] [--wave N --build typical] [--headed]
 import { mkdirSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { chromium } from "@playwright/test";
@@ -13,6 +14,7 @@ const { values: opt } = parseArgs({
     runs: { type: "string", default: "1" },
     wave: { type: "string" },
     build: { type: "string" },
+    shop: { type: "string", default: "typical" },
     headed: { type: "boolean", default: false },
   },
 });
@@ -61,7 +63,10 @@ async function play(page, seed) {
     if (on("SummaryScene")) return; // run summary (M4a), victory or defeat
     if (on("VictoryScene")) await click(page, "VictoryScene", "CONTINUE");
     else if (on("LevelUpScene")) await page.keyboard.press("Digit1");
-    else if (on("ShopScene")) await page.keyboard.press("Enter"); // ponytail: buys nothing; follow a reference build if shop runs matter
+    else if (on("ShopScene")) {
+      if (opt.shop !== "never") await page.evaluate(() => window.game.scene.getScene("ShopScene").autoShop());
+      await page.keyboard.press("Enter");
+    }
     else if (on("UIScene") && s.speed !== 3) await page.keyboard.press("Digit3"); // resets to 1x each wave
     else if (on("LoadoutScene")) await page.keyboard.press("Digit1");
     else if (on("MenuScene")) await click(page, "MenuScene", "START RUN");

@@ -22,6 +22,8 @@ import weaponDefs from "@assets/data/weapons.json";
 import Phaser from "phaser";
 import { TIER_NAMES, truncate } from "@/core/labels";
 import { sfx } from "@/fx/sfx";
+import { planWants, shopPick } from "@/core/autopilot";
+import { REFERENCE_BUILDS } from "@/core/sim.targets";
 import { button, cardGlow, fitImage, iconArt, iconWindow, legendaryPop, lockIcon, num, onKeys, panel, text, tierBadge, weaponArt } from "./ui";
 import { pickSound } from "@/fx/sounds";
 import { frameSize } from "@/art/body";
@@ -151,6 +153,30 @@ export class ShopScene extends Phaser.Scene {
     this.log.locked = this.run.lockedOffers.map((o) => ({ ...o }));
     this.run.log.shops.push(this.log);
     this.scene.start(SCENE_KEYS.GAME, { run: this.run });
+  }
+
+  /**
+   * Dev (`pnpm playtest --shop typical`): shop like the sim's typical shopper,
+   * but from the offers actually rolled. Buys the earliest of its next 4 plan
+   * entries on offer while affordable; one reroll a visit when nothing wanted shows.
+   * ponytail: no selling, combining or locking; a blocked weapon ends the visit; it rerolls
+   * with 2x the reroll cost in the bank, where the sim checks the next buy's price.
+   */
+  autoShop(): void {
+    const ref = REFERENCE_BUILDS.find((b) => b.name.includes("typical"))!;
+    const bought = () => [...this.run.log.shops, this.log].flatMap((s) => s.bought.map((o) => o.id));
+    let rerolled = false;
+    for (;;) {
+      const before = this.log.bought.length;
+      const i = shopPick(this.shop.offers, this.run.scrap, planWants(ref.plan, ref.loopFrom ?? ref.plan.length, bought(), 4));
+      if (i >= 0) {
+        this.buy(i);
+        if (this.log.bought.length === before) return;
+      } else if (!rerolled && this.run.scrap >= 2 * rerollCost(this.run.wave, this.shop.rerolls)) {
+        rerolled = true;
+        this.reroll();
+      } else return;
+    }
   }
 
   private onKey(e: KeyboardEvent): void {

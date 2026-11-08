@@ -8,6 +8,12 @@
  *   a fraction `aim` of shots land (calibrated to the playtest, see design doc).
  * - Enemies that reach the player put out contact hits at `contactRate` per
  *   enemy per second, capped by the i-frames (one hit per second).
+ * - A moving player (`kite`): every enemy closes in at (1 − kite) × its speed.
+ * - Shooters (carrots) hold at `keepDistance` (never touch). Once in `range`
+ *   each lands `carrotBolts` bolts on average over its life, one per `fireEvery`
+ *   s, alive or not: a moving player is exposed to every carrot, however fast
+ *   its build kills (measured, balance design §3). Guns shoot the nearest first.
+ *   ponytail: no tomato blasts, no positions.
  * - All dropped scrap is banked: GameScene auto-collects leftovers at wave end.
  */
 import type { EnemyDef, ItemDef, Mods, OwnedWeapon, Stats, WaveDef, WeaponBehavior, WeaponDef } from "@/types";
@@ -55,16 +61,22 @@ export interface SimParams {
   contactRate: number; // hits/s per touching enemy (a kiting player avoids most)
   telegraph: number; // s between the spawn event and the enemy appearing
   bossHit: number; // fraction of boss attacks that land on a kiting player
+  carrotBolts: number; // bolts each shooter lands on a moving player over its life
+  kite: number; // share of every enemy's approach speed a moving player takes away (0 = standing still)
   bossCap: number; // s a boss wave may last before the sim gives up (the boss survives)
 }
 
 export const DEFAULT_PARAMS: SimParams = {
   dt: 1 / 30,
-  aim: 0.7,
+  // aim, contactRate, carrotBolts, kite: fitted by `pnpm runs` from the shopping autopilot
+  // playtests, seeds 1-6, hunt & horde PR 2 data (2026-11-08)
+  aim: 0.59,
   spawnDist: 480, // measured mean player-to-enemy px at spawn (A3 off-screen ring, seed 1-3 autopilot playtests)
   contactDist: 30,
-  contactRate: 1.52, // fitted from the PR 2 (enemy roles) autopilot playtests, seeds 1-3; was 0.25
+  contactRate: 2.78,
   telegraph: 0.6,
+  carrotBolts: 1.07,
+  kite: 0.5,
   bossHit: 0.3, // ponytail: a guess until boss playtests measure it (`pnpm runs` boss rows)
   bossCap: 240,
 };
@@ -95,6 +107,7 @@ export interface WaveResult {
   dps: number; // build's paper DPS on one target
   arrivalHp: number; // enemy HP arriving per second
   damageTaken: number;
+  boltTaken: number; // part of damageTaken from shooter bolts
   hpLeft: number; // ≤ 0 = died
   bossLeft?: number; // boss waves: boss HP ratio at the end (0 = killed)
 }
@@ -106,6 +119,7 @@ interface Foe {
   speed: number;
   scrap: number;
   born: number;
+  shot?: { range: number; every: number; cd: number; hold: number; left: number }; // shooters
 }
 
 /** Distance left after walking straight in for `t` s from `from` px, with the CATCH_UP speed-up while far. */
@@ -145,8 +159,13 @@ export function simulateWave(
   let peak = 0;
   let hp = stats.maxHp;
   let taken = 0;
+  let boltTaken = 0;
+  let shooters: Foe[] = []; // kept after death: their bolts are owed either way
   let arrivalHp = 0;
-  const dist = (f: Foe, t: number) => Math.max(p.contactDist, walkIn(p.spawnDist, f.speed, t - f.born));
+  // shooters hold at keepDistance, everyone else walks into contact
+  // the boss keeps its own model (bossHit), so kiting doesn't slow it
+  const dist = (f: Foe, t: number) =>
+    Math.max(f.shot?.hold ?? p.contactDist, walkIn(p.spawnDist, f.boss ? f.speed : f.speed * (1 - p.kite), t - f.born));
   const hitDamage = (raw: number) => damageTaken(raw, stats.armor) * (1 - stats.dodge / 100);
   let bossFoe: Foe | null = null;
   let brood = 0;
@@ -180,7 +199,10 @@ export function simulateWave(
       const e = data.enemies[ev.enemy];
       const s = data.scale(e, wave);
       for (let i = 0; i < ev.count && alive.length < data.maxAlive; i++) {
-        alive.push({ hp: s.hp, damage: s.damage, speed: e.speed, scrap: e.scrap, born: t });
+        const shot = e.behavior === "shooter" ? { range: e.params!.range, every: e.params!.fireEvery, cd: e.params!.fireEvery, hold: e.params!.keepDistance, left: p.carrotBolts } : undefined;
+        const foe = { hp: s.hp, damage: s.damage, speed: e.speed, scrap: e.scrap, born: t, shot };
+        alive.push(foe);
+        if (shot) shooters.push(foe);
         spawned++;
         arrivalHp += s.hp;
       }
@@ -190,8 +212,9 @@ export function simulateWave(
     for (const g of guns) {
       g.timer += p.dt;
       if (g.timer < g.ws.cooldown) continue;
-      // oldest first ≈ nearest first: everyone walks the same straight line
+      // nearest first, like WeaponManager (carrots holding at range come after whoever walked in)
       const inRange = alive.filter((f) => f.hp > 0 && dist(f, t) <= g.ws.range);
+      inRange.sort((a, b) => dist(a, t) - dist(b, t));
       if (boss) inRange.sort((a, b) => Number(!!a.boss) - Number(!!b.boss)); // ponytail: guns clear the brood first, the boss takes the rest
       if (inRange.length === 0) continue;
       g.timer = 0;
@@ -223,6 +246,18 @@ export function simulateWave(
       hp -= d;
       taken += d;
     }
+    for (const f of shooters) {
+      const s = f.shot!;
+      if (dist(f, t) > s.range || (s.cd -= p.dt) > 0) continue;
+      s.cd += s.every;
+      const n = Math.min(1, s.left);
+      s.left -= n;
+      const d = n * hitDamage(f.damage);
+      hp -= d;
+      taken += d;
+      boltTaken += d;
+    }
+    if (shooters.some((f) => f.shot!.left <= 0)) shooters = shooters.filter((f) => f.shot!.left > 0);
     hp = Math.min(stats.maxHp, hp + (stats.hpRegen / 5) * p.dt);
   }
 
@@ -236,6 +271,7 @@ export function simulateWave(
     dps,
     arrivalHp: arrivalHp / Math.min(t, duration),
     damageTaken: taken,
+    boltTaken,
     hpLeft: hp,
     ...(boss && { bossLeft: Math.max(0, bossFoe!.hp) / boss.hp }),
   };

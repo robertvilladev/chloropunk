@@ -33,6 +33,30 @@ async function read(path: string): Promise<RunLog[]> {
 }
 
 /** Median sim prediction for wave n over the builds the logged runs actually had. */
+/** Waves played to the end (the fits compare whole waves), boss waves excluded. */
+const whole = (runs: RunLog[]) => runs.flatMap((r) => r.waves).filter((w) => w.deathTime === null && w.wave < 10);
+
+/** `kite` (0–0.9, 0.05 steps) whose sim kill % on the same builds is closest (RMS) to the measured. */
+function fitKite(runs: RunLog[], p: SimParams): number {
+  const ws = whole(runs);
+  if (ws.length === 0) return p.kite;
+  const err = (kite: number) =>
+    ws.reduce((s, w) => {
+      const r = simulateWave(w.build, w.wave, undefined, { ...p, kite });
+      return s + ((100 * r.kills) / Math.max(1, r.spawned) - (100 * w.killed) / Math.max(1, w.spawned)) ** 2;
+    }, 0);
+  let best = 0;
+  for (let k = 0.05; k <= 0.9; k += 0.05) if (err(k) < err(best)) best = Math.round(k * 100) / 100;
+  return best;
+}
+
+/** Bolts landed per carrot: measured bolt damage ÷ the sim's at carrotBolts 1, same builds, whole waves. */
+function fitCarrotBolts(runs: RunLog[], p: SimParams): number {
+  const ws = whole(runs);
+  const sim = ws.reduce((s, w) => s + simulateWave(w.build, w.wave, undefined, { ...p, carrotBolts: 1 }).boltTaken, 0);
+  return sim > 0 ? ws.reduce((s, w) => s + w.taken.bolt, 0) / sim : 0;
+}
+
 function predict(runs: RunLog[], n: number, p: SimParams) {
   const sims = runs.flatMap((r) => r.waves.filter((w) => w.wave === n)).map((w) => {
     const s = simulateWave(w.build, n, undefined, p);
@@ -73,10 +97,13 @@ it.runIf(!!RUNS_PATH)("run-log report", async () => {
     const runs = logs.filter((l) => l.dataHash === s.dataHash && arenaOf(l) === s.arena);
     const live = s.dataHash === DATA_HASH;
     const fitted = fitParams(runs);
-    const fit = { ...DEFAULT_PARAMS, aim: fitted?.aim || DEFAULT_PARAMS.aim, contactRate: fitted?.contactRate || DEFAULT_PARAMS.contactRate, spawnDist: fitted?.spawnDist || DEFAULT_PARAMS.spawnDist };
+    const base = { ...DEFAULT_PARAMS, aim: fitted?.aim || DEFAULT_PARAMS.aim, contactRate: fitted?.contactRate || DEFAULT_PARAMS.contactRate, spawnDist: fitted?.spawnDist || DEFAULT_PARAMS.spawnDist };
+    const kite = live ? fitKite(runs, base) : DEFAULT_PARAMS.kite;
+    const carrotBolts = live ? fitCarrotBolts(runs, { ...base, kite }) : 0;
+    const fit = { ...base, kite, carrotBolts: carrotBolts || DEFAULT_PARAMS.carrotBolts };
     out.push(
       `\n## data ${s.dataHash}${live ? " (current)" : " (old data: no sim columns)"} · arena ${s.arena} · ${s.runs} runs`,
-      `fitted: aim ${fitted ? fitted.aim.toFixed(2) : "-"}, contactRate ${fitted ? fitted.contactRate.toFixed(2) : "-"}, spawnDist ${fitted?.spawnDist ? Math.round(fitted.spawnDist) : "-"} (sim defaults ${DEFAULT_PARAMS.aim}, ${DEFAULT_PARAMS.contactRate}, ${DEFAULT_PARAMS.spawnDist}); "fit" columns rerun the sim with them`,
+      `fitted: aim ${fitted ? fitted.aim.toFixed(2) : "-"}, contactRate ${fitted ? fitted.contactRate.toFixed(2) : "-"}, spawnDist ${fitted?.spawnDist ? Math.round(fitted.spawnDist) : "-"}, kite ${live ? kite.toFixed(2) : "-"}, carrotBolts ${carrotBolts ? carrotBolts.toFixed(2) : "-"} (sim defaults ${DEFAULT_PARAMS.aim}, ${DEFAULT_PARAMS.contactRate}, ${DEFAULT_PARAMS.spawnDist}, ${DEFAULT_PARAMS.kite}, ${DEFAULT_PARAMS.carrotBolts}); "fit" columns rerun the sim with them`,
       "medians across runs; sim = same builds through simulateWave; aim = Σhits ÷ Σshots",
       table(s.rows, live ? runs : null, fit),
       "targets on measured medians: " +
