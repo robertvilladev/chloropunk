@@ -77,7 +77,7 @@ export const DEFAULT_PARAMS: SimParams = {
   telegraph: 0.6,
   carrotBolts: 1.07,
   kite: 0.5,
-  bossHit: 0.3, // ponytail: a guess until boss playtests measure it (`pnpm runs` boss rows)
+  bossHit: 0.3, // ponytail: a guess until boss playtests measure it (`pnpm runs` boss rows); kept at 0.3 with the tracked aim (hunt & horde PR 3), the HP and damage cuts carry the retune
   bossCap: 240,
 };
 
@@ -280,14 +280,20 @@ export function simulateWave(
 /**
  * The boss as the sim sees it: one big foe walking in, plus its attacks as a steady
  * damage rate. Phase 1 runs one attack per (attack length + gap); phase 2 up to two
- * at once, one per gap. Every attack deals its own hit (one volley bolt, the charge,
+ * at once, one per gap; a chained charge counts each dash. Every attack deals its own hit (one volley bolt, the charge,
  * one blast) and `bossHit` of them land. ponytail: no positions, no dodging model.
  */
 function bossModel(data: SimData) {
   const def = data.enemies.boss;
   const f = def.params!;
   const bp = bossParams(f);
-  const len = BOSS_ATTACKS.reduce((s, a) => s + bp.telegraph[a] + bp.recover[a], 0) / BOSS_ATTACKS.length;
+  // per pick: attacks (a chained charge counts each dash) and seconds busy, phase 1 / 2
+  const pick = bp.chargeChain.map((c) => {
+    const n = BOSS_ATTACKS.reduce((s, a) => s + (a === "charge" ? c : 1), 0) / BOSS_ATTACKS.length;
+    const len = BOSS_ATTACKS.reduce((s, a) => s + (a === "charge" ? c : 1) * (bp.telegraph[a] + bp.recover[a]), 0) / BOSS_ATTACKS.length;
+    return { n, len };
+  });
+  const [p1, p2] = pick;
   return {
     hp: def.hp,
     speed: def.speed,
@@ -296,7 +302,7 @@ function bossModel(data: SimData) {
     broodCount: bp.broodCount,
     pea: data.enemies.pea,
     attackDamage: (f.boltDamage + f.chargeDamage + f.blastDamage) / 3,
-    dps: [1 / (len + bp.gap[0]), Math.min(2 / len, 1 / bp.gap[1])],
+    dps: [p1.n / (p1.len + bp.gap[0]), p2.n * Math.min(2 / p2.len, 1 / bp.gap[1])],
   };
 }
 

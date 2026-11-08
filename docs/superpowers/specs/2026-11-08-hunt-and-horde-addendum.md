@@ -1,6 +1,6 @@
 # Chloropunk — Hunt & horde addendum
 
-Date: 2026-11-08 · Status: **owner decisions 2026-11-08**; PRs 1 (pacing and horde) and 2 (enemy roles) applied, PR 3 planned.
+Date: 2026-11-08 · Status: **owner decisions 2026-11-08**; PRs 1 (pacing and horde), 2 (enemy roles) and 3 (boss movement and aim) applied.
 Amends: [MVP spec](2026-10-18-mvp-roguelike-design.md) §4 (spawn groups) and §5 (enemies), [balance design](2026-10-20-balance-design.md) §5 (the model's numbers), [arena map addendum](2026-10-23-arena-map-addendum.md) §3 (boss movement, PR 3).
 
 ## 1. Why
@@ -36,7 +36,7 @@ The goal is a Brotato-like feel: packs that surround you, enemies that cut you o
   - carrot 60 → 80 (bolt 220 → 290)
   - tomato 85 → 110
   - potato 45 → 60
-- The boss's speeds change in PR 3.
+- The boss's speeds changed in PR 3 (§5).
 
 **Packs.** `MIX` in `sim.targets.ts` gives each enemy a pack size: pea 5, pepper 3, tomato 2, carrot 2, potato 1. `budgetWave` emits one telegraph per pack, spaced so the HP/s budget is unchanged. A pack spreads ±`16·√count` px around its telegraph (a 5-pack: ±36), so `SPAWN_MARGIN` went 50 → 64. Each pack picks its own point on the off-screen ring, so packs arrive from several sides.
 
@@ -54,7 +54,7 @@ The goal is a Brotato-like feel: packs that surround you, enemies that cut you o
 - Reroll costs are unchanged, so rerolls are relatively cheaper. This is a deliberate builder's call; revisit it if the playtests show reroll spam.
 - XP follows scrap, so players level faster: the typical build reaches level 12 by wave 10 (was 9).
 
-**Boss HP** 6500 → 18000: the typical build kills it about 2.75× faster than before. The sim puts the typical build at 41% HP left (target 20–60%). PR 3 re-tunes it with the new movement.
+**Boss HP** 6500 → 18000: the typical build kills it about 2.75× faster than before. The sim puts the typical build at 41% HP left (target 20–60%). PR 3 re-tuned it to 16000 with the new movement (§5).
 
 **Scrap pieces.** `PickupManager.spawnScrap` drops one pickup per scrap point, fanned 12 px around the kill: a potato bursts into 3, a carrot into 2. The pool overflow (300) still banks.
 
@@ -126,9 +126,28 @@ The wave-1 standing pin in `sim.test.ts` was re-checked in the browser: seed 1, 
 
 The autopilot no longer dodges everything: it now dies where `pnpm sim` has always put a never-shop pistol (wave 4, sim kill 51%). Damage comes from all three sources, not just contact. In the preview (wave 5 with dev spawns), peppers stop and show their tell frame before each dash, and carrots in their band move only sideways at 80 px/s, each in its `orbit` way.
 
-## 5. PR 3 — boss movement and aim (planned)
+## 5. PR 3 — boss movement and aim (applied)
 
-- **Movement:** the boss pursues at about 0.8× player speed when it is out of its 220–320 px band, and strafes inside the band. It stands still during telegraphs.
-- **Aim:** each telegraph tracks the player with a lead, then locks for its last ≥ 0.3 s. The total telegraph stays ≥ 0.5 s (the spec rule).
-- **Charge:** in phase 2 it chains 2 charges.
-- **Tuning:** re-tune with `?wave=10&build=typical` against `bossTargets`.
+**Movement** (`BossManager.update` → pure `bossMove`). Beyond 320 px from the player the boss pursues at 0.8× `INITIAL_PLAYER_SPEED` (144 px/s, `chaseMul`; it walked 40 and stopped at 200 px). Inside its 220–320 px band (`bandMin`/`bandMax`) it circles the player at 0.55× (99 px/s, `strafeMul`), drifting to the band's middle (270 px, so it stays on screen) and backing off below 220 px: body contact has no telegraph, so it stays rare. The strafe direction flips every 2–4 s (`flipMin`/`flipMax`, drawn from the boss brain's own seed, never the spawn RNG) and when it walks into a wall. `avoid()` slides it round the vents. It still stands still while an attack winds up or recovers, so every telegraph is drawn from a fixed spot.
+
+**Aim** (pure `bossStep`, which now takes the player's velocity). Each telegraph tracks the player until its last 0.35 s (`aimLock`), then freezes. It aims where the player will be when the attack lands if they keep going: the player's position extrapolated to the fire time, then `leadPoint` (from PR 2) for the bolt or dash travel, damped by `aimLead` 0.7. The barrage's first marker goes on that predicted spot and the others keep their offsets around it; the lobs follow their markers until the lock. Telegraphs are faint (alpha 0.2–0.35) while tracking and solid (0.9) once locked. Telegraph lengths are unchanged (volley 0.8 s, charge 0.7 s, barrage 1.1 s), so each one tracks for 0.35–0.75 s and the ≥ 0.5 s rule still holds. The counter is to change direction once the line goes solid.
+
+**Charge chain.** `chargeChain` [1, 2]: in phase 2 a charge attack is two dashes. The second starts when the first's recover ends, re-aimed with its own full 0.7 s telegraph.
+
+**Numbers.** Boss HP 18000 → 12000; bolt damage 6 → 5, charge 14 → 12, blast 10 → 8 (contact stays 12); bolt speed 240 → 300 (the PR 1 projectile speed-up). Boss `speed` 40 → 144, which only the sim reads (a test pins it to `chaseMul` × player speed). `holdDistance` is gone.
+
+**Sim.** `bossModel` counts each chained dash as an attack (phase 2 lands about a third more attacks per second). `bossHit` stays 0.3, still a guess rather than a measurement (see the playtest below).
+
+**Retune for the recalibrated sim** (owner 2026-11-08: restack on PR #60). PR 3 was first tuned against PR 2's sim: HP 16000 with `bossHit` 0.4 gave the typical build 32% HP left. The shopping-autopilot recalibration (aim 0.7 → 0.59, nearest-first guns, `kite`, `contactRate` 2.78) makes the fight much harder. On that sim the same numbers lose (the boss is left with 7%), and even PR 1's tuning only reaches the boss's death with ~1% HP. The owner chose about 12000 HP, keeping the cut no deeper than that by lowering the hit rate and damage instead:
+
+| Boss HP | bolt/blast/charge | `bossHit` | Fight | Typical HP left (of 84) |
+|---|---|---|---|---|
+| 16000 | 5/8/12 | 0.4 | 44 s | dies (boss 7% left) |
+| 14000 | 5/8/12 | 0.3 | 42 s | 21 (25%) |
+| 13000 | 5/8/12 | 0.3 | 39 s | 27 (32%) |
+| **12000** | **5/8/12** | **0.3** | **36 s** | **30 (36%)** |
+| 12000 | 5/8/12 | 0.35 | 36 s | 22 (26%) |
+
+Applied: HP 12000, `bossHit` 0.3. `pnpm sim` misses only `w8 pressure` (the known miss), and `sim.test.ts` no longer lists the boss as a known miss. The never-shop builds still die before wave 10.
+
+**Playtest** (`pnpm playtest --seed 1 --runs 3 --wave 10 --build typical`, HP 12000; the autopilot never dodges telegraphs). All three runs die to the boss after 25–28 s. By then they have dealt 8.7–12.6k damage (boss and brood together), so seeds 1–2 got close. They took 36–48 contact damage (charges and the brood), 5–10 from bolts and 32–40 from blasts, against 84 max HP. With 16000 HP the runs lasted 28–38 s and took about the same damage per second. A player who never dodges is hit by most attacks; 0.3 assumes a human who dodges most of them. In the headless preview the boss holds about 270 px while circling, flips direction, charges through the player's predicted path and backs off again. The owner playtest still has to judge difficulty and readability.

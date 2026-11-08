@@ -28,8 +28,9 @@ describe("sim", () => {
 
   // Known misses. Since the moving-player model (kite, carrotBolts; hunt & horde, 2026-11-08) the
   // typical shopper sits in the pressure band in waves 8–9 (HP 43%/15%); only wave 8's kill %
-  // (95) is at the band's edge. It now ends the boss with ~1% HP: re-tuned by hunt & horde PR 3.
-  const KNOWN_MISSES = ["w8 pressure", "boss: typical hp left"];
+  // (95) is at the band's edge.
+  // The boss was re-tuned for it in hunt & horde PR 3 (typical wins with 36% HP).
+  const KNOWN_MISSES = ["w8 pressure"];
   it("the live balance meets its targets (known misses listed above)", () => {
     expect(checkTargets().filter((v) => !KNOWN_MISSES.some((k) => v.startsWith(k)))).toEqual([]);
   });
