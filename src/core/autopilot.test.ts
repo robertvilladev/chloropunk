@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { autopilot } from "./autopilot";
+import { autopilot, planWants, shopPick } from "./autopilot";
 
 const mid = { x: 400, y: 300 };
 
@@ -40,5 +40,24 @@ describe("autopilot with solids", () => {
 
   it("ignores far vents", () => {
     expect(autopilot(mid, [], [{ x: 600, y: 300 }], 800, 600, [{ x: 100, y: 100, w: 50, h: 50 }])).toEqual({ x: 1, y: 0 });
+  });
+});
+
+describe("shopping autopilot", () => {
+  const plan = [{ item: "grip" }, { weapon: "pistol" }, { item: "hoodie" }, { item: "visor" }];
+
+  it("planWants: the next k not yet bought, in any buy order, looping from loopFrom", () => {
+    expect(planWants(plan, plan.length, [], 2)).toEqual(["grip", "pistol"]);
+    expect(planWants(plan, plan.length, ["pistol"], 2)).toEqual(["grip", "hoodie"]);
+    expect(planWants(plan, plan.length, ["grip", "pistol", "hoodie", "visor"], 2)).toEqual([]);
+    expect(planWants(plan, 2, ["grip", "pistol", "hoodie", "visor"], 3)).toEqual(["hoodie", "visor", "hoodie"]);
+  });
+
+  it("shopPick: the earliest want on offer and affordable", () => {
+    const offers = [{ id: "visor", price: 20 }, null, { id: "grip", price: 90 }, { id: "hoodie", price: 30 }];
+    expect(shopPick(offers, 100, ["grip", "hoodie"])).toBe(2);
+    expect(shopPick(offers, 50, ["grip", "hoodie"])).toBe(3); // grip too dear
+    expect(shopPick(offers, 10, ["grip", "hoodie"])).toBe(-1);
+    expect(shopPick(offers, 100, ["rocket"])).toBe(-1);
   });
 });

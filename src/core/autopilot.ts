@@ -77,3 +77,35 @@ export function autopilot(p: P, enemies: P[], scrap: P[], w: number, h: number, 
   const m = Math.hypot(mx, my);
   return m < 1e-6 ? { x: 0, y: 0 } : { x: mx / m, y: my / m };
 }
+
+type Want = { weapon: string } | { item: string };
+const wantId = (w: Want) => ("weapon" in w ? w.weapon : w.item);
+
+/**
+ * Shopping autopilot (dev playtests): the next `k` ids a reference build's
+ * `plan` still wants, after crossing off what was `bought` so far (any order;
+ * the plan repeats from `loopFrom` once done, like `simulateRun`).
+ */
+export function planWants(plan: Want[], loopFrom: number, bought: string[], k: number): string[] {
+  const left = new Map<string, number>();
+  for (const id of bought) left.set(id, (left.get(id) ?? 0) + 1);
+  const out: string[] = [];
+  const loop = plan.length - loopFrom;
+  for (let i = 0; out.length < k && i < plan.length + bought.length + k * Math.max(1, loop); i++) {
+    if (i >= plan.length && loop <= 0) break;
+    const id = wantId(i < plan.length ? plan[i] : plan[loopFrom + ((i - plan.length) % loop)]);
+    const n = left.get(id) ?? 0;
+    if (n > 0) left.set(id, n - 1);
+    else out.push(id);
+  }
+  return out;
+}
+
+/** Offer index to buy: the earliest of `wants` on offer and affordable; -1 if none. */
+export function shopPick(offers: readonly ({ id: string; price: number } | null)[], scrap: number, wants: string[]): number {
+  for (const id of wants) {
+    const i = offers.findIndex((o) => o !== null && o.id === id && o.price <= scrap);
+    if (i >= 0) return i;
+  }
+  return -1;
+}
