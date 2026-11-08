@@ -54,12 +54,13 @@ What the owner felt as "scrap stranded under enemies" is real on screen. Economi
 
 - **Arrivals:** schedule events plus the 0.6 s telegraph. Each enemy starts `spawnDist` px away and walks straight in. Was 330 (arena-edge spawns on the 800×600 arena); **480 since A3** (2026-10-24): waves spawn on a ring 50 px outside the camera frame ([arena addendum](2026-10-23-arena-map-addendum.md) §2.3), measured as the mean player-to-enemy distance at spawn over seed 1–3 autopilot playtests (run log `spawnDist`; the ring alone is ~457 from a standing player). Enemies farther than 360 px walk 2× (`CATCH_UP` in `core/waves.ts`, not dashes), and the sim's `walkIn` models it, so arrivals match the old edge spawns.
 - **Targeting:** each weapon fires on its cooldown at the oldest enemy in range. Oldest stands in for nearest, since everyone walks the same line.
-- **Hits:** a fraction `aim` = 0.7 of shots land. Each landing shot does average damage, crits included.
+- **Hits:** a fraction `aim` of shots land (0.7; 0.59 since the [hunt & horde](2026-11-08-hunt-and-horde-addendum.md) shopping playtests, fitted). Each landing shot does average damage, crits included. Guns shoot the nearest enemy first (was the oldest).
 - **Targets per attack:**
   - projectile: 1 + pierce;
   - spread: 1 per pellet;
   - beam, melee arc and rocket blast: 3.
-- **Contact:** an enemy within 30 px hits at 0.25 hits/s (1.52 since the [hunt & horde](2026-11-08-hunt-and-horde-addendum.md#4-pr-2--enemy-roles-applied) enemy roles, fitted from playtests), capped at 1 hit/s by the i-frames. Armor and dodge apply, and regen heals.
+- **Contact:** an enemy within 30 px hits at 0.25 hits/s (1.52 after the [hunt & horde](2026-11-08-hunt-and-horde-addendum.md#4-pr-2--enemy-roles-applied) enemy roles, 2.78 after the shopping playtests; both fitted), capped at 1 hit/s by the i-frames.
+- **Bolts** (since the hunt & horde shopping playtests): carrots stop at `keepDistance` and never touch. Within `range` each fires every `fireEvery` s and a fraction `boltHit` = 1 lands (fitted 1.05). Tomato blasts are not modelled. Armor and dodge apply, and regen heals.
 - **Scrap:** all dropped scrap is banked, matching the auto-collect at wave end.
 
 **Run model** (`simulateRun`):

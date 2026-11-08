@@ -33,6 +33,13 @@ async function read(path: string): Promise<RunLog[]> {
 }
 
 /** Median sim prediction for wave n over the builds the logged runs actually had. */
+/** Fraction of bolts that land: measured bolt damage ÷ the sim's at boltHit 1, same builds, waves survived. */
+function fitBoltHit(runs: RunLog[], p: SimParams): number {
+  const ws = runs.flatMap((r) => r.waves).filter((w) => w.deathTime === null);
+  const sim = ws.reduce((s, w) => s + simulateWave(w.build, w.wave, undefined, { ...p, boltHit: 1 }).boltTaken, 0);
+  return sim > 0 ? ws.reduce((s, w) => s + w.taken.bolt, 0) / sim : 0;
+}
+
 function predict(runs: RunLog[], n: number, p: SimParams) {
   const sims = runs.flatMap((r) => r.waves.filter((w) => w.wave === n)).map((w) => {
     const s = simulateWave(w.build, n, undefined, p);
@@ -73,10 +80,12 @@ it.runIf(!!RUNS_PATH)("run-log report", async () => {
     const runs = logs.filter((l) => l.dataHash === s.dataHash && arenaOf(l) === s.arena);
     const live = s.dataHash === DATA_HASH;
     const fitted = fitParams(runs);
-    const fit = { ...DEFAULT_PARAMS, aim: fitted?.aim || DEFAULT_PARAMS.aim, contactRate: fitted?.contactRate || DEFAULT_PARAMS.contactRate, spawnDist: fitted?.spawnDist || DEFAULT_PARAMS.spawnDist };
+    const base = { ...DEFAULT_PARAMS, aim: fitted?.aim || DEFAULT_PARAMS.aim, contactRate: fitted?.contactRate || DEFAULT_PARAMS.contactRate, spawnDist: fitted?.spawnDist || DEFAULT_PARAMS.spawnDist };
+    const boltHit = live ? fitBoltHit(runs, base) : 0;
+    const fit = { ...base, boltHit: boltHit || DEFAULT_PARAMS.boltHit };
     out.push(
       `\n## data ${s.dataHash}${live ? " (current)" : " (old data: no sim columns)"} · arena ${s.arena} · ${s.runs} runs`,
-      `fitted: aim ${fitted ? fitted.aim.toFixed(2) : "-"}, contactRate ${fitted ? fitted.contactRate.toFixed(2) : "-"}, spawnDist ${fitted?.spawnDist ? Math.round(fitted.spawnDist) : "-"} (sim defaults ${DEFAULT_PARAMS.aim}, ${DEFAULT_PARAMS.contactRate}, ${DEFAULT_PARAMS.spawnDist}); "fit" columns rerun the sim with them`,
+      `fitted: aim ${fitted ? fitted.aim.toFixed(2) : "-"}, contactRate ${fitted ? fitted.contactRate.toFixed(2) : "-"}, spawnDist ${fitted?.spawnDist ? Math.round(fitted.spawnDist) : "-"}, boltHit ${boltHit ? boltHit.toFixed(2) : "-"} (sim defaults ${DEFAULT_PARAMS.aim}, ${DEFAULT_PARAMS.contactRate}, ${DEFAULT_PARAMS.spawnDist}, ${DEFAULT_PARAMS.boltHit}); "fit" columns rerun the sim with them`,
       "medians across runs; sim = same builds through simulateWave; aim = Σhits ÷ Σshots",
       table(s.rows, live ? runs : null, fit),
       "targets on measured medians: " +
