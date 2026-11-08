@@ -9,7 +9,12 @@
     "behavior": "chaser",
     "sprite": "enemy_pea",
     "radius": 12,
-    "color": "#4caf50"
+    "color": "#4caf50",
+    "params": {
+      "flankDist": 150,
+      "flank": 45,
+      "lead": 0.5
+    }
   },
   "pepper": {
     "id": "pepper",
@@ -24,8 +29,11 @@
     "color": "#e53935",
     "params": {
       "dashSpeed": 420,
-      "dashEvery": 2.5,
-      "dashTime": 0.35
+      "dashRange": 220,
+      "windup": 0.5,
+      "dashTime": 0.35,
+      "recover": 0.4,
+      "lead": 0.8
     }
   },
   "potato": {
@@ -39,7 +47,10 @@
     "sprite": "enemy_potato",
     "radius": 26,
     "color": "#b07a43",
-    "shakeOnKill": true
+    "shakeOnKill": true,
+    "params": {
+      "lead": 1
+    }
   },
   "carrot": {
     "id": "carrot",
@@ -56,7 +67,8 @@
       "range": 260,
       "fireEvery": 2,
       "boltSpeed": 290,
-      "keepDistance": 200
+      "keepDistance": 200,
+      "lead": 0.7
     }
   },
   "tomato": {
@@ -72,7 +84,8 @@
     "color": "#e53935",
     "params": {
       "blastRadius": 70,
-      "blastDamage": 12
+      "blastDamage": 12,
+      "lead": 1
     }
   },
   "boss": {
