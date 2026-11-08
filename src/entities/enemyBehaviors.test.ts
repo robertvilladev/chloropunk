@@ -4,10 +4,8 @@ import { CATCH_UP } from "@/core/waves";
 import layout from "@assets/data/arena.json";
 import { solidRects } from "@/core/arena";
 import type { ArenaProp, Rect } from "@/types";
-import { avoid, createEnemyState, steer, tells } from "./enemyBehaviors";
+import { LEAD_MAX_S, avoid, createEnemyState, leadPoint, steer, tells } from "./enemyBehaviors";
 
-const P = { x: 100, y: 0 };
-const O = { x: 0, y: 0 };
 const mag = (r: { vx: number; vy: number }) => Math.hypot(r.vx, r.vy);
 
 describe("createEnemyState", () => {
@@ -24,55 +22,161 @@ describe("createEnemyState", () => {
   });
 });
 
+const STILL = { x: 0, y: 0 };
+const pp = (k: keyof typeof enemies): Record<string, number> => ({ speed: enemies[k].speed, ...enemies[k].params });
+
+describe("leadPoint", () => {
+  const P = { x: 500, y: 500 };
+
+  it("a still player is its own lead point", () => {
+    expect(leadPoint({ x: 0, y: 0 }, P, STILL, 100, 1)).toEqual(P);
+  });
+
+  it("solves the intercept; k damps it", () => {
+    // seeker 30 px left at 100 px/s, player crossing at 40 px/s: 900 + 1600t² = 10000t² → t = √(900/8400)
+    const t = Math.sqrt(900 / 8400);
+    expect(leadPoint({ x: 470, y: 500 }, P, { x: 0, y: 40 }, 100, 1).y).toBeCloseTo(500 + 40 * t);
+    expect(leadPoint({ x: 470, y: 500 }, P, { x: 0, y: 40 }, 100, 0.5).y).toBeCloseTo(500 + 20 * t);
+  });
+
+  it("caps the look-ahead at LEAD_MAX_S", () => {
+    // 80 px left at 100 px/s vs 60 px/s across: t = 1 s → capped
+    expect(leadPoint({ x: 420, y: 500 }, P, { x: 0, y: 60 }, 100, 1).y).toBeCloseTo(500 + 60 * LEAD_MAX_S);
+  });
+
+  it("player too fast to catch: falls back to dist/speed, capped", () => {
+    expect(leadPoint({ x: 400, y: 500 }, P, { x: 300, y: 0 }, 100, 0.5)).toEqual({ x: 500 + 300 * LEAD_MAX_S * 0.5, y: 500 });
+  });
+
+  it("clamps into the arena", () => {
+    expect(leadPoint({ x: 100, y: 100 }, { x: 10, y: 10 }, { x: -300, y: -300 }, 50, 1)).toEqual({ x: 0, y: 0 });
+  });
+});
+
 describe("steer", () => {
-  it("chaser moves toward player", () => {
-    const r = steer("chaser", createEnemyState(enemies.pea, 1), O, P, 0.016, { speed: 90 });
-    expect(r.vx).toBeCloseTo(90);
+  const A = { x: 500, y: 500 }; // mid-arena, so lead points aren't clamped
+  const at = (dx: number, dy: number) => ({ x: A.x + dx, y: A.y + dy });
+
+  it("chaser near a still player walks straight at it (today's behaviour)", () => {
+    const r = steer("chaser", createEnemyState(enemies.pea, 1), A, at(100, 0), STILL, 0.016, pp("pea"));
+    expect(r.vx).toBeCloseTo(enemies.pea.speed);
     expect(r.vy).toBeCloseTo(0);
   });
 
-  it("dasher dashes after dashEvery, then slows back", () => {
-    const params = { speed: 70, ...enemies.pepper.params };
+  it("pea pack fans out by slot while far, then pursues with a lead", () => {
+    const P = at(300, 0);
+    const angles = [0, 1, 2, 3, 4].map((i) => {
+      const r = steer("chaser", createEnemyState(enemies.pea, 1, i), A, P, STILL, 0.016, pp("pea"));
+      return (Math.atan2(r.vy, r.vx) * 180) / Math.PI;
+    });
+    const f = pp("pea").flank;
+    [0, -f, f, -f / 2, f / 2].forEach((a, i) => expect(angles[i]).toBeCloseTo(a));
+    // within flankDist: no flank, leads a moving player
+    const near = steer("chaser", createEnemyState(enemies.pea, 1, 1), A, at(100, 0), { x: 0, y: 100 }, 0.016, pp("pea"));
+    expect(near.vx).toBeGreaterThan(0);
+    expect(near.vy).toBeGreaterThan(0);
+  });
+
+  it("pepper: approach → windup (stands, tells) → attack → recover → approach", () => {
+    const p = pp("pepper");
     const s = createEnemyState(enemies.pepper, 1);
-    expect(mag(steer("dasher", s, O, P, 2.0, params))).toBeCloseTo(70);
-    expect(mag(steer("dasher", s, O, P, 0.6, params))).toBeCloseTo(enemies.pepper.params!.dashSpeed);
-    expect(mag(steer("dasher", s, O, P, 0.2, params))).toBeCloseTo(enemies.pepper.params!.dashSpeed);
-    expect(mag(steer("dasher", s, O, P, 0.2, params))).toBeCloseTo(70);
+    expect(mag(steer("dasher", s, A, at(400, 0), STILL, 0.1, p))).toBeCloseTo(enemies.pepper.speed * CATCH_UP.mult);
+    expect(s.phase).toBe("approach");
+    expect(mag(steer("dasher", s, A, at(p.dashRange, 0), STILL, 0.1, p))).toBe(0);
+    expect(s.phase).toBe("windup");
+    expect(tells("dasher", s, p, p.dashRange)).toBe(true);
+    expect(p.windup).toBeGreaterThanOrEqual(0.4);
+    expect(mag(steer("dasher", s, A, at(p.dashRange, 0), STILL, p.windup - 0.01, p))).toBe(0);
+    expect(mag(steer("dasher", s, A, at(p.dashRange, 0), STILL, 0.02, p))).toBeCloseTo(p.dashSpeed);
+    expect(s.phase).toBe("attack");
+    expect(tells("dasher", s, p, p.dashRange)).toBe(false);
+    steer("dasher", s, A, at(10, 0), STILL, p.dashTime, p);
+    expect(s.phase).toBe("recover");
+    expect(mag(steer("dasher", s, A, at(300, 0), STILL, p.recover - 0.01, p))).toBe(0);
+    steer("dasher", s, A, at(300, 0), STILL, 0.02, p);
+    expect(s.phase).toBe("approach");
   });
 
-  it("dasher keeps its dash direction", () => {
-    const params = { speed: 70, ...enemies.pepper.params };
+  it("pepper locks its dash on the predicted spot and keeps it", () => {
+    const p = pp("pepper");
     const s = createEnemyState(enemies.pepper, 1);
-    steer("dasher", s, O, P, 2.6, params); // dash starts aimed at (100,0)
-    const r = steer("dasher", s, O, { x: 0, y: 100 }, 0.1, params);
-    expect(r.vx).toBeCloseTo(enemies.pepper.params!.dashSpeed);
-    expect(r.vy).toBeCloseTo(0);
-  });
-
-  it("shooter keeps distance and fires", () => {
-    const params = { speed: 60, ...enemies.carrot.params };
-    const s = createEnemyState(enemies.carrot, 1);
-    const near = steer("shooter", s, O, P, 0.016, params);
-    expect(near.vx).toBeLessThan(0); // backing away from player at +x
-    s.timer = 2;
-    const far = steer("shooter", s, O, { x: 220, y: 0 }, 0.016, params);
-    expect(far.fire).toBe(true);
-    expect(s.timer).toBe(0);
-  });
-
-  it("walks at CATCH_UP.mult x speed while farther than CATCH_UP.dist", () => {
-    const far = { x: CATCH_UP.dist + 1, y: 0 };
-    expect(mag(steer("chaser", createEnemyState(enemies.pea, 1), O, far, 0.016, { speed: 90 }))).toBeCloseTo(90 * CATCH_UP.mult);
-    expect(mag(steer("chaser", createEnemyState(enemies.pea, 1), O, { x: CATCH_UP.dist, y: 0 }, 0.016, { speed: 90 }))).toBeCloseTo(90);
-    const shooter = steer("shooter", createEnemyState(enemies.carrot, 1), O, far, 0.016, { speed: 60, ...enemies.carrot.params });
-    expect(mag(shooter)).toBeCloseTo(60 * CATCH_UP.mult);
+    s.phase = "windup";
+    const P = at(200, 0);
+    const vel = { x: 0, y: 180 };
+    steer("dasher", s, A, P, vel, p.windup, p); // dash starts
+    const aim = leadPoint(A, P, vel, p.dashSpeed, p.lead);
+    expect(Math.atan2(s.dirY, s.dirX)).toBeCloseTo(Math.atan2(aim.y - A.y, aim.x - A.x));
+    expect(s.dirY).toBeGreaterThan(0); // ahead of the player, not at it
+    const r = steer("dasher", s, at(50, 0), at(0, -200), STILL, 0.1, p); // player went elsewhere: same locked way
+    expect(r.vx / p.dashSpeed).toBeCloseTo(s.dirX);
+    expect(r.vy / p.dashSpeed).toBeCloseTo(s.dirY);
   });
 
   it("does not speed up a dash", () => {
-    const params = { speed: 70, ...enemies.pepper.params };
+    const p = pp("pepper");
     const s = createEnemyState(enemies.pepper, 1);
-    const far = { x: 1000, y: 0 };
-    expect(mag(steer("dasher", s, O, far, 2.6, params))).toBeCloseTo(enemies.pepper.params!.dashSpeed);
+    s.phase = "windup";
+    expect(mag(steer("dasher", s, A, at(1000, 0), STILL, p.windup, p))).toBeCloseTo(p.dashSpeed);
+  });
+
+  it("carrot backs off, orbits its band in its orbit way, and fires", () => {
+    const p = pp("carrot");
+    const cw = createEnemyState(enemies.carrot, 1, 0);
+    const ccw = createEnemyState(enemies.carrot, 1, 1);
+    expect([cw.orbit, ccw.orbit]).toEqual([1, -1]);
+    expect(steer("shooter", cw, A, at(100, 0), STILL, 0.016, p).vx).toBeLessThan(0); // too close: back off
+    const o1 = steer("shooter", cw, A, at(230, 0), STILL, 0.016, p);
+    expect(o1.vx).toBeCloseTo(0);
+    expect(o1.vy).toBeCloseTo(enemies.carrot.speed); // tangent (-uy, ux) · +1
+    expect(steer("shooter", ccw, A, at(230, 0), STILL, 0.016, p).vy).toBeCloseTo(-enemies.carrot.speed);
+    cw.timer = p.fireEvery;
+    expect(steer("shooter", cw, A, at(230, 0), STILL, 0.016, p).fire).toBe(true);
+    expect(cw.timer).toBe(0);
+  });
+
+  it("carrot turns back at the arena edge instead of grinding along it", () => {
+    const p = pp("carrot");
+    const s = createEnemyState(enemies.carrot, 1, 0); // orbit +1: tangent (-uy, ux)
+    // player straight below, carrot near the left edge: +1 would head to x < 0
+    const r = steer("shooter", s, { x: 20, y: 300 }, { x: 20, y: 530 }, STILL, 0.016, p);
+    expect(s.orbit).toBe(-1);
+    expect(r.vx).toBeCloseTo(enemies.carrot.speed);
+    // away from the edge it keeps its way
+    const free = createEnemyState(enemies.carrot, 1, 0);
+    steer("shooter", free, { x: 500, y: 300 }, { x: 500, y: 530 }, STILL, 0.016, p);
+    expect(free.orbit).toBe(1);
+  });
+
+  it("carrot shots lead a moving target, imperfectly (EnemyManager.fireBolt aims here)", () => {
+    const p = pp("carrot");
+    const P = at(230, 0);
+    const vel = { x: 0, y: 180 };
+    const aim = leadPoint(A, P, vel, p.boltSpeed, p.lead);
+    expect(p.lead).toBeCloseTo(0.7);
+    expect(aim.y).toBeGreaterThan(P.y);
+    expect(aim.y).toBeLessThan(leadPoint(A, P, vel, p.boltSpeed, 1).y);
+  });
+
+  it("tomato and potato head for the predicted spot; a still player: straight at it", () => {
+    for (const [b, k] of [["exploder", "tomato"], ["tank", "potato"]] as const) {
+      const still = steer(b, createEnemyState(enemies[k], 1), A, at(100, 0), STILL, 0.016, pp(k));
+      expect(still.vx).toBeCloseTo(enemies[k].speed);
+      expect(still.vy).toBeCloseTo(0);
+      const vel = { x: 0, y: 180 };
+      const moving = steer(b, createEnemyState(enemies[k], 1), A, at(300, 0), vel, 0.016, pp(k));
+      const aim = leadPoint(A, at(300, 0), vel, enemies[k].speed, pp(k).lead);
+      expect(Math.atan2(moving.vy, moving.vx)).toBeCloseTo(Math.atan2(aim.y - A.y, aim.x - A.x));
+      expect(aim.y - A.y).toBeCloseTo(180 * LEAD_MAX_S); // ~0.8 s ahead
+    }
+  });
+
+  it("walks at CATCH_UP.mult x speed while farther than CATCH_UP.dist", () => {
+    const far = at(CATCH_UP.dist + 1, 0);
+    const pea = { ...pp("pea"), speed: 90 };
+    expect(mag(steer("chaser", createEnemyState(enemies.pea, 1), A, far, STILL, 0.016, pea))).toBeCloseTo(90 * CATCH_UP.mult);
+    expect(mag(steer("chaser", createEnemyState(enemies.pea, 1), A, at(CATCH_UP.dist, 0), STILL, 0.016, pea))).toBeCloseTo(90);
+    const shooter = steer("shooter", createEnemyState(enemies.carrot, 1), A, far, STILL, 0.016, { ...pp("carrot"), speed: 60 });
+    expect(mag(shooter)).toBeCloseTo(60 * CATCH_UP.mult);
   });
 });
 
@@ -190,14 +294,12 @@ describe("avoid: crowds walk around the shipped vents", () => {
 describe("tells (board A2 wind-up windows)", () => {
   const P_ = (b: keyof typeof enemies) => ({ speed: enemies[b].speed, ...enemies[b].params });
 
-  it("pepper crouches for the last 0.4 s before each dash, not during it", () => {
-    const s = createEnemyState(enemies.pepper, 1), p = P_("pepper"); // dashEvery 2.5
-    s.timer = 2.0;
+  it("pepper tells for its whole wind-up, not while approaching or dashing", () => {
+    const s = createEnemyState(enemies.pepper, 1), p = P_("pepper");
     expect(tells("dasher", s, p, 500)).toBe(false);
-    s.timer = 2.15;
+    s.phase = "windup";
     expect(tells("dasher", s, p, 500)).toBe(true);
-    steer("dasher", s, { x: 0, y: 0 }, { x: 500, y: 0 }, 0.4, p); // crosses 2.5: dash starts
-    expect(s.phase).toBe("dash");
+    s.phase = "attack";
     expect(tells("dasher", s, p, 500)).toBe(false);
   });
 

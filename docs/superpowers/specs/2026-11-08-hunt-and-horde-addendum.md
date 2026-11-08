@@ -1,6 +1,6 @@
 # Chloropunk — Hunt & horde addendum
 
-Date: 2026-11-08 · Status: **owner decisions 2026-11-08**; PR 1 (pacing and horde) applied, PRs 2–3 planned.
+Date: 2026-11-08 · Status: **owner decisions 2026-11-08**; PRs 1 (pacing and horde) and 2 (enemy roles) applied, PR 3 planned.
 Amends: [MVP spec](2026-10-18-mvp-roguelike-design.md) §4 (spawn groups) and §5 (enemies), [balance design](2026-10-20-balance-design.md) §5 (the model's numbers), [arena map addendum](2026-10-23-arena-map-addendum.md) §3 (boss movement, PR 3).
 
 ## 1. Why
@@ -81,7 +81,7 @@ The known misses are unchanged from before: waves 8–9 are too easy for the scr
 - **Spawn distance:** about 500 px (sim 480).
 - **Perf:** headless software rendering is not a perf measurement; it showed about 41 fps with 29 alive and about 31 fps at 120. Per-enemy cost is unchanged, and 150 peas held 64–67 fps in the visible pane at A5. **Owner check:** a real wave 9 at the cap in a visible window.
 
-## 4. PR 2 — enemy roles (planned)
+## 4. PR 2 — enemy roles (applied)
 
 `steer()` becomes a small pure state machine (approach → wind-up → attack → recover). It reads the player's velocity, and every tunable lives in the enemy's `params` in `enemies.json`:
 
@@ -94,6 +94,37 @@ The known misses are unchanged from before: waves 8–9 are too easy for the scr
 | potato | herder | Pursues your predicted position, blocking the lane you run into |
 
 The per-enemy variation comes from the spawn index, never from extra spawn RNG draws.
+
+**As built.** `steer(behavior, state, self, player, playerVel, dt, params)`; `EnemyState.phase` is `approach | windup | attack | recover` (only the pepper leaves `approach`). One helper, `leadPoint(self, player, vel, speed, k)`, gives the intercept point of a player moving at `vel` (dist/speed if there is none), capped at 0.8 s ahead (`LEAD_MAX_S`), times `k`, clamped into the arena. `EnemyManager` counts every spawn in a wave (`serial`, reset per wave); that index sets `slot` (a pack of 5 gets 0, −1, +1, −½, +½) and `orbit` (alternating ±1). A still player gets no lead, so tomatoes, potatoes, near peas and pepper dashes aim straight at it as before; far peas still spiral in and carrots still orbit. `CATCH_UP` applies only while approaching (not while orbiting, never to a dash); `avoid` is unchanged and still skipped during a dash.
+
+| Enemy | Params (`enemies.json`) | Notes |
+|---|---|---|
+| pea | `flankDist` 150, `flank` 45°, `lead` 0.5 | Farther than 150 px it heads 45°·`slot` off the line to you, a spiral, so a pack closes from up to 90° apart |
+| pepper | `dashRange` 220, `windup` 0.5, `dashSpeed` 420, `dashTime` 0.35, `recover` 0.4, `lead` 0.8 | Stands in its `tell` frame for the whole wind-up, locks the dash on the predicted spot, stands 0.4 s after. Replaces `dashEvery` 2.5 |
+| carrot | `keepDistance` 200, `range` 260, `fireEvery` 2, `boltSpeed` 290, `lead` 0.7 | In the band it strafes at full speed (80 px/s) in its `orbit` way; `fireBolt` aims at `leadPoint(…, boltSpeed, 0.7)`. Within 40 px of the arena edge it reverses its orbit instead of grinding along the wall; `avoid` slides it round the vents |
+| tomato | `lead` 1 (+ blast unchanged) | Up to 0.8 s ahead of you |
+| potato | `lead` 1 | Same aim, at 60 px/s |
+
+**Sim.** Unchanged (it models straight walk-ins): the same known misses (waves 8–9 too easy for the scripted shopper). `contactRate` 0.25 → 1.52, the fit from the playtest below (PR 1 fitted 3.44 but kept 0.25). It changes no target and no death wave in `pnpm sim`: the typical shopper takes no contact damage, and the never-shop builds die in the same waves.
+
+### Playtest (autopilot, never shops, seeds 1–3)
+
+| | PR 1 | PR 2 |
+|---|---|---|
+| Outcome | all reach wave 10, die to the boss | all die in wave 4 (49–53 s into it) |
+| Kill % waves 1–3 | 100 / 93 / 93 | 90 / 92 / 88 |
+| Wave 4 | kill 57%, HP 92% | kill 56%, HP 0%: 75 contact, 28 bolt, 24 blast damage |
+| Aim (hits ÷ shots) | 0.99 | 0.86 (73% in wave 1: the peas fan out) |
+| Fitted contactRate | 3.44 | 1.52 |
+
+**Owner playtest of the PR preview (2026-11-08):** "way better, more aggressive and fun", but the fighter's movement looked slow and flickery, like a ghost at times. Two causes, both fixed in this PR:
+
+- Arcade physics stepped at a fixed 60 Hz while the display ran at 120+ Hz. Bodies moved only every 2nd–3rd frame, but the camera lerped every frame, so the fighter jittered 1–2 px on screen about 40 times a second (a double image). At 1× the world now steps once per rendered frame (`fixedStep` off). 2× and 3× keep the fixed step, because Arcade's variable step ignores `timeScale`.
+- The i-frame flash faded the fighter to fully transparent on a wall-clock sine. It now blinks between 100% and 55% alpha every 100 ms of game time.
+
+The wave-1 standing pin in `sim.test.ts` was re-checked in the browser: seed 1, pistol, 20 s standing still gives 30 kills and 96 HP; the sim says 30.
+
+The autopilot no longer dodges everything: it now dies where `pnpm sim` has always put a never-shop pistol (wave 4, sim kill 51%). Damage comes from all three sources, not just contact. In the preview (wave 5 with dev spawns), peppers stop and show their tell frame before each dash, and carrots in their band move only sideways at 80 px/s, each in its `orbit` way.
 
 ## 5. PR 3 — boss movement and aim (planned)
 

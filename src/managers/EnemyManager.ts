@@ -9,6 +9,7 @@ import { MAX_ALIVE, advanceCursor, buildSpawnSchedule, offscreenPoint } from "@/
 import {
   avoid,
   createEnemyState,
+  leadPoint,
   steer,
   tells,
   type EnemyState,
@@ -71,6 +72,8 @@ export class EnemyManager {
   spawned = 0;
   /** Sum of player→enemy px at spawn for those (run log `spawnDist` = this ÷ spawned). */
   spawnDistSum = 0;
+  /** Every enemy spawned this wave, in order: its index picks the flank slot / orbit way (no RNG). */
+  private serial = 0;
 
   constructor(scene: Phaser.Scene, solids: readonly Rect[] = []) {
     this.solids = solids;
@@ -101,13 +104,14 @@ export class EnemyManager {
     this.cursor = 0;
     this.spawned = 0;
     this.spawnDistSum = 0;
+    this.serial = 0;
     const waves = wavesData.waves;
     const def = waves.find((w) => w.wave === wave);
     if (!def) throw new Error(`No wave ${wave} defined`);
     this.schedule = buildSpawnSchedule({ ...def, wave });
   }
 
-  update(dtMs: number, elapsedS: number, player: Vector2): void {
+  update(dtMs: number, elapsedS: number, player: Vector2, playerVel: Vector2): void {
     if (dtMs <= 0) return;
     const dt = dtMs / 1000;
 
@@ -117,7 +121,7 @@ export class EnemyManager {
     for (; this.cursor < end; this.cursor++) this.telegraph(sched[this.cursor], player);
 
     this.updateTelegraphs(dt, player);
-    this.updateEnemies(dt, player);
+    this.updateEnemies(dt, player, playerVel);
     this.updateBolts();
   }
 
@@ -329,13 +333,13 @@ export class EnemyManager {
     enemy.play(`${def.sprite}_walk`, true);
     enemy.anims.setProgress(Math.random()); // cosmetic: keeps the seeded rng stream untouched
     enemy.setData("def", def);
-    enemy.setData("state", createEnemyState(def, this.wave));
+    enemy.setData("state", createEnemyState(def, this.wave, this.serial++));
     enemy.setData("knock", { x: 0, y: 0 });
     enemy.setData("life", { t: 0, hop: Math.random() }); // cosmetic hop phase, like the walk progress above
     enemy.setAlpha(0);
   }
 
-  private updateEnemies(dt: number, player: Vector2): void {
+  private updateEnemies(dt: number, player: Vector2, playerVel: Vector2): void {
     const list = this.enemies.children.entries;
     const out = this.out;
     const decay = Math.max(0, 1 - KNOCK_DECAY * dt);
@@ -348,9 +352,9 @@ export class EnemyManager {
       const state = enemy.getData("state") as EnemyState;
       const knock = enemy.getData("knock") as Vector2;
       const params = this.params.get(def.id)!;
-      steer(def.behavior, state, enemy, player, dt, params, out);
+      steer(def.behavior, state, enemy, player, playerVel, dt, params, out);
       // dashes stay straight and stop on solids (the collider)
-      if (state.phase !== "dash")
+      if (state.phase !== "attack")
         avoid(enemy, def.radius, out, this.solids, this.neighbours(i, list as Sprite[], def.radius * 2), out, state);
       enemy.setVelocity(out.vx + knock.x, out.vy + knock.y);
       enemy.flipX = facingFlip(out.vx + knock.x, enemy.flipX);
@@ -359,7 +363,7 @@ export class EnemyManager {
       knock.x *= decay;
       knock.y *= decay;
       this.animate(enemy, def, tells(def.behavior, state, params, Math.hypot(player.x - enemy.x, player.y - enemy.y)), Math.hypot(out.vx, out.vy), dt);
-      if (out.fire) this.fireBolt(enemy, def, state, player);
+      if (out.fire) this.fireBolt(enemy, def, state, player, playerVel);
     }
   }
 
@@ -430,10 +434,13 @@ export class EnemyManager {
     enemy: Sprite,
     def: EnemyDef,
     state: EnemyState,
-    player: Vector2
+    player: Vector2,
+    playerVel: Vector2
   ): void {
-    const angle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
-    this.spawnBolt(enemy.x, enemy.y, angle, def.params!.boltSpeed, state.damage);
+    const p = def.params!;
+    const at = leadPoint(enemy, player, playerVel, p.boltSpeed, p.lead); // imperfect lead (lead < 1)
+    const angle = Math.atan2(at.y - enemy.y, at.x - enemy.x);
+    this.spawnBolt(enemy.x, enemy.y, angle, p.boltSpeed, state.damage);
   }
 
   private updateBolts(): void {

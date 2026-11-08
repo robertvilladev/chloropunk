@@ -63,7 +63,7 @@ export const DEFAULT_PARAMS: SimParams = {
   aim: 0.7,
   spawnDist: 480, // measured mean player-to-enemy px at spawn (A3 off-screen ring, seed 1-3 autopilot playtests)
   contactDist: 30,
-  contactRate: 0.25,
+  contactRate: 1.52, // fitted from the PR 2 (enemy roles) autopilot playtests, seeds 1-3; was 0.25
   telegraph: 0.6,
   bossHit: 0.3, // ponytail: a guess until boss playtests measure it (`pnpm runs` boss rows)
   bossCap: 240,

@@ -14,7 +14,7 @@ Status: ✅ done · 🚧 in progress · ⬜ planned. "(proposed)" = inferred by 
 | Arena map (A1–A5) | ✅ A1–A5 done (owner-approved 2026-10-23/25) | [arena addendum](docs/superpowers/specs/2026-10-23-arena-map-addendum.md) §5 |
 | Art refresh | ✅ done — PRs #45, #47, #48, #50, #51 | [art refresh plan](docs/superpowers/plans/2026-10-23-art-refresh.md), [UI plan](docs/superpowers/plans/2026-10-25-ui-art-refresh.md) |
 | M4 Boss & run end | 🚧 M4a run end and M4b boss done; owner boss playtest and final README pass left | [M4a](docs/superpowers/plans/2026-10-23-m4-run-end.md), [M4b](docs/superpowers/plans/2026-10-23-m4-boss.md) |
-| Hunt & horde | 🚧 PR 1 pacing + packs applied; PR 2 enemy roles and PR 3 boss movement planned | [addendum](docs/superpowers/specs/2026-11-08-hunt-and-horde-addendum.md) |
+| Hunt & horde | 🚧 PR 1 pacing + packs and PR 2 enemy roles applied; PR 3 boss movement planned | [addendum](docs/superpowers/specs/2026-11-08-hunt-and-horde-addendum.md) |
 
 ## M1 — Waves & feel ✅
 Spec: [§4 run loop, §5 systems](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md)
@@ -115,9 +115,9 @@ Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-
 Owner playtest 2026-11-08: enemies don't hunt, the boss kites easily, waves trickle in one by one and the game feels slow. Spec: [hunt & horde addendum](docs/superpowers/specs/2026-11-08-hunt-and-horde-addendum.md) (owner decisions 2026-11-08). One PR each, in order.
 
 - ✅ PR 1 pacing and horde: speeds up (player 160 → 180, enemies, bolts and shots ×≈1.3), packs per telegraph (pea 5, pepper 3, tomato 2, carrot 2, potato 1), threat budget ×2 (25 → 50 enemies in wave 1, 100 → 201 in wave 9), `MAX_ALIVE` 120, faster starters (pistol 18 dmg / 0.42 s), prices ×1.8, boss HP 18000, scrap drops split into 1-value pieces. Sim on target (same known misses: waves 8–9 too easy for the scripted shopper). Autopilot never-shop seeds 1–3: all reach wave 10 and die to the boss (A5: all won); from wave 7 they sit at the 120 cap. FPS at the cap still to be checked in a visible window
-- ⬜ PR 2 enemy roles: pea pack hunter, pepper charger (stop, tell, dash at your predicted path), carrot orbiting kiter with leading shots, tomato interceptor, potato herder
+- ✅ PR 2 enemy roles: pea pack hunter (fans out by spawn-index slot, then a short lead), pepper charger (stops at 220 px, 0.5 s tell, dashes at your predicted spot, 0.4 s recover), carrot orbiting kiter with leading shots (`lead` 0.7), tomato interceptor and potato herder (≤ 0.8 s ahead). Sim targets unchanged, `contactRate` 0.25 → 1.52 (fitted). Autopilot never-shop seeds 1–3: all die in wave 4, where the sim puts that build (PR 1: wave 10). From the owner's playtest: smooth movement on 120+ Hz displays (physics steps per frame at 1×) and an i-frame blink that no longer turns the fighter invisible — [addendum §4](docs/superpowers/specs/2026-11-08-hunt-and-horde-addendum.md#4-pr-2--enemy-roles-applied)
 - ⬜ PR 3 boss: pursues and strafes at near player speed, telegraphs track then lock, phase-2 charge chains; re-tune `bossTargets`
-- ⬜ Owner playtest after each PR; re-pin the sim's wave-1 playtest (`sim.test.ts`) and recalibrate `contactRate` / `spawnDist` with `pnpm runs`
+- ⬜ Owner playtest after each PR; recalibrate `contactRate` / `spawnDist` with `pnpm runs` (the wave-1 standing pin in `sim.test.ts` was re-checked at PR 2: game 30 kills / 96 HP, sim 30)
 
 ## Carry-overs / known issues
 From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) and the [M2 outcome](docs/superpowers/plans/2026-10-18-m2-build-crafting.md):

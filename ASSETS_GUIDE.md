@@ -52,6 +52,8 @@ export class EnemyManager {
 
 ### Boss data
 
+The other five enemies' role tunables are flat `params` read by `steer` (`entities/enemyBehaviors.ts`); `lead` is how much of the predicted intercept they aim at (0 = your position, 1 = the full intercept, capped 0.8 s ahead): pea `flankDist` (px; farther than this it spirals in at `slot × flank`°), `flank`, `lead`; pepper `dashRange` (px where it stops), `windup` (s standing in its tell frame, ≥ 0.4), `dashSpeed`, `dashTime`, `recover` (s standing after a dash), `lead`; carrot `keepDistance`/`range` (the band it orbits in), `fireEvery`, `boltSpeed`, `lead` (its shots); tomato `blastRadius`, `blastDamage`, `lead`; potato `lead`.
+
 `enemies.json` `boss` (behaviour `"boss"`) is the one wave-10 boss for all three looks: `hp` (not scaled by wave), contact `damage`, walk `speed`, `radius`, and flat `params` read by `bossParams` (`entities/bossBrain.ts`): telegraph (`tele*`, ≥ 0.5 s) and recover (`rec*`) times per attack, `gap1`/`gap2` and `brood1`/`brood2` (phase 1/2 cadence), `broodCount`, volley/barrage counts, plus what `BossManager` uses (`boltSpeed`, `boltDamage`, `volleySpread`°, `chargeSpeed`, `chargeDamage`, `blastRadius`, `blastDamage`, `holdDistance`). A wave with `"boss": true` in `waves.json` has no timer and no groups.
 
 ## Vector sprites (`src/art/`)

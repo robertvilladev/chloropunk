@@ -59,7 +59,7 @@ What the owner felt as "scrap stranded under enemies" is real on screen. Economi
   - projectile: 1 + pierce;
   - spread: 1 per pellet;
   - beam, melee arc and rocket blast: 3.
-- **Contact:** an enemy within 30 px hits at 0.25 hits/s, capped at 1 hit/s by the i-frames. Armor and dodge apply, and regen heals.
+- **Contact:** an enemy within 30 px hits at 0.25 hits/s (1.52 since the [hunt & horde](2026-11-08-hunt-and-horde-addendum.md#4-pr-2--enemy-roles-applied) enemy roles, fitted from playtests), capped at 1 hit/s by the i-frames. Armor and dodge apply, and regen heals.
 - **Scrap:** all dropped scrap is banked, matching the auto-collect at wave end.
 
 **Run model** (`simulateRun`):
