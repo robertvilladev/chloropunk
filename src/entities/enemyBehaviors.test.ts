@@ -35,8 +35,8 @@ describe("steer", () => {
     const params = { speed: 70, ...enemies.pepper.params };
     const s = createEnemyState(enemies.pepper, 1);
     expect(mag(steer("dasher", s, O, P, 2.0, params))).toBeCloseTo(70);
-    expect(mag(steer("dasher", s, O, P, 0.6, params))).toBeCloseTo(320);
-    expect(mag(steer("dasher", s, O, P, 0.2, params))).toBeCloseTo(320);
+    expect(mag(steer("dasher", s, O, P, 0.6, params))).toBeCloseTo(enemies.pepper.params!.dashSpeed);
+    expect(mag(steer("dasher", s, O, P, 0.2, params))).toBeCloseTo(enemies.pepper.params!.dashSpeed);
     expect(mag(steer("dasher", s, O, P, 0.2, params))).toBeCloseTo(70);
   });
 
@@ -45,7 +45,7 @@ describe("steer", () => {
     const s = createEnemyState(enemies.pepper, 1);
     steer("dasher", s, O, P, 2.6, params); // dash starts aimed at (100,0)
     const r = steer("dasher", s, O, { x: 0, y: 100 }, 0.1, params);
-    expect(r.vx).toBeCloseTo(320);
+    expect(r.vx).toBeCloseTo(enemies.pepper.params!.dashSpeed);
     expect(r.vy).toBeCloseTo(0);
   });
 
@@ -72,7 +72,7 @@ describe("steer", () => {
     const params = { speed: 70, ...enemies.pepper.params };
     const s = createEnemyState(enemies.pepper, 1);
     const far = { x: 1000, y: 0 };
-    expect(mag(steer("dasher", s, O, far, 2.6, params))).toBeCloseTo(320);
+    expect(mag(steer("dasher", s, O, far, 2.6, params))).toBeCloseTo(enemies.pepper.params!.dashSpeed);
   });
 });
 

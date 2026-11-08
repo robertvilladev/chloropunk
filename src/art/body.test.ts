@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import { ART_SCALE, bobCircle, feetOffset, fitBox, fitCircle, frameSize } from "./body";
 import { SPRITE_META, type SpriteKey } from "./vector";
 import enemies from "@assets/data/enemies.json";
-import { SPAWN_MARGIN } from "@/managers/EnemyManager";
+import { SPAWN_MARGIN, spread } from "@/managers/EnemyManager";
+import wavesData from "@assets/data/waves.json";
 import { HIT_SIZE } from "@/config/constants";
 
 // EnemyManager only uses Phaser through the scene it is given
@@ -94,7 +95,8 @@ describe("hit areas", () => {
 
   it("SPAWN_MARGIN covers the largest wave enemy plus the group spread", () => {
     const max = Math.max(...Object.values(enemies).filter((e) => e.behavior !== "boss").map((e) => e.radius)); // the boss enters at the helipad
-    expect(SPAWN_MARGIN).toBeGreaterThanOrEqual(max + 24);
+    const pack = Math.max(...wavesData.waves.flatMap((w) => w.groups.map((g) => g.count)));
+    expect(SPAWN_MARGIN).toBeGreaterThanOrEqual(max + spread(pack));
   });
 });
 

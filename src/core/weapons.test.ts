@@ -8,38 +8,38 @@ const stats = (mods = {}) => ({ ...BASE_STATS, ...mods });
 describe("weaponStats", () => {
   it("tier 1 pistol with base stats", () => {
     expect(weaponStats(weapons.pistol, 1, stats())).toEqual({
-      damage: 12,
-      cooldown: 0.7,
+      damage: 18,
+      cooldown: 0.42,
       range: 320,
       critChance: 0.05,
     });
   });
 
   it("adds scaling stat and damage %", () => {
-    expect(weaponStats(weapons.pistol, 2, stats({ ranged: 4, damage: 50 })).damage).toBe(33);
+    expect(weaponStats(weapons.pistol, 2, stats({ ranged: 4, damage: 50 })).damage).toBe(47); // (27 + 4) × 1.5
   });
 
   it("floors the cooldown", () => {
     expect(weaponStats(weapons.blade, 4, stats({ attackSpeed: 1000 })).cooldown).toBe(0.1);
-    expect(weaponStats(weapons.blade, 4, stats({ attackSpeed: -50 })).cooldown).toBeCloseTo(1.4);
+    expect(weaponStats(weapons.blade, 4, stats({ attackSpeed: -50 })).cooldown).toBeCloseTo(0.78);
   });
 });
 
 describe("prices", () => {
   it("weaponPrice scales by tier and wave", () => {
-    expect(weaponPrice(weapons.pistol, 1, 1)).toBe(15);
-    expect(weaponPrice(weapons.pistol, 3, 6)).toBe(120); // 15 × 4 × 2.0
+    expect(weaponPrice(weapons.pistol, 1, 1)).toBe(27); // 15 × 1.8
+    expect(weaponPrice(weapons.pistol, 3, 6)).toBe(216); // 15 × 4 × 1.8 × 2.0
   });
 
-  it("waveScale: +20% per wave, +25% per wave after wave 8", () => {
-    expect(waveScale(1)).toBe(1);
-    expect(waveScale(8)).toBeCloseTo(2.4);
-    expect(waveScale(9)).toBeCloseTo(2.65);
-    expect(waveScale(11)).toBeCloseTo(3.15);
+  it("waveScale: ×1.8, +20% per wave, +25% per wave after wave 8", () => {
+    expect(waveScale(1)).toBeCloseTo(1.8);
+    expect(waveScale(8)).toBeCloseTo(1.8 * 2.4);
+    expect(waveScale(9)).toBeCloseTo(1.8 * 2.65);
+    expect(waveScale(11)).toBeCloseTo(1.8 * 3.15);
   });
 
   it("sellPrice is half, rounded down", () => {
-    expect(sellPrice(weapons.pistol, 1, 1)).toBe(7);
+    expect(sellPrice(weapons.pistol, 1, 1)).toBe(13);
   });
 });
 

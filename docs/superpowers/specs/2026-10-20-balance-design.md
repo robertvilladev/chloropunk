@@ -110,13 +110,15 @@ These targets are implemented as `checkTargets()` in `src/core/sim.targets.ts` a
 | Typical shopper buys 0.8–2 items per wave (waves 1–9), at least one in each of waves 1–4 | one meaningful buy per wave |
 | A never-shopping pistol survives waves 1–3 but is failing (< 60% kills) by wave 7 | onboarding is forgiving; shopping is required |
 | Every starter (pistol, shotgun, blade) kills ≥ 80% of wave 1 | no bad first pick |
-| ≥ 1.75 enemies/s in waves 8–9 | spec §2 "dense, escalating waves" |
+| ≥ 3.5 enemies/s in waves 8–9 (was 1.75 until the [hunt & horde addendum](2026-11-08-hunt-and-horde-addendum.md)) | spec §2 "dense, escalating waves" |
 
 The **reference builds** live in `REFERENCE_BUILDS`:
 - each starter, never shopping;
 - a typical pistol shopper: grip → pistol → hoodie → shotgun → visor → pistol → scope → rocket → overclock → …, with ranged level-up picks.
 
 ## 5. The model (approved)
+
+> **Updated 2026-11-08 by the [hunt & horde addendum](2026-11-08-hunt-and-horde-addendum.md):** threat budget `first` 7 → 14 with packs per enemy (`MIX.pack`), `MAX_ALIVE` 40 → 120, prices ×1.8 (`PRICE_BASE`), faster starters (pistol 18 dmg / 0.42 s), boss HP 18000. The table below is the 2026-10-20 model; the targets in §4 still hold.
 
 The numbers now live in the game data: `waves.json` (`scaling` and the generated waves), `enemies.json`, `weapons.json`, the price constants in `core/weapons.ts` and `MAX_ALIVE` in `core/waves.ts`. `THREAT` and `budgetWave` in `src/core/sim.targets.ts` re-author waves. `pnpm sim` prints the tables for the live data.
 
@@ -305,7 +307,7 @@ This is a spec change, because online features are a spec non-goal (§2). It nee
 **Code:**
 - `scaleEnemy` reads `waves.json.scaling`.
 - `waveScale` is +20% per wave, then +25% per wave after wave 8.
-- `EnemyManager` skips spawns while `MAX_ALIVE` (40) enemies are alive. The spawn RNG draws happen first, so seeds stay reproducible. The F2 debug spawn is not capped.
+- `EnemyManager` skips spawns while `MAX_ALIVE` (40; 120 since the hunt & horde addendum) enemies are alive. The spawn RNG draws happen first, so seeds stay reproducible. The F2 debug spawn is not capped.
 
 **Sim:**
 - `LIVE_DATA` is the game.

@@ -71,26 +71,25 @@ export function runAtWave(build: string, wave: number, seed: number): RunState |
  * difficulty. waves.json was generated from this (balance design §5); to
  * re-author, print `budgetWave(n, threat(n), enemies)` and paste.
  */
-export const THREAT = { first: 7, linear: 0.35 };
+export const THREAT = { first: 14, linear: 0.35 }; // ×2 in the hunt & horde pass (was first 7)
 export const threat = (n: number) => THREAT.first * (1 + THREAT.linear * (n - 1));
 
-/** Share of the threat budget per enemy, from the wave it unlocks. */
-export const MIX: { enemy: string; from: number; share: number; start: number }[] = [
-  { enemy: "pea", from: 1, share: 1, start: 0 },
-  { enemy: "pepper", from: 2, share: 0.35, start: 2 },
-  { enemy: "tomato", from: 3, share: 0.3, start: 3 },
-  { enemy: "carrot", from: 4, share: 0.2, start: 4 },
-  { enemy: "potato", from: 5, share: 0.45, start: 5 },
+/** Share of the threat budget per enemy, from the wave it unlocks; `pack` = enemies per spawn telegraph. */
+export const MIX: { enemy: string; from: number; share: number; start: number; pack: number }[] = [
+  { enemy: "pea", from: 1, share: 1, start: 0, pack: 5 },
+  { enemy: "pepper", from: 2, share: 0.35, start: 2, pack: 3 },
+  { enemy: "tomato", from: 3, share: 0.3, start: 3, pack: 2 },
+  { enemy: "carrot", from: 4, share: 0.2, start: 4, pack: 2 },
+  { enemy: "potato", from: 5, share: 0.45, start: 5, pack: 1 },
 ];
 
-/** Author wave n from a threat budget: each unlocked enemy gets `share` of it as a steady group. */
+/** Author wave n from a threat budget: each unlocked enemy gets `share` of it as packs of `pack`. */
 export function budgetWave(n: number, threat: number, enemies: Record<string, EnemyDef>): WaveDef {
   const unlocked = MIX.filter((m) => n >= m.from);
   const total = unlocked.reduce((s, m) => s + m.share, 0);
   const groups: SpawnGroup[] = unlocked.map((m) => {
     const perS = (threat * (m.share / total)) / enemies[m.enemy].hp; // enemies/s
-    const count = Math.max(1, Math.round(perS * 1.5)); // batch into groups at ≥ 1.5 s spacing
-    return { enemy: m.enemy, count, every: Math.round((100 * count) / perS) / 100, start: m.start };
+    return { enemy: m.enemy, count: m.pack, every: Math.round((100 * m.pack) / perS) / 100, start: m.start };
   });
   return { wave: n, groups };
 }
@@ -153,10 +152,10 @@ export function checkTargets(data: SimData = LIVE_DATA, p: SimParams = DEFAULT_P
     typical.map((r) => ({ wave: r.wave, killPct: (100 * r.kills) / r.spawned, hpPct: (100 * r.hpLeft) / r.stats.maxHp, buys: r.bought.length }))
   );
   if (out.some((v) => v.includes("never reached"))) return out;
-  // Spec §2 "dense, escalating waves": late waves bring ≥ 1.75 enemies/s
+  // Spec §2 "dense, escalating waves": late waves bring ≥ 3.5 enemies/s (hunt & horde; was 1.75)
   for (const n of [8, 9]) {
     const r = typical[n - 1];
-    if (r && r.spawned / r.duration < 1.75) out.push(`w${n}: only ${(r.spawned / r.duration).toFixed(1)} enemies/s`);
+    if (r && r.spawned / r.duration < 3.5) out.push(`w${n}: only ${(r.spawned / r.duration).toFixed(1)} enemies/s`);
   }
   out.push(...bossTargets(typical, bare));
   // A player who never shops still gets through onboarding, but fails by wave 7
