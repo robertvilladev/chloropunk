@@ -91,7 +91,7 @@
   "boss": {
     "id": "boss",
     "name": "Boss",
-    "hp": 16000,
+    "hp": 12000,
     "damage": 12,
     "speed": 144,
     "scrap": 0,

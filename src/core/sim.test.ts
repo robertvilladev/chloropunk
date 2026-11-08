@@ -19,17 +19,18 @@ describe("sim", () => {
   // The pin runs a 20 s wave 1 like that playtest. Re-pinned after hunt & horde PR 2 (2× density,
   // faster pistol, enemy roles; 2026-11-08): the game gave 30 kills / 96 HP, the sim 30.
   it("wave 1 standing still: ~30 kills, scrap = kills, no damage", () => {
-    const r = simulateWave(pistol, 1, { ...LIVE_DATA, duration: () => 20 });
+    const r = simulateWave(pistol, 1, { ...LIVE_DATA, duration: () => 20 }, { ...DEFAULT_PARAMS, kite: 0 });
     expect(r.kills).toBeGreaterThanOrEqual(26);
     expect(r.kills).toBeLessThanOrEqual(34);
     expect(r.scrap).toBe(r.kills);
     expect(r.hpLeft).toBeGreaterThan(90);
   });
 
-  // Known misses (design doc §7): waves 8–9 too easy for the scripted shopper since the
-  // wave-length addendum (32 + 2·(n−1) s): it banks more early scrap and snowballs. The owner's
-  // own runs sit in the pressure band (HP 34–39%), so the playtest, not the sim, decides.
-  const KNOWN_MISSES = ["w8 pressure", "w9 pressure"];
+  // Known misses. Since the moving-player model (kite, carrotBolts; hunt & horde, 2026-11-08) the
+  // typical shopper sits in the pressure band in waves 8–9 (HP 43%/15%); only wave 8's kill %
+  // (95) is at the band's edge.
+  // The boss was re-tuned for it in hunt & horde PR 3 (typical wins with 36% HP).
+  const KNOWN_MISSES = ["w8 pressure"];
   it("the live balance meets its targets (known misses listed above)", () => {
     expect(checkTargets().filter((v) => !KNOWN_MISSES.some((k) => v.startsWith(k)))).toEqual([]);
   });
@@ -41,12 +42,13 @@ describe("sim", () => {
     expect(w10.bossLeft).toBe(0);
     expect(w10.duration).toBeLessThan(DEFAULT_PARAMS.bossCap);
     expect(w10.spawned).toBeGreaterThan(0);
-    expect(bossTargets(run, [])).toEqual([]);
+    const known = (v: string[]) => v.filter((m) => !KNOWN_MISSES.some((k) => m.startsWith(k)));
+    expect(known(bossTargets(run, []))).toEqual([]);
     // a weak build runs out of HP (or time) before the boss dies
     const weak = simulateWave(pistol, 10);
     expect(weak.bossLeft).toBeGreaterThan(0);
     expect(bossTargets(run.slice(0, 9), [])).toEqual(["typical never reached the boss"]);
-    expect(bossTargets(run, [w10])).toEqual(["boss: never-shop pistol beats the boss"]);
+    expect(known(bossTargets(run, [w10]))).toEqual(["boss: never-shop pistol beats the boss"]);
   });
 
   it("budgetWave spends the threat budget", () => {

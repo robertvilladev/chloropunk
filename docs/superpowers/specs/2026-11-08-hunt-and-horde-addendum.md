@@ -134,8 +134,20 @@ The autopilot no longer dodges everything: it now dies where `pnpm sim` has alwa
 
 **Charge chain.** `chargeChain` [1, 2]: in phase 2 a charge attack is two dashes. The second starts when the first's recover ends, re-aimed with its own full 0.7 s telegraph.
 
-**Numbers.** Boss HP 18000 → 16000; bolt damage 6 → 5, charge 14 → 12, blast 10 → 8 (contact stays 12); bolt speed 240 → 300 (the PR 1 projectile speed-up). Boss `speed` 40 → 144, which only the sim reads (a test pins it to `chaseMul` × player speed). `holdDistance` is gone.
+**Numbers.** Boss HP 18000 → 12000; bolt damage 6 → 5, charge 14 → 12, blast 10 → 8 (contact stays 12); bolt speed 240 → 300 (the PR 1 projectile speed-up). Boss `speed` 40 → 144, which only the sim reads (a test pins it to `chaseMul` × player speed). `holdDistance` is gone.
 
-**Sim.** `bossModel` counts each chained dash as an attack (phase 2 lands about a third more attacks per second). `bossHit` 0.3 → 0.4: tracked, led aim lands more often on a kiting player. This is still a guess, not a measurement (see the playtest below). The typical build kills the boss in 40 s with 32% HP left (it was 33 s and 41%; target 20–60%). The never-shop builds still die before wave 10. `pnpm sim` has only the known misses (waves 8–9 too easy for the scripted shopper).
+**Sim.** `bossModel` counts each chained dash as an attack (phase 2 lands about a third more attacks per second). `bossHit` stays 0.3, still a guess rather than a measurement (see the playtest below).
 
-**Playtest** (`pnpm playtest --seed 1 --runs 3 --wave 10 --build typical`; the autopilot never dodges telegraphs). All three runs die to the boss after 28–38 s, having dealt 12–14k damage (most of the boss's 16000 HP plus the brood). They take 48–72 contact damage (charges and the brood), 10–20 from bolts and 32–40 from blasts, against 84 max HP. For a player who never dodges, that is roughly 70–80% of attacks landing; 0.4 assumes a human who dodges about half of them. In the headless preview, the boss holds about 270 px while circling, flips direction, charges through the player's predicted path and backs off again. The owner playtest still has to judge difficulty and readability.
+**Retune for the recalibrated sim** (owner 2026-11-08: restack on PR #60). PR 3 was first tuned against PR 2's sim: HP 16000 with `bossHit` 0.4 gave the typical build 32% HP left. The shopping-autopilot recalibration (aim 0.7 → 0.59, nearest-first guns, `kite`, `contactRate` 2.78) makes the fight much harder. On that sim the same numbers lose (the boss is left with 7%), and even PR 1's tuning only reaches the boss's death with ~1% HP. The owner chose about 12000 HP, keeping the cut no deeper than that by lowering the hit rate and damage instead:
+
+| Boss HP | bolt/blast/charge | `bossHit` | Fight | Typical HP left (of 84) |
+|---|---|---|---|---|
+| 16000 | 5/8/12 | 0.4 | 44 s | dies (boss 7% left) |
+| 14000 | 5/8/12 | 0.3 | 42 s | 21 (25%) |
+| 13000 | 5/8/12 | 0.3 | 39 s | 27 (32%) |
+| **12000** | **5/8/12** | **0.3** | **36 s** | **30 (36%)** |
+| 12000 | 5/8/12 | 0.35 | 36 s | 22 (26%) |
+
+Applied: HP 12000, `bossHit` 0.3. `pnpm sim` misses only `w8 pressure` (the known miss), and `sim.test.ts` no longer lists the boss as a known miss. The never-shop builds still die before wave 10.
+
+**Playtest** (`pnpm playtest --seed 1 --runs 3 --wave 10 --build typical`, HP 12000; the autopilot never dodges telegraphs). All three runs die to the boss after 25–28 s. By then they have dealt 8.7–12.6k damage (boss and brood together), so seeds 1–2 got close. They took 36–48 contact damage (charges and the brood), 5–10 from bolts and 32–40 from blasts, against 84 max HP. With 16000 HP the runs lasted 28–38 s and took about the same damage per second. A player who never dodges is hit by most attacks; 0.3 assumes a human who dodges most of them. In the headless preview the boss holds about 270 px while circling, flips direction, charges through the player's predicted path and backs off again. The owner playtest still has to judge difficulty and readability.
