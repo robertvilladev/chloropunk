@@ -60,7 +60,11 @@ What the owner felt as "scrap stranded under enemies" is real on screen. Economi
   - spread: 1 per pellet;
   - beam, melee arc and rocket blast: 3.
 - **Contact:** an enemy within 30 px hits at 0.25 hits/s (1.52 after the [hunt & horde](2026-11-08-hunt-and-horde-addendum.md#4-pr-2--enemy-roles-applied) enemy roles, 2.78 after the shopping playtests; both fitted), capped at 1 hit/s by the i-frames.
-- **Bolts** (since the hunt & horde shopping playtests): carrots stop at `keepDistance` and never touch. Within `range` each fires every `fireEvery` s and a fraction `boltHit` = 1 lands (fitted 1.05). Tomato blasts are not modelled. Armor and dodge apply, and regen heals.
+- **Moving player** (since the [hunt & horde](2026-11-08-hunt-and-horde-addendum.md) shopping playtests, 2026-11-08): the sim used to model a player standing still, so a decent build killed everything as it walked in and took no damage, while the shopping autopilot ended waves 4–9 at 13–61% HP. Two fitted knobs fix that:
+  - `kite` = 0.5: every enemy except the boss closes in at (1 − kite) × its speed.
+  - `carrotBolts` = 1.07: each carrot lands that many bolts on average over its life, one per `fireEvery` once in `range`, whether or not it is still alive. The playtests showed about 0.75 landed bolts per carrot whatever the build, because a moving player is always exposed. Carrots stop at `keepDistance` and never touch. Tomato blasts are not modelled.
+  - `pnpm runs` fits both: `kite` by grid search on kill %, `carrotBolts` as measured ÷ simulated bolt damage. With them, the sim's HP for the same builds is 74/70/56/50/41% in waves 4–8 against 61/61/51/32/40% measured (it said ~100% before).
+  - Guns shoot the nearest enemy first. The standing-still pin in `sim.test.ts` runs with `kite` 0. Armor and dodge apply, and regen heals.
 - **Scrap:** all dropped scrap is banked, matching the auto-collect at wave end.
 
 **Run model** (`simulateRun`):
@@ -177,7 +181,7 @@ Spawn rate: 0.8 enemies/s in wave 1, 1.3 in wave 5, 2.1 in wave 9 and 2.3 in wav
 ## 7. Known misses and risks
 
 - **A3 spawn distance (2026-10-24).** At `spawnDist` 480 alone the typical build ran short of scrap and died in wave 8; the far-enemy catch-up (§3) clears that. The blade starter's 12/16 in wave 1 went away with the longer waves (§11: 22/25).
-- **Waves 8–9 too easy for the scripted shopper** (since §11; before it, wave 8 only): 98–101% HP left, 97% kills in wave 9. These are the only failed targets at the calibrated centre. The shopper banks more early scrap and snowballs, while the owner's own runs sit in the pressure band (34–39% HP). Leave it for the playtest; the fallback is prices ×1.1 (§11).
+- **Waves 8–9 too easy for the scripted shopper** (since §11; before it, wave 8 only; resolved by the moving-player model above, which puts the shopper at 43%/15% HP in waves 8–9, leaving only wave 8's kill % at 95, the band's edge): 98–101% HP left, 97% kills in wave 9. These are the only failed targets at the calibrated centre. The shopper banks more early scrap and snowballs, while the owner's own runs sit in the pressure band (34–39% HP). Leave it for the playtest; the fallback is prices ×1.1 (§11).
 - **Wave 10 is the boss** (M4b, 2026-10-26): `bossTargets` wants the typical build to kill it with 20–60% HP left and the never-shop pistol not to win it. The sim's boss is one big foe plus its attacks as a damage rate (`bossHit` 0.3 of attacks land, a guess until real boss logs); typical wins in ~53 s with 29% HP. Boss HP 6500.
 - **Sensitivity.** Across aim 0.6–0.8 × contact rate 0.15–0.35, the knobs miss 1–4 targets per corner:
   - low aim is harder mid-run;
