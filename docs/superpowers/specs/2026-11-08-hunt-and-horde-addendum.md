@@ -26,9 +26,9 @@ The goal is a Brotato-like feel: packs that surround you, enemies that cut you o
 
 ## 3. PR 1 — pacing and horde (applied)
 
-**Speeds ×≈1.3.**
+**Speeds: enemies and projectiles ×≈1.3, player ×1.125.**
 
-- Player: 160 → 210 px/s (`INITIAL_PLAYER_SPEED`). Magnet pull: 420 → 550 px/s.
+- Player: 160 → 180 px/s (`INITIAL_PLAYER_SPEED`). It was 210 at first, but in the owner's playtest of the preview (2026-11-08) they could still dodge almost everything, so the player gets less of the speed-up than the enemies. Magnet pull: 420 → 550 px/s.
 - Player projectiles: pistol 520 → 680, shotgun 480 → 620, rocket 360 → 470.
 - Enemies:
   - pea 90 → 120

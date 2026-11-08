@@ -9,8 +9,8 @@ export const GAME_CONFIG = {
   WIDTH: 800,
   HEIGHT: 600,
 
-  // Balance (hunt & horde addendum: speeds ×1.3)
-  INITIAL_PLAYER_SPEED: 210,
+  // Balance (hunt & horde addendum: player ×1.125, enemies ×1.3; 210 dodged too easily in the owner playtest)
+  INITIAL_PLAYER_SPEED: 180,
 
   // Pickups
   MAGNET_SPEED: 550,
