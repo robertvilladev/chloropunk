@@ -39,6 +39,8 @@ export function createEnemyState(def: EnemyDef, wave: number, index = 0): EnemyS
   };
 }
 
+const EDGE = 40; // px from the arena edge where an orbiting carrot turns back
+
 /** No enemy predicts further ahead than this (s). */
 export const LEAD_MAX_S = 0.8;
 
@@ -155,8 +157,15 @@ export function steer(
       state.timer += dt;
       if (dist < params.keepDistance) dir = -1;
       else if (dist <= params.range) {
-        // ponytail: fixed orbit way; a wall just makes it slide (avoid / world bounds), no flip
-        [ux, uy] = [-uy * state.orbit, ux * state.orbit];
+        // orbit; reverse at the arena edge instead of grinding along it (avoid already slides it round the vents)
+        let tx = -uy * state.orbit;
+        let ty = ux * state.orbit;
+        if ((self.x < EDGE && tx < 0) || (self.x > ARENA.w - EDGE && tx > 0) || (self.y < EDGE && ty < 0) || (self.y > ARENA.h - EDGE && ty > 0)) {
+          state.orbit = -state.orbit;
+          tx = -tx;
+          ty = -ty;
+        }
+        [ux, uy] = [tx, ty];
         catchUp = false;
       }
       if (dist <= params.range && state.timer >= params.fireEvery) {

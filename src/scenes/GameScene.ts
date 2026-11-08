@@ -207,6 +207,7 @@ export class GameScene extends Phaser.Scene {
     this.enemiesKilled = 0;
     this.gameSpeed = 1;
     this.physics.world.timeScale = 1;
+    this.physics.world.fixedStep = false;
     this.time.timeScale = 1;
     this.tweens.timeScale = 1;
     this.isGameOver = false;
@@ -595,6 +596,10 @@ export class GameScene extends Phaser.Scene {
   private onSpeedChanged(speed: number): void {
     this.gameSpeed = speed;
     // Arcade: lower timeScale = faster. Code-driven timers use the scaled dt.
+    // At 1x physics steps once per rendered frame: fixed 60 Hz steps under a 120+ Hz display made
+    // bodies move every 2nd-3rd frame while the camera lerped every frame (a jittery double image).
+    // Arcade's variable step ignores timeScale, so fast-forward keeps the fixed step.
+    this.physics.world.fixedStep = speed !== 1;
     this.physics.world.timeScale = 1 / speed;
     this.time.timeScale = speed;
     this.tweens.timeScale = speed;

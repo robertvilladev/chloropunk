@@ -101,7 +101,7 @@ The per-enemy variation comes from the spawn index, never from extra spawn RNG d
 |---|---|---|
 | pea | `flankDist` 150, `flank` 45°, `lead` 0.5 | Farther than 150 px it heads 45°·`slot` off the line to you, a spiral, so a pack closes from up to 90° apart |
 | pepper | `dashRange` 220, `windup` 0.5, `dashSpeed` 420, `dashTime` 0.35, `recover` 0.4, `lead` 0.8 | Stands in its `tell` frame for the whole wind-up, locks the dash on the predicted spot, stands 0.4 s after. Replaces `dashEvery` 2.5 |
-| carrot | `keepDistance` 200, `range` 260, `fireEvery` 2, `boltSpeed` 290, `lead` 0.7 | In the band it strafes at full speed (80 px/s) in its `orbit` way; `fireBolt` aims at `leadPoint(…, boltSpeed, 0.7)`. A wall just makes it slide (no flip) |
+| carrot | `keepDistance` 200, `range` 260, `fireEvery` 2, `boltSpeed` 290, `lead` 0.7 | In the band it strafes at full speed (80 px/s) in its `orbit` way; `fireBolt` aims at `leadPoint(…, boltSpeed, 0.7)`. Within 40 px of the arena edge it reverses its orbit instead of grinding along the wall; `avoid` slides it round the vents |
 | tomato | `lead` 1 (+ blast unchanged) | Up to 0.8 s ahead of you |
 | potato | `lead` 1 | Same aim, at 60 px/s |
 
@@ -116,6 +116,13 @@ The per-enemy variation comes from the spawn index, never from extra spawn RNG d
 | Wave 4 | kill 57%, HP 92% | kill 56%, HP 0%: 75 contact, 28 bolt, 24 blast damage |
 | Aim (hits ÷ shots) | 0.99 | 0.86 (73% in wave 1: the peas fan out) |
 | Fitted contactRate | 3.44 | 1.52 |
+
+**Owner playtest of the PR preview (2026-11-08):** "way better, more aggressive and fun", but the fighter's movement looked slow and flickery, like a ghost at times. Two causes, both fixed in this PR:
+
+- Arcade physics stepped at a fixed 60 Hz while the display ran at 120+ Hz. Bodies moved only every 2nd–3rd frame, but the camera lerped every frame, so the fighter jittered 1–2 px on screen about 40 times a second (a double image). At 1× the world now steps once per rendered frame (`fixedStep` off). 2× and 3× keep the fixed step, because Arcade's variable step ignores `timeScale`.
+- The i-frame flash faded the fighter to fully transparent on a wall-clock sine. It now blinks between 100% and 55% alpha every 100 ms of game time.
+
+The wave-1 standing pin in `sim.test.ts` was re-checked in the browser: seed 1, pistol, 20 s standing still gives 30 kills and 96 HP; the sim says 30.
 
 The autopilot no longer dodges everything: it now dies where `pnpm sim` has always put a never-shop pistol (wave 4, sim kill 51%). Damage comes from all three sources, not just contact. In the preview (wave 5 with dev spawns), peppers stop and show their tell frame before each dash, and carrots in their band move only sideways at 80 px/s, each in its `orbit` way.
 

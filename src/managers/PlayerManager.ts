@@ -92,8 +92,8 @@ export class PlayerManager {
     // Update invulnerability timer
     if (this.invulnerableTimer > 0) {
       this.invulnerableTimer -= delta;
-      // Flash effect during invulnerability
-      this.player.setAlpha(Math.sin(Date.now() / 100) * 0.5 + 0.5);
+      // Blink during invulnerability (game time, never fully see-through)
+      this.player.setAlpha(Math.floor(this.invulnerableTimer / 100) % 2 ? 0.55 : 1);
     } else {
       this.player.setAlpha(1);
     }

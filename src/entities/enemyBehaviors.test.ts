@@ -134,6 +134,19 @@ describe("steer", () => {
     expect(cw.timer).toBe(0);
   });
 
+  it("carrot turns back at the arena edge instead of grinding along it", () => {
+    const p = pp("carrot");
+    const s = createEnemyState(enemies.carrot, 1, 0); // orbit +1: tangent (-uy, ux)
+    // player straight below, carrot near the left edge: +1 would head to x < 0
+    const r = steer("shooter", s, { x: 20, y: 300 }, { x: 20, y: 530 }, STILL, 0.016, p);
+    expect(s.orbit).toBe(-1);
+    expect(r.vx).toBeCloseTo(enemies.carrot.speed);
+    // away from the edge it keeps its way
+    const free = createEnemyState(enemies.carrot, 1, 0);
+    steer("shooter", free, { x: 500, y: 300 }, { x: 500, y: 530 }, STILL, 0.016, p);
+    expect(free.orbit).toBe(1);
+  });
+
   it("carrot shots lead a moving target, imperfectly (EnemyManager.fireBolt aims here)", () => {
     const p = pp("carrot");
     const P = at(230, 0);
