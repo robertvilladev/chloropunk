@@ -15,6 +15,7 @@ Status: ✅ done · 🚧 in progress · ⬜ planned. "(proposed)" = inferred by 
 | Art refresh | ✅ done — PRs #45, #47, #48, #50, #51 | [art refresh plan](docs/superpowers/plans/2026-10-23-art-refresh.md), [UI plan](docs/superpowers/plans/2026-10-25-ui-art-refresh.md) |
 | M4 Boss & run end | 🚧 M4a run end and M4b boss done; owner boss playtest and final README pass left | [M4a](docs/superpowers/plans/2026-10-23-m4-run-end.md), [M4b](docs/superpowers/plans/2026-10-23-m4-boss.md) |
 | Hunt & horde | 🚧 PR 1 pacing + packs applied; PR 2 enemy roles and PR 3 boss movement planned | [addendum](docs/superpowers/specs/2026-11-08-hunt-and-horde-addendum.md) |
+| Living arena & HUD (post-MVP) | ⬜ planned (owner decisions 2026-11-10) | [addendum](docs/superpowers/specs/2026-11-10-living-arena-addendum.md), [plan](docs/superpowers/plans/2026-11-10-living-arena.md) |
 
 ## M1 — Waves & feel ✅
 Spec: [§4 run loop, §5 systems](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md)
@@ -118,6 +119,18 @@ Owner playtest 2026-11-08: enemies don't hunt, the boss kites easily, waves tric
 - ⬜ PR 2 enemy roles: pea pack hunter, pepper charger (stop, tell, dash at your predicted path), carrot orbiting kiter with leading shots, tomato interceptor, potato herder
 - ⬜ PR 3 boss: pursues and strafes at near player speed, telegraphs track then lock, phase-2 charge chains; re-tune `bossTargets`
 - ⬜ Owner playtest after each PR; re-pin the sim's wave-1 playtest (`sim.test.ts`) and recalibrate `contactRate` / `spawnDist` with `pnpm runs`
+
+## Living arena & HUD ⬜
+Post-MVP, not named in the MVP spec. Owner playtests (2026-11-09): the loop is solid but the arena is inert and runs feel alike; the HUD reads as unpolished. Spec: [living arena addendum](docs/superpowers/specs/2026-11-10-living-arena-addendum.md) (owner decisions 2026-11-10), steps in the [plan](docs/superpowers/plans/2026-11-10-living-arena.md). One PR each, in order.
+
+- ⬜ PR 1 HUD theme tokens and widget kit (no visual change; other screens untouched)
+- ⬜ PR 2 HUD redesign: HP bar lime → danger under 30% with value, ticks and hit trail; XP numbers; weapon cooldown sweeps; buff chips; toasts; modifier chip; `ESC PAUSE` hint
+- ⬜ PR 3 arena interactables core and breakables (Scrap Crate, Juice-o-Matic with a heal can, Loot Drone), rolled per wave on their own seeded stream
+- ⬜ PR 4 hazards (Propane Tank, Compost Spill, Arc Vent)
+- ⬜ PR 5 shrines (Blood Graft, Cursed Cache, Scrap Slots) and mid-wave stat buffs
+- ⬜ PR 6 wave modifiers (Scrap Rain, Rush Hour, Overgrown, Supply Drop, Toxic Spill)
+- ⬜ PR 7 balance: arena income in the sim (budget +10–15% per wave), run log fields, docs sweep
+- ⬜ Owner playtest after each PR
 
 ## Carry-overs / known issues
 From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) and the [M2 outcome](docs/superpowers/plans/2026-10-18-m2-build-crafting.md):
