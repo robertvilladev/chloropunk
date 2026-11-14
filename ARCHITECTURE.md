@@ -13,8 +13,6 @@ src/
                         shop (offers, reroll, lock), levelup (picks), time, settings (reduced shake, master/music/SFX volume), music (track per state, duck/crossfade constants, volume step), voices (SFX voice limit, pitch/volume variation, pickup streak pitch), menuNav (keyboard selection), depth (y-sort, facing), bob (walking squash-and-bob and spawn pop-in curves), bossSkin (pickBossSkin, BOSS_NAMES, BOSS_ART per-look projectiles and colour), arena (validateArena: rooftop decor inside the arena and clear of the 160 px start circle, solids ≤144×96 and ≥80 px apart; solidRects; outsideSolids moves spawns and drops off the solids), labels (tier names, clock, truncate, formatCount), summary (summariseRun for the run summary; best wave in localStorage `vv.best`, quits don't count),
                         sim (headless balance simulator; sim.targets = reference builds, balance targets, threat-budget wave authoring, dev `runAtWave`), autopilot (dev kiting input),
                         runlog (versioned per-run log: wave/shop/level-up records, localStorage store of the last 50, summarise + fitParams for `pnpm runs`)
-scripts/runs.mjs        `pnpm runs <file|folder>` wrapper: runs src/core/runlog.report.test.ts under Vitest with RUNS_PATH set
-scripts/playtest.mjs    `pnpm playtest`: Vite + Playwright Chromium autopilot run, saves localStorage `vv.runs` to runs/playtest-<seed>.json
   config/constants.ts  ARENA {w,h} = playfield, 1600×1200 (physics bounds, spawns, y-sort, autopilot); GAME_CONFIG.WIDTH/HEIGHT = 800×600 design space for layout only (arena.guard.test.ts)
   config/view.ts       RENDER_SCALE = 2: canvas is 1600×1200, each scene's main camera is zoomed 2× onto the 800×600 design space (applyView, wired in gameConfig postBoot), except GameScene's, which then follows the fighter inside the arena (followView); installCrispText renders all Text at 2×. Scenes keep 800×600 coordinates, so use GAME_CONFIG.WIDTH/HEIGHT (not camera/scale size) and no setScrollFactor(0): screen-fixed things go in UIScene
   fx/glow.ts            isWebGL() guard + applyGlow() (single camera bloom, WebGL only); renderer picked via ?renderer=canvas|webgl (config/renderer.ts)
@@ -24,6 +22,8 @@ scripts/playtest.mjs    `pnpm playtest`: Vite + Playwright Chromium autopilot ru
   fx/sounds.ts          every SFX as a ZzFX parameter array + voice rule (one data file); fx/zzfx.ts = vendored ZzFX sample generator (MIT)
   art/                  vector.ts (sprites, weapons, projectiles, effects and the three bosses as SVG strings + SPRITE_META), icons.ts (15 item + 14 stat card/HUD icons, `icon_<kind>_<id>`), body.ts (ART_SCALE, fitCircle/fitBox hit areas), textures.ts loads the SVGs at 2x and bakes CanvasTextures + walk anims at boot; arena.ts bakes the floor (grid, rooftop decor from arena.json, lime edge) into one texture per arena size, shown by WorldManager as one image; WorldManager also puts invisible static bodies over the `solid` props (player, enemies, enemy bolts and scrap collide; player shots fly over)
   types/, utils/        shared types, math helpers
+scripts/runs.mjs        `pnpm runs <file|folder>` wrapper: runs src/core/runlog.report.test.ts under Vitest with RUNS_PATH set
+scripts/playtest.mjs    `pnpm playtest`: Vite + Playwright Chromium autopilot run, saves localStorage `vv.runs` to runs/playtest-<seed>.json
 assets/data/            enemies.json, waves.json, weapons.json, character.json, items.json, upgrades.json, arena.json (rooftop decor layout; `solid` props are obstacles)
 ```
 
@@ -43,4 +43,4 @@ assets/data/            enemies.json, waves.json, weapons.json, character.json, 
 
 **Run log** ([balance design §9](docs/superpowers/specs/2026-10-20-balance-design.md#9-measuring-real-games-proposed)): `newRun` creates `RunState.log`, which rides along with the run. `GameScene` opens a wave record at `create` and fills it from its own events (kills, `enemyHit`, `scrapCollected`, `playerDodged`, damage by source via `hurt()`, `WeaponManager.tally` shots/hits, `EnemyManager.spawned` and its mean spawn distance; the run records the arena size, so `pnpm runs` reports each size apart); `ShopScene` and `LevelUpScene` push a record when they close. The log is saved to localStorage when the run ends: death, last wave cleared, quit from the pause menu, or Main Menu on the Victory screen. Saving a died or won run also updates the best wave (`recordBest`), so the summary and the menu read it from storage. Dev F4 downloads `runs.json`.
 
-What's planned next (look, boss, run summary) lives in [ROADMAP.md](ROADMAP.md); don't duplicate it here.
+What's planned next lives in [ROADMAP.md](ROADMAP.md); don't duplicate it here.

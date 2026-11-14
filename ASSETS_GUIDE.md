@@ -1,6 +1,6 @@
 # Importing Assets Guide
 
-> Only JSON data is in use today. Sprites are SVG strings in `src/art/vector.ts` (code, not files; see below); SFX are ZzFX parameter arrays (see Audio below); music is two OGG files in `assets/audio/`.
+> Content is JSON in `assets/data/`. Sprites are SVG strings in `src/art/` (code, not image files); SFX are ZzFX parameter arrays (see Audio below); the only binary assets are the two music OGGs in `assets/audio/`.
 
 ## JSON Data Files
 
@@ -25,7 +25,7 @@ All JSON imports are typed! Check `src/types/json.d.ts` for type declarations.
 
 ```typescript
 import waveData from "@assets/data/waves.json";
-// waveData is typed as: { waves: WaveDef[] }
+// waveData is typed as: { scaling: WaveScaling; waves: WaveDef[] }
 
 import enemyData from "@assets/data/enemies.json";
 // enemyData is typed as: Record<string, EnemyDef>
@@ -34,20 +34,9 @@ import enemyData from "@assets/data/enemies.json";
 ### Usage Example
 
 ```typescript
-import type { EnemyDef } from "@/types";
-import enemyDataJson from "@assets/data/enemies.json";
+import enemyDefs from "@assets/data/enemies.json"; // Record<string, EnemyDef>
 
-export class EnemyManager {
-  private enemyData: Record<string, EnemyDef>;
-  
-  constructor() {
-    this.enemyData = enemyDataJson;
-  }
-  
-  getEnemyStats(type: string): EnemyDef {
-    return this.enemyData[type];
-  }
-}
+const pea = enemyDefs.pea; // as in EnemyManager
 ```
 
 ### Boss data
@@ -81,6 +70,8 @@ Sprites are SVG strings in design px (vector style, keyline outline: [addendum Â
 | `@/` | `src/` | Source code files |
 | `@scenes/` | `src/scenes/` | Scene files |
 | `@managers/` | `src/managers/` | Manager classes |
+| `@entities/` | `src/entities/` | Pure behaviours |
+| `@utils/` | `src/utils/` | Math helpers |
 | `@config/` | `src/config/` | Configuration |
 | `@types/` | `src/types/` | Type definitions |
 | `@assets/` | `assets/` | **JSON, images, audio** |
