@@ -1,6 +1,6 @@
 # Chloropunk
 
-A top-down arena roguelike in the vein of Brotato: a cyberpunk fighter smashes mutant vegetables on a neon rooftop. Desktop browser, keyboard and mouse.
+A top-down arena roguelike: a cyberpunk fighter smashes mutant vegetables on a neon rooftop. Desktop browser, keyboard and mouse.
 Built with **Phaser 3.90**, **TypeScript (strict)**, **Vite** and **Vitest**; deployed to Vercel from `main`.
 
 **Status:** the MVP is built (10 waves, a boss, build-crafting, run summary). [ROADMAP.md](ROADMAP.md) tracks what's done and what's next; the [MVP spec](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md) holds the intent.
