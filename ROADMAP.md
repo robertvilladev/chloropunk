@@ -13,7 +13,7 @@ Status: ✅ done · 🚧 in progress · ⬜ planned. "(proposed)" = inferred by 
 | Balance & progression | ✅ applied (PR #22; waves 1–3 playtested, 4–9 by sim only) | [balance design](docs/superpowers/specs/2026-10-20-balance-design.md) |
 | Arena map (A1–A5) | ✅ A1–A5 done (owner-approved 2026-10-23/25) | [arena addendum](docs/superpowers/specs/2026-10-23-arena-map-addendum.md) §5 |
 | Art refresh | ✅ done — PRs #45, #47, #48, #50, #51 | [art refresh plan](docs/superpowers/plans/2026-10-23-art-refresh.md), [UI plan](docs/superpowers/plans/2026-10-25-ui-art-refresh.md) |
-| M4 Boss & run end | 🚧 M4a run end and M4b boss done; owner boss playtest and final README pass left | [M4a](docs/superpowers/plans/2026-10-23-m4-run-end.md), [M4b](docs/superpowers/plans/2026-10-23-m4-boss.md) |
+| M4 Boss & run end | ✅ done — M4a run end, M4b boss (PR #54), final README pass; owner boss playtest is a carry-over | [M4a](docs/superpowers/plans/2026-10-23-m4-run-end.md), [M4b](docs/superpowers/plans/2026-10-23-m4-boss.md) |
 | Hunt & horde | 🚧 PR 1 pacing + packs applied; PR 2 enemy roles and PR 3 boss movement planned | [addendum](docs/superpowers/specs/2026-11-08-hunt-and-horde-addendum.md) |
 
 ## M1 — Waves & feel ✅
@@ -97,11 +97,10 @@ Spec: [arena map addendum](docs/superpowers/specs/2026-10-23-arena-map-addendum.
   - ✅ PR 5 UI art refresh (PR #47): no pixel font (Bungee numbers with an ink stroke), kit panels/buttons, icon windows + tier badge on shop and level-up cards, T3/T4 idle glow, legendary pick effect + sound (first pass), white/amber damage numbers, HUD weapon slots with sprites + owned item chips, loadout/summary art; boot about +250 ms WebGL / +90 ms Canvas over PR 2, art refresh total +365 / +129 ms (budget 500) ([outcome](docs/superpowers/plans/2026-10-25-ui-art-refresh.md#outcome-2026-10-25))
   - (proposed) Shop ITEMS list could use the item chips instead of names; legendary animation and sound refinement (owner, later)
 
-## M4 — Boss & run end 🚧
+## M4 — Boss & run end ✅
 Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-18-mvp-roguelike-design.md). Plans: [M4a run end](docs/superpowers/plans/2026-10-23-m4-run-end.md), [M4b boss](docs/superpowers/plans/2026-10-23-m4-boss.md) (after A5 and the boss art). Boss design: [arena map addendum §3](docs/superpowers/specs/2026-10-23-arena-map-addendum.md#3-boss-three-looks-one-fight-revised-2026-10-24).
 
 - ✅ Wave 10 boss (M4b), one of three looks picked per run (Harvester-9, The Onion King, The Greenhouse; same fight): no timer, HP bar in place of the timer, volley / charge / barrage with danger-coloured telegraphs (≥ 0.7 s), pea brood support spawns, phase 2 below 50% HP (`_p2` frames, white flash, burst, shake, PHASE 2 banner; shorter cadence, two attacks may overlap). Pure `entities/bossBrain.ts` + `BossManager`; sim boss row and `bossTargets` (typical wins with 29% HP). Verified headless on WebGL and Canvas for all three looks — [outcome](docs/superpowers/plans/2026-10-23-m4-boss.md#outcome-2026-10-26)
-- ⬜ Owner playtest of the boss (`?wave=10&build=typical` and a full run): difficulty, telegraph readability, fight length
 - ✅ Victory / defeat run summary (M4a): `SummaryScene` per the mockup (VICTORY / FLATLINED, wave n/10, kills, damage, level, final build as tier/rarity chips with a `+N` overflow chip, best wave), ONE MORE RUN (Enter → loadout) and MENU (Esc); `core/summary.ts` (`summariseRun`). Replaces the GameOverScene "RUN COMPLETE" stopgap. Defeat line is generic (no killer tracking). Verified in the browser on WebGL and Canvas: wave-1 death, wave-10 win via `?wave=10&build=typical`, overflowing build, keyboard and mouse
 - ✅ Pause menu (resume, settings, quit run) — moved forward from M4 by the owner: Esc/P or window blur opens `PauseScene`; settings has the reduced-shake toggle and master / music / SFX volume; quit asks for confirmation
 - ✅ Best-wave high-score record: localStorage `vv.best`, updated when a died or won run is saved (quits don't count), shown on the summary (with NEW BEST) and as `BEST WAVE n` on the main menu
@@ -109,7 +108,7 @@ Spec: [§4 steps 2, 6; §5 enemies; §7 screens](docs/superpowers/specs/2026-10-
 - ✅ Music ([plan](docs/superpowers/plans/2026-10-23-music.md)): 2 CC-BY 4.0 synthwave loops (NLV on menu/loadout, Spring in waves/level-up/shop) streamed through a music bus on Phaser's AudioContext, 1.5 s crossfade on state change, duck to 30% under pause / round complete / game over, master + music volume in pause settings, credits in `assets/audio/CREDITS.md` and a menu CREDITS overlay. Verified in the browser (crossfade, duck, no duplicate tracks, settings persist); not yet listened to by the owner
 - ✅ (proposed, owner 2026-10-28) SETTINGS on the main menu: opens `PauseScene` in settings-only mode (same rows: reduced shake, master / music / SFX volume; BACK/Esc return to the menu, no music duck), so volume can be set before the first run
 - ✅ (proposed, owner 2026-10-28, dev only) Start muted in `pnpm dev`: every worktree's dev server runs on its own port, so its own origin, so `vv.settings` starts empty and the menu music plays at the 100% master default in each new agent preview. `pnpm dev` (Vite mode `development`) defaults master volume to 0 when nothing is saved; tests and production builds keep 100%
-- ⬜ Final README pass
+- ✅ Final README pass: README rewritten for the shipped MVP (run flow, controls, scripts, dev flags, layout); stale bits fixed in ARCHITECTURE and ASSETS_GUIDE
 
 ## Hunt & horde 🚧
 Owner playtest 2026-11-08: enemies don't hunt, the boss kites easily, waves trickle in one by one and the game feels slow. Spec: [hunt & horde addendum](docs/superpowers/specs/2026-11-08-hunt-and-horde-addendum.md) (owner decisions 2026-11-08). One PR each, in order.
@@ -122,6 +121,7 @@ Owner playtest 2026-11-08: enemies don't hunt, the boss kites easily, waves tric
 ## Carry-overs / known issues
 From the [M1 outcome](docs/superpowers/plans/2026-10-18-m1-waves-and-feel.md) and the [M2 outcome](docs/superpowers/plans/2026-10-18-m2-build-crafting.md):
 
+- **Boss (M4):** owner playtest of the boss still open (`?wave=10&build=typical` and a full run): difficulty, telegraph readability, fight length
 - **Balance:** see [Balance & progression](#balance--progression-); boss targets in `bossTargets` (sim), the sim's `bossHit` is a guess until real boss logs
 - **Perf:** measured in M3 (visible pane, 6 tier-2 weapons, 90–150 peas): 72 fps (the display's refresh) on WebGL with and without bloom and on Canvas, steady 13.9 ms frames; not measured on a slower machine. A2 (2026-10-24, follow camera, 1600×1200, ~130–150 peas): 117–140 fps on WebGL and Canvas.
 - **Canvas renderer (pre-M3):** death bursts use `particleTint`, which Phaser's Canvas renderer doesn't draw (bursts white). The player hit flash is the baked `hit` frame since art refresh PR 3, so it shows on Canvas.
